@@ -1438,7 +1438,7 @@ class LampadaPlugin extends Plugin {
    * Segnalibri e letture recenti, Bibbia e pubblicazioni insieme. done: chiamata prima di aprire (es. per chiudere una finestra).
    * compact (home della Bibbia e della Biblioteca): una riga per sezione che scorre di lato, "Tutti" apre l'elenco completo.
    */
-  async renderPlaces(el, done, compact) {
+  async renderPlaces(el, done, compact, only = '') {
     await this.library.ensureLoaded().catch(() => null);
     await this.bible.ensureLoaded().catch(() => null);
     const lib = this.library;
@@ -1454,15 +1454,11 @@ class LampadaPlugin extends Plugin {
         open: () => this.openReader({ book: p.book, chapter: p.chapter, verse: p.verse }),
       };
     };
-    let allBtn = false;
-    const strip = (title, items) => {
+    const strip = (title, items, kind) => {
       const head = el.createDiv('lmp-strip-head');
       head.createEl('h4', { cls: 'lmp-section-title', text: title });
-      if (!allBtn) {
-        allBtn = true;
-        const all = head.createEl('button', { cls: 'lmp-strip-all', text: 'Tutti' });
-        all.addEventListener('click', () => new PlacesModal(this, null).open());
-      }
+      const all = head.createEl('button', { cls: 'lmp-strip-all', text: 'Tutti' });
+      all.addEventListener('click', () => new PlacesModal(this, null, kind).open());
       const row = el.createDiv('lmp-strip');
       for (const [, x] of items) {
         const chip = row.createEl('button', { cls: 'lmp-chip', attr: { 'aria-label': `${x.title} · ${x.sub}` } });
@@ -1471,10 +1467,11 @@ class LampadaPlugin extends Plugin {
         chip.addEventListener('click', () => x.open());
       }
     };
-    const section = (title, list, removable) => {
+    const section = (title, list, removable, kind) => {
+      if (only && only !== kind) return;
       const items = list.map((p) => [p, describe(p)]).filter(([, x]) => x);
       if (!items.length) return;
-      if (compact) return strip(title, items);
+      if (compact) return strip(title, items, kind);
       el.createEl('h4', { cls: 'lmp-section-title', text: title });
       const box = el.createDiv('lmp-places');
       for (const [p, x] of items) {
@@ -1497,8 +1494,8 @@ class LampadaPlugin extends Plugin {
         });
       }
     };
-    section('Segnalibri', [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true);
-    section('Aperti di recente', this.ui.recent || [], false);
+    section('Segnalibri', [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true, 'bookmarks');
+    section('Aperti di recente', this.ui.recent || [], false, 'recent');
   }
 
   notePath(book, chapter, verse) {

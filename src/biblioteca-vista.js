@@ -108,13 +108,15 @@ class LibraryView extends ItemView {
     this.prevBtn = btn('chevron-left', 'Documento precedente', () => this.stepDoc(-1));
     this.nextBtn = btn('chevron-right', 'Documento successivo', () => this.stepDoc(1));
     btn('search', 'Cerca ovunque', () => this.plugin.openSearch());
-    btn('bookmark', 'Segnalibri e recenti', () => new PlacesModal(this.plugin, this.herePlace()).open());
+    btn('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
+    btn('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
     btn('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open());
     if (Platform.isPhone && this.addAction && !this.inShell) {
       this.addAction('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open());
       this.addAction('chevron-right', 'Documento successivo', () => this.stepDoc(1));
       this.addAction('chevron-left', 'Documento precedente', () => this.stepDoc(-1));
-      this.addAction('bookmark', 'Segnalibri e recenti', () => new PlacesModal(this.plugin, this.herePlace()).open());
+      this.addAction('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
+      this.addAction('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
       this.addAction('search', 'Cerca ovunque', () => this.plugin.openSearch());
       addGoToAction(this, 'lib', () => this.navigate({ mode: 'home' }));
       root.addClass('lmp-native-header');

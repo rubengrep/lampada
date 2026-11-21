@@ -90,17 +90,18 @@ function addGoToAction(view, current, goHome) {
   });
 }
 
-/** Finestra "Segnalibri e recenti": segnalibro dove sei, poi gli elenchi. */
+/** Finestra dei segnalibri (con il segnalibro dove sei) o dei recenti; kind: 'bookmarks' | 'recent' | '' (tutti e due). */
 class PlacesModal extends Modal {
-  constructor(plugin, here) {
+  constructor(plugin, here, kind = '') {
     super(plugin.app);
     this.plugin = plugin;
     this.here = here;
+    this.kind = kind;
   }
 
   onOpen() {
-    this.titleEl.setText('Segnalibri e recenti');
-    if (this.here) {
+    this.titleEl.setText({ bookmarks: 'Segnalibri', recent: 'Aperti di recente' }[this.kind] || 'Segnalibri e recenti');
+    if (this.here && this.kind !== 'recent') {
       const has = this.plugin.findBookmark(this.here.place);
       const b = this.contentEl.createEl('button', { cls: has ? 'lmp-place-here' : 'lmp-place-here mod-cta', text: `${has ? 'Rimuovi il segnalibro' : 'Aggiungi segnalibro'}: ${this.here.label}` });
       setIcon(b.createSpan({ cls: 'lmp-place-here-icon', prepend: true }), has ? 'bookmark-minus' : 'bookmark-plus');
@@ -109,7 +110,10 @@ class PlacesModal extends Modal {
         this.close();
       });
     }
-    this.plugin.renderPlaces(this.contentEl.createDiv(), () => this.close());
+    const list = this.contentEl.createDiv();
+    this.plugin.renderPlaces(list, () => this.close(), false, this.kind).then(() => {
+      if (!list.childElementCount) list.createDiv({ cls: 'lmp-empty', text: this.kind === 'recent' ? 'Ancora niente.' : 'Nessun segnalibro.' });
+    });
   }
 
   onClose() {

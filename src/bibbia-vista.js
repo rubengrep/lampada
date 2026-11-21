@@ -93,7 +93,8 @@ class BibleView extends ItemView {
       this.addAction('chevron-right', 'Capitolo successivo', () => this.stepChapter(1));
       this.addAction('chevron-left', 'Capitolo precedente', () => this.stepChapter(-1));
       this.addAction('search', 'Cerca ovunque', () => this.plugin.openSearch(this));
-      this.addAction('bookmark', 'Segnalibri e recenti', () => new PlacesModal(this.plugin, this.herePlace()).open());
+      this.addAction('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
+      this.addAction('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
       this.addAction('list', 'Libri e capitoli', () => {
         const st = this.state;
         if (st.mode === 'reader' && st.book) this.navigate({ mode: 'chapters', book: st.book });
@@ -230,7 +231,8 @@ class BibleView extends ItemView {
     this.nextBtn = btn('chevron-right', 'Capitolo successivo (→)', () => this.stepChapter(1), 'lmp-reader-only');
     btn('search', 'Cerca ovunque', () => this.plugin.openSearch(this));
     this.parBtn = btn('columns-3', 'Racconti paralleli', () => this.toggleParallels(), 'lmp-reader-only');
-    btn('bookmark', 'Segnalibri e recenti', () => new PlacesModal(this.plugin, this.herePlace()).open());
+    btn('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
+    btn('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
     btn('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open());
     this.paneBtn = btn('panel-right', 'Mostra/nascondi pannello di studio', () => this.togglePane(), 'lmp-reader-only lmp-desktop-only');
     btn('more-vertical', 'Altre opzioni', (evt) => this.showMoreMenu(evt));

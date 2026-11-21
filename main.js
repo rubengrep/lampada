@@ -3320,14 +3320,15 @@ function addGoToAction(view, current, goHome) {
   });
 }
 var PlacesModal = class extends import_obsidian8.Modal {
-  constructor(plugin, here) {
+  constructor(plugin, here, kind = "") {
     super(plugin.app);
     this.plugin = plugin;
     this.here = here;
+    this.kind = kind;
   }
   onOpen() {
-    this.titleEl.setText("Segnalibri e recenti");
-    if (this.here) {
+    this.titleEl.setText({ bookmarks: "Segnalibri", recent: "Aperti di recente" }[this.kind] || "Segnalibri e recenti");
+    if (this.here && this.kind !== "recent") {
       const has = this.plugin.findBookmark(this.here.place);
       const b = this.contentEl.createEl("button", { cls: has ? "lmp-place-here" : "lmp-place-here mod-cta", text: `${has ? "Rimuovi il segnalibro" : "Aggiungi segnalibro"}: ${this.here.label}` });
       (0, import_obsidian8.setIcon)(b.createSpan({ cls: "lmp-place-here-icon", prepend: true }), has ? "bookmark-minus" : "bookmark-plus");
@@ -3336,7 +3337,10 @@ var PlacesModal = class extends import_obsidian8.Modal {
         this.close();
       });
     }
-    this.plugin.renderPlaces(this.contentEl.createDiv(), () => this.close());
+    const list = this.contentEl.createDiv();
+    this.plugin.renderPlaces(list, () => this.close(), false, this.kind).then(() => {
+      if (!list.childElementCount) list.createDiv({ cls: "lmp-empty", text: this.kind === "recent" ? "Ancora niente." : "Nessun segnalibro." });
+    });
   }
   onClose() {
     this.contentEl.empty();
@@ -5642,7 +5646,8 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       this.addAction("chevron-right", "Capitolo successivo", () => this.stepChapter(1));
       this.addAction("chevron-left", "Capitolo precedente", () => this.stepChapter(-1));
       this.addAction("search", "Cerca ovunque", () => this.plugin.openSearch(this));
-      this.addAction("bookmark", "Segnalibri e recenti", () => new PlacesModal(this.plugin, this.herePlace()).open());
+      this.addAction("bookmark", "Segnalibri", () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
+      this.addAction("history", "Aperti di recente", () => new PlacesModal(this.plugin, null, "recent").open());
       this.addAction("list", "Libri e capitoli", () => {
         const st = this.state;
         if (st.mode === "reader" && st.book) this.navigate({ mode: "chapters", book: st.book });
@@ -5765,7 +5770,8 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.nextBtn = btn("chevron-right", "Capitolo successivo (\u2192)", () => this.stepChapter(1), "lmp-reader-only");
     btn("search", "Cerca ovunque", () => this.plugin.openSearch(this));
     this.parBtn = btn("columns-3", "Racconti paralleli", () => this.toggleParallels(), "lmp-reader-only");
-    btn("bookmark", "Segnalibri e recenti", () => new PlacesModal(this.plugin, this.herePlace()).open());
+    btn("history", "Aperti di recente", () => new PlacesModal(this.plugin, null, "recent").open());
+    btn("bookmark", "Segnalibri", () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
     btn("type", "Aspetto del testo", () => new ReadingModal(this.plugin).open());
     this.paneBtn = btn("panel-right", "Mostra/nascondi pannello di studio", () => this.togglePane(), "lmp-reader-only lmp-desktop-only");
     btn("more-vertical", "Altre opzioni", (evt) => this.showMoreMenu(evt));
@@ -8059,13 +8065,15 @@ var LibraryView = class extends import_obsidian13.ItemView {
     this.prevBtn = btn("chevron-left", "Documento precedente", () => this.stepDoc(-1));
     this.nextBtn = btn("chevron-right", "Documento successivo", () => this.stepDoc(1));
     btn("search", "Cerca ovunque", () => this.plugin.openSearch());
-    btn("bookmark", "Segnalibri e recenti", () => new PlacesModal(this.plugin, this.herePlace()).open());
+    btn("history", "Aperti di recente", () => new PlacesModal(this.plugin, null, "recent").open());
+    btn("bookmark", "Segnalibri", () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
     btn("type", "Aspetto del testo", () => new ReadingModal(this.plugin).open());
     if (import_obsidian13.Platform.isPhone && this.addAction && !this.inShell) {
       this.addAction("type", "Aspetto del testo", () => new ReadingModal(this.plugin).open());
       this.addAction("chevron-right", "Documento successivo", () => this.stepDoc(1));
       this.addAction("chevron-left", "Documento precedente", () => this.stepDoc(-1));
-      this.addAction("bookmark", "Segnalibri e recenti", () => new PlacesModal(this.plugin, this.herePlace()).open());
+      this.addAction("bookmark", "Segnalibri", () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
+      this.addAction("history", "Aperti di recente", () => new PlacesModal(this.plugin, null, "recent").open());
       this.addAction("search", "Cerca ovunque", () => this.plugin.openSearch());
       addGoToAction(this, "lib", () => this.navigate({ mode: "home" }));
       root.addClass("lmp-native-header");
@@ -12903,7 +12911,7 @@ Fonte: ${source}`;
    * Segnalibri e letture recenti, Bibbia e pubblicazioni insieme. done: chiamata prima di aprire (es. per chiudere una finestra).
    * compact (home della Bibbia e della Biblioteca): una riga per sezione che scorre di lato, "Tutti" apre l'elenco completo.
    */
-  async renderPlaces(el, done, compact) {
+  async renderPlaces(el, done, compact, only = "") {
     await this.library.ensureLoaded().catch(() => null);
     await this.bible.ensureLoaded().catch(() => null);
     const lib = this.library;
@@ -12919,15 +12927,11 @@ Fonte: ${source}`;
         open: () => this.openReader({ book: p.book, chapter: p.chapter, verse: p.verse })
       };
     };
-    let allBtn = false;
-    const strip = (title, items) => {
+    const strip = (title, items, kind) => {
       const head = el.createDiv("lmp-strip-head");
       head.createEl("h4", { cls: "lmp-section-title", text: title });
-      if (!allBtn) {
-        allBtn = true;
-        const all = head.createEl("button", { cls: "lmp-strip-all", text: "Tutti" });
-        all.addEventListener("click", () => new PlacesModal(this, null).open());
-      }
+      const all = head.createEl("button", { cls: "lmp-strip-all", text: "Tutti" });
+      all.addEventListener("click", () => new PlacesModal(this, null, kind).open());
       const row = el.createDiv("lmp-strip");
       for (const [, x] of items) {
         const chip = row.createEl("button", { cls: "lmp-chip", attr: { "aria-label": `${x.title} \xB7 ${x.sub}` } });
@@ -12936,10 +12940,11 @@ Fonte: ${source}`;
         chip.addEventListener("click", () => x.open());
       }
     };
-    const section = (title, list, removable) => {
+    const section = (title, list, removable, kind) => {
+      if (only && only !== kind) return;
       const items = list.map((p) => [p, describe(p)]).filter(([, x]) => x);
       if (!items.length) return;
-      if (compact) return strip(title, items);
+      if (compact) return strip(title, items, kind);
       el.createEl("h4", { cls: "lmp-section-title", text: title });
       const box = el.createDiv("lmp-places");
       for (const [p, x] of items) {
@@ -12962,8 +12967,8 @@ Fonte: ${source}`;
         });
       }
     };
-    section("Segnalibri", [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true);
-    section("Aperti di recente", this.ui.recent || [], false);
+    section("Segnalibri", [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true, "bookmarks");
+    section("Aperti di recente", this.ui.recent || [], false, "recent");
   }
   notePath(book, chapter, verse) {
     return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/${book.title} ${chapter}-${verse}.md`);
