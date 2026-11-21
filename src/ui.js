@@ -66,6 +66,9 @@ function addAppToggle(parent, plugin, cls = 'lmp-tb-btn clickable-icon') {
 
 /** Selettore "Bibbia | Biblioteca | SCRABB" nelle barre: un'altra voce apre quella vista, quella attiva torna alla sua home. */
 function addViewSwitch(tb, plugin, current, goHome, shell) {
+  // Sul tablet e sul telefono un tocco qui (vicino al bordo sinistro) apriva la barra laterale di Obsidian come uno swipe:
+  // data-ignore-swipe è il segnale con cui Obsidian salta il gesto (lo usa anche lui per cursori e maniglie).
+  tb.dataset.ignoreSwipe = 'true';
   const sw = tb.createDiv({ cls: 'lmp-switch', attr: { role: 'group', 'aria-label': 'Bibbia, Biblioteca o SCRABB' } });
   for (const [id, icon, text, open] of AREAS) {
     const on = id === current;

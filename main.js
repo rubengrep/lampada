@@ -3318,6 +3318,7 @@ function addAppToggle(parent, plugin, cls = "lmp-tb-btn clickable-icon") {
   return b;
 }
 function addViewSwitch(tb, plugin, current, goHome, shell) {
+  tb.dataset.ignoreSwipe = "true";
   const sw = tb.createDiv({ cls: "lmp-switch", attr: { role: "group", "aria-label": "Bibbia, Biblioteca o SCRABB" } });
   for (const [id, icon, text, open] of AREAS) {
     const on = id === current;
@@ -10703,6 +10704,7 @@ var LampadaView = class extends import_obsidian16.ItemView {
   /** Guscio stretto: le sezioni in basso, come in un'app. */
   buildTabbar(root) {
     const bar = this.tabbarEl = root.createDiv("lmp-tabbar");
+    bar.dataset.ignoreSwipe = "true";
     for (const [id, icon, text] of AREAS) {
       const b = bar.createEl("button", { cls: "lmp-tab", attr: { "data-area": id, "aria-label": text } });
       (0, import_obsidian16.setIcon)(b.createSpan("lmp-tab-icon"), icon);

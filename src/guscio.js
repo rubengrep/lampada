@@ -207,6 +207,7 @@ class LampadaView extends ItemView {
   /** Guscio stretto: le sezioni in basso, come in un'app. */
   buildTabbar(root) {
     const bar = (this.tabbarEl = root.createDiv('lmp-tabbar'));
+    bar.dataset.ignoreSwipe = 'true'; // come la barra in alto (addViewSwitch): niente barra laterale per un tocco
     for (const [id, icon, text] of AREAS) {
       const b = bar.createEl('button', { cls: 'lmp-tab', attr: { 'data-area': id, 'aria-label': text } });
       setIcon(b.createSpan('lmp-tab-icon'), icon);
