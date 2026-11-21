@@ -1522,6 +1522,8 @@
 /* pannello laterale della biblioteca */
 .lmp-lib .lmp-body { flex: 1 1 auto; }
 .lmp-lib-pane .lmp-actions { padding: 8px 10px 6px 12px; }
+/* Azioni del paragrafo con le scritte: su tablet e telefono il pannello è stretto, vanno a capo invece di uscire dal bordo */
+.lmp-lib-pane .lmp-actions, .lmp-lib-pane .lmp-tools { flex-wrap: wrap; justify-content: flex-start; }
 .lmp-tool-labeled { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px !important; font-size: 12.5px; }
 .lmp-tool-labeled svg { width: 16px; height: 16px; }
 .lmp-lib-pane-par { cursor: pointer; }
