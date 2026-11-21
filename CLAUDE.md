@@ -69,6 +69,7 @@ Un altro plugin può dare a Lampada dati e azioni che Lampada non ha. Lampada fu
 | `libraryActions()` | barra degli strumenti della biblioteca | `[{ text, run }]` → un pulsante ciascuno |
 | `libraryBrowse()` | home della biblioteca, sotto le categorie | `{ text, url, meta?, icon? }` → una riga che apre la pagina `url` |
 | `libraryPage(url, el, ctx)` | `renderExt` (`mode: 'ext'`, `url`, `title`) | disegna in `el`; `ctx.go(url, titolo)`, `ctx.reload()`, `ctx.current()`; null = non è sua |
+| `urlButton(url)` | `urlButtons` (link del programma della settimana) | `{ icon, label, run }` → icona dopo il link; `run()` → true = ridisegna la pagina; null = niente |
 
 Il fornitore usa dall'istanza: `answerFieldsPath`, `imageAltsPath`, `meetingsPath`, `rbi8Dir`, `readJson`, `bible`, `library`, `refresh()`, `openLibraryAt`, `settings`, `saveSettings()`, `writeBinary(path, data)` (scrive anche nelle cartelle nascoste e Lampada vede subito il file), `app`. Non cambiarli.
 

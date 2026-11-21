@@ -8329,6 +8329,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
           continue;
         }
         const a = line.createEl("a", { cls: "lmp-week-ref", text: Array.isArray(seg) ? seg[0] : seg.t, href: "#" });
+        if (seg.url) this.urlButtons(line, seg.url);
         a.addEventListener("click", (evt) => {
           evt.preventDefault();
           if (seg.url) return window.open(seg.url);
@@ -8352,6 +8353,26 @@ var LibraryView = class extends import_obsidian13.ItemView {
     if (d) {
       const b = box.createEl("button", { cls: "lmp-small-btn", text: "Apri nella biblioteca" });
       b.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id }));
+    }
+  }
+  /** Icone delle estensioni accanto a un link (hook urlButton, es. la trascrizione di un video); dopo run() si ridisegna. */
+  urlButtons(parent, url) {
+    for (const p of this.plugin.providers) {
+      const b = typeof p.urlButton === "function" && p.urlButton(url);
+      if (!b) continue;
+      const el = parent.createSpan({ cls: "clickable-icon lmp-url-btn", attr: { "aria-label": b.label, role: "button", tabindex: "0" } });
+      (0, import_obsidian13.setIcon)(el, b.icon);
+      el.addEventListener("click", async () => {
+        if (el.hasClass("is-busy")) return;
+        el.addClass("is-busy");
+        try {
+          if (await b.run()) this.navigate({ ...this.state }, { push: false });
+        } catch (e) {
+          new import_obsidian13.Notice(`${b.label}: ${e.message || e}`);
+        } finally {
+          el.removeClass("is-busy");
+        }
+      });
     }
   }
   /** Immagine del programma con didascalia e testo alternativo (senza file nel vault: solo i testi). */
