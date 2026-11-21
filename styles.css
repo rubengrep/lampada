@@ -1773,7 +1773,6 @@ body.is-mobile.lmp-immersive .mobile-navbar { display: none; }
 .is-phone .lmp-tile { min-height: 72px; }
 
 /* pannello di studio a schede: una sezione alla volta, le pillole vanno a capo */
-.lmp-tabbed .lmp-pane-nav { flex-wrap: wrap; overflow-x: visible; row-gap: 6px; }
 .lmp-tabbed .lmp-pane-content > .lmp-section:not(.is-current) { display: none; }
 .lmp-tabbed .lmp-pane-content > .lmp-section { margin-top: 4px; }
 .lmp-tabbed .lmp-section > summary { list-style: none; cursor: default; font-size: 0; padding: 0; display: flex; justify-content: flex-end; }
