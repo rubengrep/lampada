@@ -2137,3 +2137,6 @@ input[type='text'].lmp-epub-sym { font-size: 16px; flex: 1; min-width: 10em; }
 /* Selettore della Bibbia (pagina dei libri) */
 .lmp-bible-pick { margin-bottom: 12px; }
 .lmp-bible-pick select { max-width: 100%; }
+
+/* Impostazioni: ordine delle sezioni del pannello, righe compatte */
+.lmp-order-row { padding: 4px 0; }

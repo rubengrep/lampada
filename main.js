@@ -233,6 +233,22 @@ var FONT_CHOICES = [
   ["theme", "Carattere del tema"]
 ];
 var SECTION_ORDER = ["Approfondimenti", "Note in calce", "Riferimenti", "Media", "Citato in"];
+var PANE_SECTIONS = [
+  ["Note", "Le tue note"],
+  ["Approfondimenti", "Studio (approfondimenti)"],
+  ["Note in calce", "Note in calce"],
+  ["Riferimenti", "Riferimenti"],
+  ["Bibbia con riferimenti", "Bibbia con riferimenti"],
+  ["Nelle mie note", "Nelle mie note"],
+  ["Media", "Media"],
+  ["Citato in", "Citato in"],
+  ["SCRABB", "SCRABB"]
+];
+function paneOrder(settings) {
+  const all = PANE_SECTIONS.map(([t]) => t);
+  const saved = (settings && settings.paneOrder || []).filter((t) => all.includes(t));
+  return [...saved, ...all.filter((t) => !saved.includes(t))];
+}
 
 // src/file.js
 var import_obsidian = require("obsidian");
@@ -7442,7 +7458,12 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     });
   }
   section(parent, title, badge) {
-    const det = parent.createEl("details", { cls: "lmp-section" });
+    const order = paneOrder(this.plugin.settings);
+    const rank = (t) => order.includes(t) ? order.indexOf(t) : 99;
+    const det = createEl("details", { cls: "lmp-section", attr: { "data-title": title } });
+    const next = rank(title) < 99 && [...parent.children].find((e) => e.matches(".lmp-section") && rank(e.dataset.title) > rank(title));
+    if (next) parent.insertBefore(det, next);
+    else parent.appendChild(det);
     const collapsed = this.plugin.ui.collapsed || {};
     det.open = !collapsed[title];
     const summary = det.createEl("summary", { text: title });
@@ -11373,6 +11394,26 @@ var BibleSettingTab = class extends import_obsidian19.PluginSettingTab {
       s.showCiteMarkers = v;
       await this.plugin.settingsChanged();
     });
+    new import_obsidian19.Setting(containerEl).setName("Pannello del versetto").setHeading();
+    new import_obsidian19.Setting(containerEl).setDesc("Ordine delle sezioni quando tocchi un versetto. Le schede in alto seguono lo stesso ordine.");
+    const names = new Map(PANE_SECTIONS);
+    const order = paneOrder(s);
+    const move = async (i, d) => {
+      [order[i], order[i + d]] = [order[i + d], order[i]];
+      s.paneOrder = order;
+      await this.plugin.saveAll(false);
+      for (const view of this.plugin.views()) if (view.state.mode === "reader" && view.paneVisible) view.renderPane();
+      this.display();
+    };
+    order.forEach(
+      (t, i) => new import_obsidian19.Setting(containerEl).setName(`${i + 1}. ${names.get(t)}`).setClass("lmp-order-row").addExtraButton((b) => b.setIcon("arrow-up").setTooltip("Pi\xF9 su").setDisabled(i === 0).onClick(() => i > 0 && move(i, -1))).addExtraButton((b) => b.setIcon("arrow-down").setTooltip("Pi\xF9 gi\xF9").setDisabled(i === order.length - 1).onClick(() => i < order.length - 1 && move(i, 1)))
+    );
+    if (s.paneOrder)
+      new import_obsidian19.Setting(containerEl).addButton((b) => b.setButtonText("Ordine predefinito").onClick(async () => {
+        delete s.paneOrder;
+        await this.plugin.saveAll(false);
+        this.display();
+      }));
     new import_obsidian19.Setting(containerEl).setName("Riferimenti nelle note").setHeading();
     new import_obsidian19.Setting(containerEl).setName("Clic su un riferimento biblico").setDesc("Con \u2318/Ctrl-clic ottieni l\u2019altra azione.").addDropdown(
       (d) => d.addOptions({ reader: "Apri in Lampada", jwlibrary: "Apri in JW Library" }).setValue(s.clickAction === "jwlibrary" ? "jwlibrary" : "reader").onChange(async (v) => {

@@ -1,5 +1,5 @@
 import { PluginSettingTab, Setting, Notice } from 'obsidian';
-import { DEFAULT_SETTINGS } from './costanti.js';
+import { DEFAULT_SETTINGS, PANE_SECTIONS, paneOrder } from './costanti.js';
 import { JwlExportModal } from './jwl-esporta.js';
 import { JwlImportModal } from './jwl-importa.js';
 import { AI_DEFAULT_MODEL, openRouter, parsePresets } from './studio.js';
@@ -91,6 +91,32 @@ class BibleSettingTab extends PluginSettingTab {
       s.showCiteMarkers = v;
       await this.plugin.settingsChanged();
     });
+
+    /* ---------- Pannello del versetto: ordine delle sezioni ---------- */
+    new Setting(containerEl).setName('Pannello del versetto').setHeading();
+    new Setting(containerEl).setDesc('Ordine delle sezioni quando tocchi un versetto. Le schede in alto seguono lo stesso ordine.');
+    const names = new Map(PANE_SECTIONS);
+    const order = paneOrder(s);
+    const move = async (i, d) => {
+      [order[i], order[i + d]] = [order[i + d], order[i]];
+      s.paneOrder = order;
+      await this.plugin.saveAll(false);
+      for (const view of this.plugin.views()) if (view.state.mode === 'reader' && view.paneVisible) view.renderPane();
+      this.display();
+    };
+    order.forEach((t, i) =>
+      new Setting(containerEl)
+        .setName(`${i + 1}. ${names.get(t)}`)
+        .setClass('lmp-order-row')
+        .addExtraButton((b) => b.setIcon('arrow-up').setTooltip('Più su').setDisabled(i === 0).onClick(() => i > 0 && move(i, -1)))
+        .addExtraButton((b) => b.setIcon('arrow-down').setTooltip('Più giù').setDisabled(i === order.length - 1).onClick(() => i < order.length - 1 && move(i, 1)))
+    );
+    if (s.paneOrder)
+      new Setting(containerEl).addButton((b) => b.setButtonText('Ordine predefinito').onClick(async () => {
+        delete s.paneOrder;
+        await this.plugin.saveAll(false);
+        this.display();
+      }));
 
     /* ---------- Riferimenti nelle note ---------- */
     new Setting(containerEl).setName('Riferimenti nelle note').setHeading();

@@ -95,5 +95,23 @@ const FONT_CHOICES = [
 ];
 
 const SECTION_ORDER = ['Approfondimenti', 'Note in calce', 'Riferimenti', 'Media', 'Citato in'];
+// Sezioni del pannello del versetto (titolo → nome nelle impostazioni), nell'ordine predefinito; l'utente lo cambia (settings.paneOrder).
+const PANE_SECTIONS = [
+  ['Note', 'Le tue note'],
+  ['Approfondimenti', 'Studio (approfondimenti)'],
+  ['Note in calce', 'Note in calce'],
+  ['Riferimenti', 'Riferimenti'],
+  ['Bibbia con riferimenti', 'Bibbia con riferimenti'],
+  ['Nelle mie note', 'Nelle mie note'],
+  ['Media', 'Media'],
+  ['Citato in', 'Citato in'],
+  ['SCRABB', 'SCRABB'],
+];
+/** Ordine delle sezioni del pannello: quello scelto (settings.paneOrder), le sezioni che mancano in fondo. */
+function paneOrder(settings) {
+  const all = PANE_SECTIONS.map(([t]) => t);
+  const saved = ((settings && settings.paneOrder) || []).filter((t) => all.includes(t));
+  return [...saved, ...all.filter((t) => !saved.includes(t))];
+}
 
-export { VIEW_TYPE, INDEX_MIRROR, DATA_DIR, DEFAULT_SETTINGS, BOOK_ABBR, EXTRA_ALIASES, CATEGORIES, HIGHLIGHTS, FONT_CHOICES, SECTION_ORDER };
+export { VIEW_TYPE, INDEX_MIRROR, DATA_DIR, DEFAULT_SETTINGS, BOOK_ABBR, EXTRA_ALIASES, CATEGORIES, HIGHLIGHTS, FONT_CHOICES, SECTION_ORDER, PANE_SECTIONS, paneOrder };

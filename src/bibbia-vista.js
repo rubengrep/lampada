@@ -2,7 +2,7 @@ import { ItemView, Component, Notice, setIcon, debounce, Platform, Menu, normali
 import { GotoModal } from './bibbia-modali.js';
 import { renderBibleDownload } from './bibbia-epub.js';
 import { LIB_VIEW_TYPE } from './biblioteca-dati.js';
-import { CATEGORIES, HIGHLIGHTS, SECTION_ORDER, VIEW_TYPE } from './costanti.js';
+import { CATEGORIES, HIGHLIGHTS, SECTION_ORDER, VIEW_TYPE, paneOrder } from './costanti.js';
 import { fileMeta, fileSrc, readFile, renderMd } from './file.js';
 import { jwlTag } from './jwl-formati.js';
 import { SCRABB_TYPES } from './scrabb-dati.js';
@@ -2078,7 +2078,13 @@ class BibleView extends ItemView {
   }
 
   section(parent, title, badge) {
-    const det = parent.createEl('details', { cls: 'lmp-section' });
+    // Al suo posto secondo l'ordine scelto (anche le sezioni che arrivano dopo); quelle fuori elenco in fondo.
+    const order = paneOrder(this.plugin.settings);
+    const rank = (t) => (order.includes(t) ? order.indexOf(t) : 99);
+    const det = createEl('details', { cls: 'lmp-section', attr: { 'data-title': title } });
+    const next = rank(title) < 99 && [...parent.children].find((e) => e.matches('.lmp-section') && rank(e.dataset.title) > rank(title));
+    if (next) parent.insertBefore(det, next);
+    else parent.appendChild(det);
     const collapsed = this.plugin.ui.collapsed || {};
     det.open = !collapsed[title];
     const summary = det.createEl('summary', { text: title });
