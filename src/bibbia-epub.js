@@ -1,4 +1,5 @@
 import { Modal, requestUrl } from 'obsidian';
+import { jwDownload } from './scarica-jw.js';
 import { writeBinary } from './file.js';
 import { unzipEntries } from './jwl-formati.js';
 import { verseCode } from './testo.js';
@@ -219,26 +220,28 @@ const bibleEpubInfo = (lang) =>
 
 const mb = (n) => `${Math.max(1, Math.round(n / 1e6))} MB`;
 
-/** Scarica l'EPUB, lo converte e scrive la Bibbia in .lampada/markdown/; poi la imposta e ricarica. */
+/** Scarica l'EPUB (con la conferma "Scarica da jw.org"), lo converte e scrive la Bibbia in .lampada/markdown/; poi la imposta e ricarica. */
 async function downloadBible(plugin, lang, progress = () => {}) {
   progress('Cerco la Bibbia…');
   const info = await bibleEpubInfo(lang);
-  progress(`Scarico${info.size ? ` ${mb(info.size)}` : ''}…`);
-  const res = await requestUrl({ url: info.url });
-  progress('Converto…');
-  const files = await convertBibleEpub(res.arrayBuffer, { title: info.title, lang });
-  const prefix = plugin.bible.prefix;
-  const enc = new TextEncoder();
-  let i = 0;
-  for (const [path, text] of files) {
-    await writeBinary(plugin.app, prefix + path, enc.encode(text).buffer);
-    if (++i % 40 === 0) progress(`Salvo… ${Math.round((i * 100) / files.size)}%`);
-  }
-  plugin.settings.symbol = EPUB_SYMBOL;
-  plugin.settings.bibleLang = lang;
-  await plugin.saveAll(false);
-  progress('Apro…');
-  await plugin.refresh();
+  progress('');
+  await jwDownload(plugin.app, [info], async (i, buf, say) => {
+    const p = (t) => (say(t), progress(t));
+    p('Converto…');
+    const files = await convertBibleEpub(buf || (await requestUrl({ url: i.url })).arrayBuffer, { title: i.title, lang });
+    const prefix = plugin.bible.prefix;
+    const enc = new TextEncoder();
+    let n = 0;
+    for (const [path, text] of files) {
+      await writeBinary(plugin.app, prefix + path, enc.encode(text).buffer);
+      if (++n % 40 === 0) p(`Salvo… ${Math.round((n * 100) / files.size)}%`);
+    }
+    plugin.settings.symbol = EPUB_SYMBOL;
+    plugin.settings.bibleLang = lang;
+    await plugin.saveAll(false);
+    p('Apro…');
+    await plugin.refresh();
+  });
 }
 
 /**
@@ -256,7 +259,7 @@ function renderBibleDownload(plugin, el, opts = {}) {
   const btn = row.createEl('button', { cls: 'mod-cta' });
   const status = box.createDiv({ cls: 'lmp-bible-dl-status', attr: { 'aria-live': 'polite' } });
   let size = 0;
-  const label = (text = opts.button || 'Scarica') => btn.setText(size ? `${text} (${mb(size)})` : text);
+  const label = (text = opts.button || 'Scarica da jw.org') => btn.setText(size ? `${text} (${mb(size)})` : text);
   const look = () => {
     const lang = sel.value;
     size = 0;
@@ -273,6 +276,11 @@ function renderBibleDownload(plugin, el, opts = {}) {
       status.setText('Fatto.');
       if (opts.onDone) opts.onDone();
     } catch (e) {
+      if (e && e.cancelled) {
+        status.setText('');
+        btn.disabled = sel.disabled = false;
+        return label();
+      }
       console.warn('[lampada] download della Bibbia', e);
       status.addClass('mod-error');
       const code = (e && e.status) || (/status (\d+)/.exec((e && e.message) || '') || [])[1];
@@ -299,7 +307,7 @@ class BibleDownloadModal extends Modal {
     }
     renderBibleDownload(this.plugin, this.contentEl, {
       title: 'Scarica la Bibbia',
-      button: 'Scarica',
+      button: 'Scarica da jw.org',
       onDone: () => {
         this.close();
         this.plugin.openReader({ book: 1, chapter: 1 });

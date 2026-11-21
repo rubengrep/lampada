@@ -1,5 +1,6 @@
 import { Modal, Notice, Platform, requestUrl } from 'obsidian';
 import { decode, epubInfo, jwLink, mb, q, slugify } from './bibbia-epub.js';
+import { jwDownload } from './scarica-jw.js';
 import { MONTHS, issueLabel } from './biblioteca-dati.js';
 import { epubExtras } from './epub-extra.js';
 import { writeBinary } from './file.js';
@@ -326,18 +327,21 @@ const rangeSource = (url, size) => ({
   },
 });
 
-/** Scarica l'EPUB trovato con l'API e lo importa. Sul telefono, sopra 40 MB, legge solo le voci che servono. */
-async function importInfo(plugin, info, progress) {
-  let src;
-  if (Platform.isMobile && info.size > 40e6) {
-    progress('Leggo solo le parti che servono…');
-    src = rangeSource(info.url, info.size);
-  } else {
-    progress(`Scarico${info.size ? ` ${mb(info.size)}` : ''}…`);
-    src = (await requestUrl({ url: info.url })).arrayBuffer;
-  }
-  return importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || '') ? info.issue : '', title: info.title }, progress);
+/**
+ * Scarica gli EPUB trovati con l'API (una conferma "Scarica da jw.org" per tutti) e li importa.
+ * Sul telefono, sopra 40 MB, legge solo le voci che servono.
+ */
+async function importInfos(plugin, infos, progress) {
+  const out = [];
+  await jwDownload(plugin.app, infos, async (info, buf, say) => {
+    const p = (t) => (say(t), progress(t));
+    const src = buf || rangeSource(info.url, info.size);
+    out.push(await importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || '') ? info.issue : '', title: info.title }, p));
+  });
+  return out;
 }
+
+const importInfo = async (plugin, info, progress) => (await importInfos(plugin, [info], progress))[0];
 
 const lang = (plugin) => plugin.settings.bibleLang || 'I';
 
@@ -351,21 +355,20 @@ async function newIssues(plugin, progress = () => {}) {
   const key = (n) => `${Math.floor(n / 12)}${String((n % 12) + 1).padStart(2, '0')}`;
   const now = new Date();
   const found = [];
+  const infos = [];
   for (const p of plugin.library.pubs) {
     const keys = [...new Set((p.issues || []).map((i) => i.key).filter((k) => /^\d{6}$/.test(k)))].map(months).sort((x, y) => x - y);
     if (!keys.length || keys[keys.length - 1] < now.getFullYear() * 12 + now.getMonth() - 12) continue;
     const gaps = keys.slice(-5).map((k, i, l) => k - l[i - 1]).slice(1);
     const step = gaps.length ? Math.min(...gaps) : 1;
     for (let n = keys[keys.length - 1] + step; ; n += step) {
-      const label = `${p.title}, ${issueLabel(key(n))}`;
-      progress(`${label}: cerco…`);
+      progress(`${p.title}, ${issueLabel(key(n))}: cerco…`);
       const info = await epubInfo(lang(plugin), p.symbol, key(n));
       if (!info) break;
-      const r = await importInfo(plugin, info, (t) => progress(`${label} · ${t}`));
-      if (r.skipped) break;
-      found.push(r);
+      infos.push({ ...info, label: `${p.title}, ${issueLabel(key(n))}` });
     }
   }
+  if (infos.length) found.push(...(await importInfos(plugin, infos, progress)).filter((r) => !r.skipped));
   return found;
 }
 
@@ -389,6 +392,7 @@ async function runNewIssues(plugin) {
     await openImported(plugin, found[found.length - 1]);
   } catch (e) {
     n.hide();
+    if (e && e.cancelled) return;
     console.warn('[lampada] nuovi numeri', e);
     new Notice(errText(e));
   }
@@ -424,7 +428,7 @@ class EpubImportModal extends Modal {
     el.createEl('h4', { text: 'Per simbolo' });
     const row = el.createDiv('lmp-bible-dl-row');
     const sym = row.createEl('input', { type: 'text', cls: 'lmp-epub-sym', attr: { placeholder: 'w26.01, mwb26.01, lff…', 'aria-label': 'Simbolo', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' } });
-    const get = row.createEl('button', { text: 'Scarica' });
+    const get = row.createEl('button', { text: 'Scarica da jw.org' });
     el.createDiv({ cls: 'setting-item-description', text: 'Come nelle citazioni: simbolo, poi anno e mese del numero.' });
     const go = () => {
       const s = parseSymbol(sym.value);
@@ -462,6 +466,7 @@ class EpubImportModal extends Modal {
       this.close();
       await openImported(this.plugin, r);
     } catch (e) {
+      if (e && e.cancelled) return this.say('');
       console.warn('[lampada] importazione EPUB', e);
       this.say(errText(e), true);
     } finally {

@@ -232,6 +232,8 @@ Lampada si collega a internet solo in questi casi:
 | jw.org (`b.jw-cdn.org`, `cfp2.jw-cdn.org`) | solo quando chiedi di scaricare un EPUB o di cercare i nuovi numeri | il simbolo e il numero della pubblicazione, come il pulsante "Scarica" del sito |
 | [OpenRouter](https://openrouter.ai) | solo se attivi l'assistente AI con una tua chiave | la domanda e i paragrafi necessari per rispondere |
 
+Prima di ogni download da jw.org una finestra mostra il nome e l'indirizzo esatto di ogni file, il peso e il rimando alle [condizioni d'uso di jw.org](https://www.jw.org/it/condizioni-uso/): il download parte solo con la conferma, con una barra di avanzamento.
+
 Niente statistiche, niente tracciamento, nessun account.
 
 ## Privacy

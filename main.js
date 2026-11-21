@@ -26,7 +26,7 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 
 // src/plugin.js
-var import_obsidian20 = require("obsidian");
+var import_obsidian21 = require("obsidian");
 
 // src/bibbia-dati.js
 var import_obsidian2 = require("obsidian");
@@ -1447,7 +1447,90 @@ var BibleData = class {
 };
 
 // src/bibbia-epub.js
+var import_obsidian4 = require("obsidian");
+
+// src/scarica-jw.js
 var import_obsidian3 = require("obsidian");
+var TERMS_URL = "https://www.jw.org/it/condizioni-uso/";
+var CHUNK = 1e6;
+var mb = (n) => `${(n / 1e6).toFixed(1).replace(".", ",")} MB`;
+var partial = (info) => import_obsidian3.Platform.isMobile && info.size > 4e7;
+async function fetchWithProgress(url, size, onBytes) {
+  if (!size) return (await (0, import_obsidian3.requestUrl)({ url })).arrayBuffer;
+  const out = new Uint8Array(size);
+  for (let s = 0; s < size; s += CHUNK) {
+    const e = Math.min(size, s + CHUNK);
+    const r = await (0, import_obsidian3.requestUrl)({ url, headers: { Range: `bytes=${s}-${e - 1}` } });
+    if (r.status !== 206) return r.arrayBuffer;
+    out.set(new Uint8Array(r.arrayBuffer), s);
+    onBytes(e);
+  }
+  return out.buffer;
+}
+var JwDownloadModal = class extends import_obsidian3.Modal {
+  constructor(app, infos, each, done) {
+    super(app);
+    Object.assign(this, { infos, each, done, busy: false, finished: false });
+  }
+  onOpen() {
+    const el = this.contentEl;
+    this.titleEl.setText("Scarica da jw.org");
+    const total = this.infos.reduce((s, i) => s + (i.size || 0), 0);
+    for (const i of this.infos) {
+      const f = el.createDiv("lmp-jw-file");
+      f.createDiv({ cls: "lmp-jw-name", text: `${i.label || i.title || i.pub}${i.size ? ` \xB7 ${mb(i.size)}` : ""}` });
+      f.createEl("code", { cls: "lmp-jw-url", text: i.url });
+    }
+    const terms2 = el.createEl("p", { cls: "lmp-jw-terms", text: "Il file arriva direttamente da jw.org. Scaricandolo accetti le " });
+    terms2.createEl("a", { text: "condizioni d\u2019uso di jw.org", href: TERMS_URL });
+    terms2.appendText(".");
+    this.bar = el.createEl("progress", { cls: "lmp-jw-bar", attr: { max: String(total || 1), value: "0" } });
+    this.bar.hide();
+    this.status = el.createDiv({ cls: "lmp-bible-dl-status", attr: { "aria-live": "polite" } });
+    const row = el.createDiv("modal-button-container");
+    this.cancelBtn = row.createEl("button", { text: "Annulla" });
+    this.cancelBtn.addEventListener("click", () => this.close());
+    this.okBtn = row.createEl("button", { cls: "mod-cta", text: total ? `Scarica (${mb(total)})` : "Scarica" });
+    this.okBtn.addEventListener("click", () => this.start(total));
+  }
+  async start(total) {
+    this.busy = true;
+    this.okBtn.disabled = this.cancelBtn.disabled = true;
+    this.bar.show();
+    const say = (t) => this.status.setText(t);
+    let before = 0;
+    try {
+      for (const i of this.infos) {
+        let buf = null;
+        if (partial(i)) say(`${i.label || i.title || i.pub}: leggo solo le parti che servono\u2026`);
+        else {
+          say(`Scarico ${i.label || i.title || i.pub}\u2026`);
+          buf = await fetchWithProgress(i.url, i.size, (n) => {
+            this.bar.value = before + n;
+            say(`Scarico ${i.label || i.title || i.pub}: ${mb(before + n)}${total ? ` di ${mb(total)}` : ""}`);
+          });
+        }
+        before += i.size || 0;
+        this.bar.value = before;
+        await this.each(i, buf, say);
+      }
+      this.finished = true;
+      this.done.resolve();
+      this.close();
+    } catch (e) {
+      this.busy = false;
+      this.done.reject(e);
+      this.close();
+    }
+  }
+  onClose() {
+    this.contentEl.empty();
+    if (!this.busy && !this.finished) this.done.reject(Object.assign(new Error("Annullato."), { cancelled: true }));
+  }
+};
+function jwDownload(app, infos, each) {
+  return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }).open());
+}
 
 // src/jwl-formati.js
 var JWL_COLORS = { 1: "yellow", 2: "green", 3: "blue", 4: "pink", 5: "orange", 6: "purple" };
@@ -1764,7 +1847,7 @@ function epubInfo(lang2, pub, issue = "") {
   if (!infoCache.has(key)) {
     const e = encodeURIComponent;
     const url = `https://b.jw-cdn.org/apis/pub-media/GETPUBMEDIALINKS?output=json&langwritten=${e(lang2)}&alllangs=0&fileformat=EPUB&pub=${e(pub)}${issue ? `&issue=${e(issue)}` : ""}`;
-    const p = (0, import_obsidian3.requestUrl)({ url, throw: false }).then((r) => {
+    const p = (0, import_obsidian4.requestUrl)({ url, throw: false }).then((r) => {
       if (r.status === 404) return null;
       if (r.status >= 400) throw Object.assign(new Error(`il sito ha risposto con l\u2019errore ${r.status}.`), { status: r.status });
       const f = r.json?.files?.[lang2]?.EPUB?.[0];
@@ -1780,27 +1863,29 @@ var bibleEpubInfo = (lang2) => epubInfo(lang2, EPUB_SYMBOL).then((i) => {
   if (!i) throw new Error("Per questa lingua non c\u2019\xE8 la Bibbia da scaricare.");
   return i;
 });
-var mb = (n) => `${Math.max(1, Math.round(n / 1e6))} MB`;
+var mb2 = (n) => `${Math.max(1, Math.round(n / 1e6))} MB`;
 async function downloadBible(plugin, lang2, progress = () => {
 }) {
   progress("Cerco la Bibbia\u2026");
   const info = await bibleEpubInfo(lang2);
-  progress(`Scarico${info.size ? ` ${mb(info.size)}` : ""}\u2026`);
-  const res = await (0, import_obsidian3.requestUrl)({ url: info.url });
-  progress("Converto\u2026");
-  const files = await convertBibleEpub(res.arrayBuffer, { title: info.title, lang: lang2 });
-  const prefix = plugin.bible.prefix;
-  const enc = new TextEncoder();
-  let i = 0;
-  for (const [path, text] of files) {
-    await writeBinary(plugin.app, prefix + path, enc.encode(text).buffer);
-    if (++i % 40 === 0) progress(`Salvo\u2026 ${Math.round(i * 100 / files.size)}%`);
-  }
-  plugin.settings.symbol = EPUB_SYMBOL;
-  plugin.settings.bibleLang = lang2;
-  await plugin.saveAll(false);
-  progress("Apro\u2026");
-  await plugin.refresh();
+  progress("");
+  await jwDownload(plugin.app, [info], async (i, buf, say) => {
+    const p = (t) => (say(t), progress(t));
+    p("Converto\u2026");
+    const files = await convertBibleEpub(buf || (await (0, import_obsidian4.requestUrl)({ url: i.url })).arrayBuffer, { title: i.title, lang: lang2 });
+    const prefix = plugin.bible.prefix;
+    const enc = new TextEncoder();
+    let n = 0;
+    for (const [path, text] of files) {
+      await writeBinary(plugin.app, prefix + path, enc.encode(text).buffer);
+      if (++n % 40 === 0) p(`Salvo\u2026 ${Math.round(n * 100 / files.size)}%`);
+    }
+    plugin.settings.symbol = EPUB_SYMBOL;
+    plugin.settings.bibleLang = lang2;
+    await plugin.saveAll(false);
+    p("Apro\u2026");
+    await plugin.refresh();
+  });
 }
 function renderBibleDownload(plugin, el, opts = {}) {
   const box = el.createDiv("lmp-bible-dl");
@@ -1813,7 +1898,7 @@ function renderBibleDownload(plugin, el, opts = {}) {
   const btn = row.createEl("button", { cls: "mod-cta" });
   const status = box.createDiv({ cls: "lmp-bible-dl-status", attr: { "aria-live": "polite" } });
   let size = 0;
-  const label = (text = opts.button || "Scarica") => btn.setText(size ? `${text} (${mb(size)})` : text);
+  const label = (text = opts.button || "Scarica da jw.org") => btn.setText(size ? `${text} (${mb2(size)})` : text);
   const look = () => {
     const lang2 = sel.value;
     size = 0;
@@ -1830,6 +1915,11 @@ function renderBibleDownload(plugin, el, opts = {}) {
       status.setText("Fatto.");
       if (opts.onDone) opts.onDone();
     } catch (e) {
+      if (e && e.cancelled) {
+        status.setText("");
+        btn.disabled = sel.disabled = false;
+        return label();
+      }
       console.warn("[lampada] download della Bibbia", e);
       status.addClass("mod-error");
       const code = e && e.status || (/status (\d+)/.exec(e && e.message || "") || [])[1];
@@ -1840,7 +1930,7 @@ function renderBibleDownload(plugin, el, opts = {}) {
   });
   return box;
 }
-var BibleDownloadModal = class extends import_obsidian3.Modal {
+var BibleDownloadModal = class extends import_obsidian4.Modal {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -1853,7 +1943,7 @@ var BibleDownloadModal = class extends import_obsidian3.Modal {
     }
     renderBibleDownload(this.plugin, this.contentEl, {
       title: "Scarica la Bibbia",
-      button: "Scarica",
+      button: "Scarica da jw.org",
       onDone: () => {
         this.close();
         this.plugin.openReader({ book: 1, chapter: 1 });
@@ -1866,7 +1956,7 @@ var BibleDownloadModal = class extends import_obsidian3.Modal {
 };
 
 // src/biblioteca-epub.js
-var import_obsidian4 = require("obsidian");
+var import_obsidian5 = require("obsidian");
 
 // src/epub-extra.js
 async function saveJson(plugin, path, data) {
@@ -2190,22 +2280,21 @@ async function importEpub(plugin, src, meta = {}, progress = () => {
 var rangeSource = (url, size) => ({
   size,
   read: async (s, e) => {
-    const r = await (0, import_obsidian4.requestUrl)({ url, headers: { Range: `bytes=${s}-${e - 1}` } });
+    const r = await (0, import_obsidian5.requestUrl)({ url, headers: { Range: `bytes=${s}-${e - 1}` } });
     if (r.status !== 206) throw new Error("Il sito non permette di scaricare solo una parte del file.");
     return new Uint8Array(r.arrayBuffer);
   }
 });
-async function importInfo(plugin, info, progress) {
-  let src;
-  if (import_obsidian4.Platform.isMobile && info.size > 4e7) {
-    progress("Leggo solo le parti che servono\u2026");
-    src = rangeSource(info.url, info.size);
-  } else {
-    progress(`Scarico${info.size ? ` ${mb(info.size)}` : ""}\u2026`);
-    src = (await (0, import_obsidian4.requestUrl)({ url: info.url })).arrayBuffer;
-  }
-  return importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || "") ? info.issue : "", title: info.title }, progress);
+async function importInfos(plugin, infos, progress) {
+  const out = [];
+  await jwDownload(plugin.app, infos, async (info, buf, say) => {
+    const p = (t) => (say(t), progress(t));
+    const src = buf || rangeSource(info.url, info.size);
+    out.push(await importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || "") ? info.issue : "", title: info.title }, p));
+  });
+  return out;
 }
+var importInfo = async (plugin, info, progress) => (await importInfos(plugin, [info], progress))[0];
 var lang = (plugin) => plugin.settings.bibleLang || "I";
 async function newIssues(plugin, progress = () => {
 }) {
@@ -2214,21 +2303,20 @@ async function newIssues(plugin, progress = () => {
   const key = (n) => `${Math.floor(n / 12)}${String(n % 12 + 1).padStart(2, "0")}`;
   const now = /* @__PURE__ */ new Date();
   const found = [];
+  const infos = [];
   for (const p of plugin.library.pubs) {
     const keys = [...new Set((p.issues || []).map((i) => i.key).filter((k) => /^\d{6}$/.test(k)))].map(months).sort((x, y) => x - y);
     if (!keys.length || keys[keys.length - 1] < now.getFullYear() * 12 + now.getMonth() - 12) continue;
     const gaps = keys.slice(-5).map((k, i, l) => k - l[i - 1]).slice(1);
     const step = gaps.length ? Math.min(...gaps) : 1;
     for (let n = keys[keys.length - 1] + step; ; n += step) {
-      const label = `${p.title}, ${issueLabel(key(n))}`;
-      progress(`${label}: cerco\u2026`);
+      progress(`${p.title}, ${issueLabel(key(n))}: cerco\u2026`);
       const info = await epubInfo(lang(plugin), p.symbol, key(n));
       if (!info) break;
-      const r = await importInfo(plugin, info, (t) => progress(`${label} \xB7 ${t}`));
-      if (r.skipped) break;
-      found.push(r);
+      infos.push({ ...info, label: `${p.title}, ${issueLabel(key(n))}` });
     }
   }
+  if (infos.length) found.push(...(await importInfos(plugin, infos, progress)).filter((r) => !r.skipped));
   return found;
 }
 async function openImported(plugin, r) {
@@ -2238,20 +2326,21 @@ async function openImported(plugin, r) {
 var skippedText = (r) => `\xAB${r.title}${r.issue ? ` ${issueLabel(r.issue)}` : ""}\xBB c\u2019\xE8 gi\xE0, da una fonte pi\xF9 completa: non lo sostituisco.`;
 var errText = (e) => `Non riuscito: ${e && e.message || e}`;
 async function runNewIssues(plugin) {
-  const n = new import_obsidian4.Notice("Cerco nuovi numeri\u2026", 0);
+  const n = new import_obsidian5.Notice("Cerco nuovi numeri\u2026", 0);
   try {
     const found = await newIssues(plugin, (t) => n.setMessage(t));
     n.hide();
-    if (!found.length) return new import_obsidian4.Notice("Nessun numero nuovo.");
-    new import_obsidian4.Notice(`Aggiunti: ${found.map((r) => `${r.symbol} ${issueLabel(r.issue)}`).join(", ")}`);
+    if (!found.length) return new import_obsidian5.Notice("Nessun numero nuovo.");
+    new import_obsidian5.Notice(`Aggiunti: ${found.map((r) => `${r.symbol} ${issueLabel(r.issue)}`).join(", ")}`);
     await openImported(plugin, found[found.length - 1]);
   } catch (e) {
     n.hide();
+    if (e && e.cancelled) return;
     console.warn("[lampada] nuovi numeri", e);
-    new import_obsidian4.Notice(errText(e));
+    new import_obsidian5.Notice(errText(e));
   }
 }
-var EpubImportModal = class extends import_obsidian4.Modal {
+var EpubImportModal = class extends import_obsidian5.Modal {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -2276,7 +2365,7 @@ var EpubImportModal = class extends import_obsidian4.Modal {
     el.createEl("h4", { text: "Per simbolo" });
     const row = el.createDiv("lmp-bible-dl-row");
     const sym = row.createEl("input", { type: "text", cls: "lmp-epub-sym", attr: { placeholder: "w26.01, mwb26.01, lff\u2026", "aria-label": "Simbolo", autocapitalize: "off", autocorrect: "off", spellcheck: "false" } });
-    const get = row.createEl("button", { text: "Scarica" });
+    const get = row.createEl("button", { text: "Scarica da jw.org" });
     el.createDiv({ cls: "setting-item-description", text: "Come nelle citazioni: simbolo, poi anno e mese del numero." });
     const go = () => {
       const s = parseSymbol(sym.value);
@@ -2309,10 +2398,11 @@ var EpubImportModal = class extends import_obsidian4.Modal {
       const r = await fn();
       if (r.none) return this.say("Nessun numero nuovo.");
       if (r.skipped) return this.say(skippedText(r));
-      new import_obsidian4.Notice(r.list ? `Aggiunti: ${r.list.map((x) => `${x.symbol} ${issueLabel(x.issue)}`).join(", ")}` : `Importato: ${r.title}`);
+      new import_obsidian5.Notice(r.list ? `Aggiunti: ${r.list.map((x) => `${x.symbol} ${issueLabel(x.issue)}`).join(", ")}` : `Importato: ${r.title}`);
       this.close();
       await openImported(this.plugin, r);
     } catch (e) {
+      if (e && e.cancelled) return this.say("");
       console.warn("[lampada] importazione EPUB", e);
       this.say(errText(e), true);
     } finally {
@@ -2325,8 +2415,8 @@ var EpubImportModal = class extends import_obsidian4.Modal {
 };
 
 // src/bibbia-modali.js
-var import_obsidian5 = require("obsidian");
-var GotoModal = class extends import_obsidian5.SuggestModal {
+var import_obsidian6 = require("obsidian");
+var GotoModal = class extends import_obsidian6.SuggestModal {
   constructor(plugin, onChoose) {
     super(plugin.app);
     this.plugin = plugin;
@@ -2341,7 +2431,7 @@ var GotoModal = class extends import_obsidian5.SuggestModal {
   }
   async onOpen() {
     super.onOpen();
-    await this.bible.ensureLoaded().catch((e) => new import_obsidian5.Notice(e.message));
+    await this.bible.ensureLoaded().catch((e) => new import_obsidian6.Notice(e.message));
     this.inputEl.dispatchEvent(new Event("input"));
   }
   getSuggestions(query) {
@@ -2371,7 +2461,7 @@ var GotoModal = class extends import_obsidian5.SuggestModal {
     this.onChoose(item.ref);
   }
 };
-var SearchModal = class extends import_obsidian5.Modal {
+var SearchModal = class extends import_obsidian6.Modal {
   constructor(plugin, onPick) {
     super(plugin.app);
     this.plugin = plugin;
@@ -2389,7 +2479,7 @@ var SearchModal = class extends import_obsidian5.Modal {
       input.value = this.plugin.lastSearch;
       input.select();
     }
-    const run = (0, import_obsidian5.debounce)(() => this.search(input.value), 250, true);
+    const run = (0, import_obsidian6.debounce)(() => this.search(input.value), 250, true);
     input.addEventListener("input", run);
     input.addEventListener("keydown", (e) => {
       if (e.key === "Enter") {
@@ -2547,7 +2637,7 @@ var SearchModal = class extends import_obsidian5.Modal {
     this.contentEl.empty();
   }
 };
-var RefSuggest = class extends import_obsidian5.EditorSuggest {
+var RefSuggest = class extends import_obsidian6.EditorSuggest {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -2624,7 +2714,7 @@ var RefSuggest = class extends import_obsidian5.EditorSuggest {
     this.plugin.openAfterCite(item.ref, editor);
   }
 };
-var NoteRefsModal = class extends import_obsidian5.Modal {
+var NoteRefsModal = class extends import_obsidian6.Modal {
   constructor(plugin, file, hits) {
     super(plugin.app);
     this.plugin = plugin;
@@ -2663,10 +2753,10 @@ var NoteRefsModal = class extends import_obsidian5.Modal {
 };
 
 // src/bibbia-vista.js
-var import_obsidian11 = require("obsidian");
+var import_obsidian12 = require("obsidian");
 
 // src/scrabb-dati.js
-var import_obsidian6 = require("obsidian");
+var import_obsidian7 = require("obsidian");
 var SCRABB_VIEW_TYPE = "lampada-scrabb";
 var SCRABB_TYPES = {
   principio: { label: "Principio", plural: "Principi", icon: "gem", folder: "Principi" },
@@ -2823,10 +2913,10 @@ var ScrabbIndex = class {
     this.rel = /* @__PURE__ */ new Map();
     this.ready = false;
     this.version = 0;
-    this.scheduleBuild = (0, import_obsidian6.debounce)(() => this.build(), 700, true);
+    this.scheduleBuild = (0, import_obsidian7.debounce)(() => this.build(), 700, true);
   }
   get folder() {
-    return (0, import_obsidian6.normalizePath)(this.plugin.settings.scrabbFolder || DEFAULT_SETTINGS.scrabbFolder);
+    return (0, import_obsidian7.normalizePath)(this.plugin.settings.scrabbFolder || DEFAULT_SETTINGS.scrabbFolder);
   }
   /** Costruisce l'indice la prima volta (dopo la Bibbia, per riconoscere i versetti) e resta in ascolto. */
   ensure() {
@@ -2844,7 +2934,7 @@ var ScrabbIndex = class {
   }
   watch() {
     const touches = (file) => {
-      if (!(file instanceof import_obsidian6.TFile) || file.extension !== "md") return false;
+      if (!(file instanceof import_obsidian7.TFile) || file.extension !== "md") return false;
       if (this.byPath.has(file.path)) return true;
       const fm = this.app.metadataCache.getFileCache(file)?.frontmatter;
       return !!(fm && SCRABB_TYPES[String(fm.tipo || "").toLowerCase()]);
@@ -2996,7 +3086,7 @@ var ScrabbIndex = class {
     for (const [src, targets] of Object.entries(mc.resolvedLinks)) {
       if (!targets[path] || this.byPath.has(src)) continue;
       const file = this.app.vault.getAbstractFileByPath(src);
-      if (!(file instanceof import_obsidian6.TFile)) continue;
+      if (!(file instanceof import_obsidian7.TFile)) continue;
       const cache2 = mc.getFileCache(file) || {};
       const lines = [];
       for (const l of [...cache2.links || [], ...cache2.embeds || []]) {
@@ -3027,7 +3117,7 @@ var ScrabbIndex = class {
       const hits = Object.keys(targets).filter((t) => ill.has(t));
       if (!hits.length) continue;
       const file = this.app.vault.getAbstractFileByPath(src);
-      if (!(file instanceof import_obsidian6.TFile)) continue;
+      if (!(file instanceof import_obsidian7.TFile)) continue;
       const cache2 = mc.getFileCache(file) || {};
       for (const t of hits) {
         const lines = [];
@@ -3060,11 +3150,11 @@ var ScrabbIndex = class {
   async create({ name, tipo, versetti = [], links = [], body = "", extra = {}, fonti = [] }) {
     name = scrabbSafeName(name);
     if (!name) throw new Error("Nome mancante");
-    const folder = (0, import_obsidian6.normalizePath)(`${this.folder}/${SCRABB_TYPES[tipo].folder}`);
+    const folder = (0, import_obsidian7.normalizePath)(`${this.folder}/${SCRABB_TYPES[tipo].folder}`);
     if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
-    const path = (0, import_obsidian6.normalizePath)(`${folder}/${name}.md`);
+    const path = (0, import_obsidian7.normalizePath)(`${folder}/${name}.md`);
     const existing = this.app.vault.getAbstractFileByPath(path);
-    if (existing instanceof import_obsidian6.TFile) return existing;
+    if (existing instanceof import_obsidian7.TFile) return existing;
     const fields = {};
     for (const n of links) {
       const t = this.byName(n);
@@ -3095,12 +3185,12 @@ ${body ? `${body.trim()}
 };
 
 // src/scrabb-vista.js
-var import_obsidian8 = require("obsidian");
+var import_obsidian9 = require("obsidian");
 
 // src/ui.js
-var import_obsidian7 = require("obsidian");
+var import_obsidian8 = require("obsidian");
 function autoHideBars(view, scroller) {
-  if (!import_obsidian7.Platform.isMobile) return;
+  if (!import_obsidian8.Platform.isMobile) return;
   view.registerDomEvent(scroller, "scroll", () => {
     if (view.plugin.settings.autoHideBars === false) return setBarsHidden(view, false);
     const top = scroller.scrollTop;
@@ -3132,12 +3222,12 @@ var AREAS = [
 function viewKeys(view, keys) {
   view.keyHandlers = keys;
   if (view.inShell) return;
-  view.scope = new import_obsidian7.Scope(view.app.scope);
+  view.scope = new import_obsidian8.Scope(view.app.scope);
   for (const [k, fn] of keys) view.scope.register([], k, fn);
 }
 function addAppToggle(parent, plugin, cls = "lmp-tb-btn clickable-icon") {
   const b = parent.createEl("button", { cls: `${cls} lmp-app-toggle`, attr: { "aria-label": "Modalit\xE0 app (nasconde Obsidian)" } });
-  (0, import_obsidian7.setIcon)(b, plugin.ui.appMode ? "minimize-2" : "maximize-2");
+  (0, import_obsidian8.setIcon)(b, plugin.ui.appMode ? "minimize-2" : "maximize-2");
   b.toggleClass("is-active", !!plugin.ui.appMode);
   b.addEventListener("click", () => plugin.toggleAppMode());
   return b;
@@ -3147,7 +3237,7 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
   for (const [id, icon, text, open] of AREAS) {
     const on = id === current;
     const b = sw.createEl("button", { cls: `lmp-switch-btn${on ? " is-active" : ""}`, attr: { "aria-pressed": String(on), "aria-label": text } });
-    (0, import_obsidian7.setIcon)(b.createSpan("lmp-switch-icon"), icon);
+    (0, import_obsidian8.setIcon)(b.createSpan("lmp-switch-icon"), icon);
     b.createSpan({ cls: "lmp-switch-label", text });
     b.addEventListener("click", on ? goHome : () => open(plugin));
   }
@@ -3155,14 +3245,14 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
 }
 function addGoToAction(view, current, goHome) {
   view.addAction("compass", "Vai a\u2026", (evt) => {
-    const menu = new import_obsidian7.Menu();
+    const menu = new import_obsidian8.Menu();
     for (const [id, icon, text, open] of AREAS) {
       menu.addItem((it) => it.setTitle(id === current ? `${text} \xB7 inizio` : text).setIcon(icon).setChecked(id === current).onClick(id === current ? goHome : () => open(view.plugin)));
     }
     menu.showAtMouseEvent(evt);
   });
 }
-var PlacesModal = class extends import_obsidian7.Modal {
+var PlacesModal = class extends import_obsidian8.Modal {
   constructor(plugin, here) {
     super(plugin.app);
     this.plugin = plugin;
@@ -3173,7 +3263,7 @@ var PlacesModal = class extends import_obsidian7.Modal {
     if (this.here) {
       const has = this.plugin.findBookmark(this.here.place);
       const b = this.contentEl.createEl("button", { cls: has ? "lmp-place-here" : "lmp-place-here mod-cta", text: `${has ? "Rimuovi il segnalibro" : "Aggiungi segnalibro"}: ${this.here.label}` });
-      (0, import_obsidian7.setIcon)(b.createSpan({ cls: "lmp-place-here-icon", prepend: true }), has ? "bookmark-minus" : "bookmark-plus");
+      (0, import_obsidian8.setIcon)(b.createSpan({ cls: "lmp-place-here-icon", prepend: true }), has ? "bookmark-minus" : "bookmark-plus");
       b.addEventListener("click", () => {
         this.plugin.toggleBookmark(this.here.place);
         this.close();
@@ -3245,7 +3335,7 @@ async function renderCitedIn(plugin, el, md, sourcePath, comp) {
 }
 
 // src/scrabb-vista.js
-var ScrabbSuggest = class extends import_obsidian8.EditorSuggest {
+var ScrabbSuggest = class extends import_obsidian9.EditorSuggest {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -3284,13 +3374,13 @@ var ScrabbSuggest = class extends import_obsidian8.EditorSuggest {
     el.addClass("scrabb-suggest");
     if (item.create) {
       const icon = el.createSpan(`scrabb-suggest-icon scrabb-t-${item.create}`);
-      (0, import_obsidian8.setIcon)(icon, "plus");
+      (0, import_obsidian9.setIcon)(icon, "plus");
       el.createSpan({ cls: "scrabb-suggest-name", text: `Crea \xAB${item.name}\xBB` });
       el.createSpan({ cls: "scrabb-suggest-meta", text: `nuovo ${SCRABB_TYPES[item.create].label.toLowerCase()}` });
       return;
     }
     const e = item.e;
-    (0, import_obsidian8.setIcon)(el.createSpan(`scrabb-suggest-icon scrabb-t-${e.tipo}`), SCRABB_TYPES[e.tipo].icon);
+    (0, import_obsidian9.setIcon)(el.createSpan(`scrabb-suggest-icon scrabb-t-${e.tipo}`), SCRABB_TYPES[e.tipo].icon);
     el.createSpan({ cls: "scrabb-suggest-name", text: e.name });
     el.createSpan({ cls: "scrabb-suggest-meta", text: [SCRABB_TYPES[e.tipo].label, e.categoria || scrabbDate(e)].filter(Boolean).join(" \xB7 ") });
   }
@@ -3309,7 +3399,7 @@ var ScrabbSuggest = class extends import_obsidian8.EditorSuggest {
     else put(item.e.name);
   }
 };
-var ScrabbPickModal = class extends import_obsidian8.SuggestModal {
+var ScrabbPickModal = class extends import_obsidian9.SuggestModal {
   constructor(plugin, opts, onPick) {
     super(plugin.app);
     this.plugin = plugin;
@@ -3336,12 +3426,12 @@ var ScrabbPickModal = class extends import_obsidian8.SuggestModal {
   renderSuggestion(item, el) {
     el.addClass("scrabb-suggest");
     if (item.create) {
-      (0, import_obsidian8.setIcon)(el.createSpan("scrabb-suggest-icon"), "plus");
+      (0, import_obsidian9.setIcon)(el.createSpan("scrabb-suggest-icon"), "plus");
       el.createSpan({ text: `Crea la scheda \xAB${item.name}\xBB` });
       return;
     }
     const icon = el.createSpan(`scrabb-suggest-icon scrabb-t-${item.tipo}`);
-    (0, import_obsidian8.setIcon)(icon, SCRABB_TYPES[item.tipo].icon);
+    (0, import_obsidian9.setIcon)(icon, SCRABB_TYPES[item.tipo].icon);
     el.createSpan({ cls: "scrabb-suggest-name", text: item.name });
     let extra = scrabbDate(item);
     if (SCRABB_USABLE.includes(item.tipo)) {
@@ -3354,7 +3444,7 @@ var ScrabbPickModal = class extends import_obsidian8.SuggestModal {
     this.onPick(item);
   }
 };
-var ScrabbNewModal = class extends import_obsidian8.Modal {
+var ScrabbNewModal = class extends import_obsidian9.Modal {
   constructor(plugin, opts, onDone) {
     super(plugin.app);
     this.plugin = plugin;
@@ -3365,17 +3455,17 @@ var ScrabbNewModal = class extends import_obsidian8.Modal {
     const o = this.opts;
     this.titleEl.setText("Nuova scheda SCRABB");
     this.contentEl.addClass("scrabb-new");
-    new import_obsidian8.Setting(this.contentEl).setName("Nome").addText((t) => {
+    new import_obsidian9.Setting(this.contentEl).setName("Nome").addText((t) => {
       t.setValue(o.name).onChange((v) => o.name = v);
       window.setTimeout(() => t.inputEl.focus(), 30);
       t.inputEl.addEventListener("keydown", (evt) => evt.key === "Enter" && this.submit());
     });
-    new import_obsidian8.Setting(this.contentEl).setName("Tipo").addDropdown((d) => {
+    new import_obsidian9.Setting(this.contentEl).setName("Tipo").addDropdown((d) => {
       for (const [k, t] of Object.entries(SCRABB_TYPES)) d.addOption(k, t.label);
       d.setValue(o.tipo).onChange((v) => o.tipo = v);
     });
-    new import_obsidian8.Setting(this.contentEl).setName("Versetti").setDesc("Separati da punto e virgola, es. Romani 12:19; Proverbi 20:22").addText((t) => t.setValue(o.versetti).onChange((v) => o.versetti = v));
-    const linkSet = new import_obsidian8.Setting(this.contentEl).setName("Collegata a");
+    new import_obsidian9.Setting(this.contentEl).setName("Versetti").setDesc("Separati da punto e virgola, es. Romani 12:19; Proverbi 20:22").addText((t) => t.setValue(o.versetti).onChange((v) => o.versetti = v));
+    const linkSet = new import_obsidian9.Setting(this.contentEl).setName("Collegata a");
     const chips = linkSet.controlEl.createDiv("scrabb-chips");
     const drawChips = () => {
       chips.empty();
@@ -3415,25 +3505,25 @@ var ScrabbNewModal = class extends import_obsidian8.Modal {
   async submit() {
     const o = this.opts;
     if (!scrabbSafeName(o.name)) {
-      new import_obsidian8.Notice("Scrivi un nome per la scheda.");
+      new import_obsidian9.Notice("Scrivi un nome per la scheda.");
       return;
     }
     try {
       const versetti = o.versetti.split(";").map((s) => s.trim()).filter(Boolean);
       const file = await this.plugin.scrabb.create({ name: o.name, tipo: o.tipo, versetti, links: o.links, body: o.body, fonti: o.fonti });
       this.close();
-      new import_obsidian8.Notice(`Scheda creata: ${file.basename}`);
+      new import_obsidian9.Notice(`Scheda creata: ${file.basename}`);
       if (this.plugin.ui.scrabbOpenNew) await this.app.workspace.getLeaf("tab").openFile(file);
       if (this.onDone) this.onDone(file);
     } catch (e) {
-      new import_obsidian8.Notice(`Impossibile creare la scheda: ${e.message}`);
+      new import_obsidian9.Notice(`Impossibile creare la scheda: ${e.message}`);
     }
   }
   onClose() {
     this.contentEl.empty();
   }
 };
-var ScrabbView = class extends import_obsidian8.ItemView {
+var ScrabbView = class extends import_obsidian9.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -3477,15 +3567,15 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     this.goHome = home;
     if (this.inShell) {
       this.backBtn = head.createEl("button", { cls: "lmp-tb-btn clickable-icon", attr: { "aria-label": "Indietro" } });
-      (0, import_obsidian8.setIcon)(this.backBtn, "arrow-left");
+      (0, import_obsidian9.setIcon)(this.backBtn, "arrow-left");
       this.backBtn.addEventListener("click", () => this.inShell.goBack());
     }
     addViewSwitch(head, this.plugin, "scrabb", home, this.inShell);
-    if (import_obsidian8.Platform.isPhone && this.addAction && !this.inShell) addGoToAction(this, "scrabb", home);
+    if (import_obsidian9.Platform.isPhone && this.addAction && !this.inShell) addGoToAction(this, "scrabb", home);
     this.tabsEl = head.createDiv("scrabb-tabs");
     for (const [id, label, icon] of [["principi", "Schede", "gem"], ["cronologia", "Cronologia", "calendar-range"], ["mappa", "Mappa", "waypoints"]]) {
       const b = this.tabsEl.createEl("button", { cls: "scrabb-tab", attr: { "data-tab": id } });
-      (0, import_obsidian8.setIcon)(b.createSpan(), icon);
+      (0, import_obsidian9.setIcon)(b.createSpan(), icon);
       b.createSpan({ text: label });
       b.addEventListener("click", () => {
         if (this.state.tab === id) return;
@@ -3497,10 +3587,10 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     }
     const tools = head.createDiv("scrabb-head-tools");
     const search = tools.createEl("button", { cls: "clickable-icon", attr: { "aria-label": "Cerca ovunque" } });
-    (0, import_obsidian8.setIcon)(search, "search");
+    (0, import_obsidian9.setIcon)(search, "search");
     search.addEventListener("click", () => this.plugin.openSearch());
     const plus = tools.createEl("button", { cls: "clickable-icon", attr: { "aria-label": "Nuova scheda" } });
-    (0, import_obsidian8.setIcon)(plus, "plus");
+    (0, import_obsidian9.setIcon)(plus, "plus");
     plus.addEventListener("click", () => {
       const tipo = this.state.tab === "principi" && SCRABB_TYPES[this.state.list] ? this.state.list : "persona";
       new ScrabbNewModal(this.plugin, { tipo }, (f) => this.selectWhenIndexed(f.path)).open();
@@ -3521,7 +3611,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
       if (this.tlDrag) this.tlDrag.el.removeClass("is-dragging");
       this.tlDrag = null;
     });
-    this.requestRender = (0, import_obsidian8.debounce)(() => this.render(), 250, true);
+    this.requestRender = (0, import_obsidian9.debounce)(() => this.render(), 250, true);
     await this.index.ensure();
     this.render();
   }
@@ -3561,7 +3651,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
         this.state.list = scrabbListOf(e.tipo);
         this.state.study = path;
       }
-      if (this.state.tab === "cronologia" && e.anno == null) new import_obsidian8.Notice("Questa scheda non ha ancora una data (campo \u201Canno\u201D).");
+      if (this.state.tab === "cronologia" && e.anno == null) new import_obsidian9.Notice("Questa scheda non ha ancora una data (campo \u201Canno\u201D).");
       this.saveState();
       this.render();
       if (this.state.tab === "cronologia") this.scrollTimelineTo(e);
@@ -3612,10 +3702,10 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     if (!e) return;
     const head = el.createDiv(`scrabb-card-head scrabb-t-${e.tipo}`);
     const close = head.createEl("button", { cls: "clickable-icon scrabb-card-close", attr: { "aria-label": "Chiudi" } });
-    (0, import_obsidian8.setIcon)(close, "x");
+    (0, import_obsidian9.setIcon)(close, "x");
     close.addEventListener("click", () => this.select(null));
     const type = head.createDiv("scrabb-card-type");
-    (0, import_obsidian8.setIcon)(type.createSpan(), SCRABB_TYPES[e.tipo].icon);
+    (0, import_obsidian9.setIcon)(type.createSpan(), SCRABB_TYPES[e.tipo].icon);
     type.createSpan({ text: [SCRABB_TYPES[e.tipo].label, e.corsia || e.categoria].filter(Boolean).join(" \xB7 ") });
     head.createDiv({ cls: "scrabb-card-title", text: e.name });
     const date = scrabbDate(e);
@@ -3623,7 +3713,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     const acts = el.createDiv("scrabb-card-actions");
     const act = (icon, label, fn) => {
       const b = acts.createEl("button", { cls: "scrabb-btn", attr: { "aria-label": label } });
-      (0, import_obsidian8.setIcon)(b.createSpan(), icon);
+      (0, import_obsidian9.setIcon)(b.createSpan(), icon);
       b.createSpan({ text: label });
       b.addEventListener("click", fn);
     };
@@ -3642,7 +3732,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
           return;
         }
         await this.index.addToField(e, SCRABB_FIELD_FOR[t.tipo], `[[${t.name}]]`);
-        new import_obsidian8.Notice(`Collegato a ${t.name}`);
+        new import_obsidian9.Notice(`Collegato a ${t.name}`);
       }).open()
     );
     const scroll = el.createDiv("scrabb-card-scroll");
@@ -3734,7 +3824,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
         if (!isCurrent()) return;
         const box = sec.createDiv("scrabb-occ");
         const h = box.createDiv("scrabb-occ-head");
-        (0, import_obsidian8.setIcon)(h.createSpan(), o.source ? "quote" : "file-text");
+        (0, import_obsidian9.setIcon)(h.createSpan(), o.source ? "quote" : "file-text");
         if (o.date) h.createSpan({ cls: "scrabb-occ-date", text: scrabbFmtDate(o.date) });
         h.createSpan({ cls: "scrabb-occ-name", text: o.file.basename });
         if (o.source) h.createSpan({ cls: "scrabb-occ-folder", text: "fonte" });
@@ -3772,7 +3862,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     const card = parent.createDiv({ cls: `scrabb-example scrabb-t-${x.tipo}`, attr: { "data-path": x.path } });
     if (x.path === this.state.sel) card.addClass("is-selected");
     const h = card.createDiv("scrabb-example-head");
-    (0, import_obsidian8.setIcon)(h.createSpan("scrabb-example-icon"), SCRABB_TYPES[x.tipo].icon);
+    (0, import_obsidian9.setIcon)(h.createSpan("scrabb-example-icon"), SCRABB_TYPES[x.tipo].icon);
     h.createSpan({ cls: "scrabb-example-title", text: x.name });
     if (SCRABB_USABLE.includes(x.tipo)) {
       const used = (usage || this.index.usageMap()).get(x.path) || [];
@@ -3849,7 +3939,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
         const open = !many || (this.state.openGroups || []).includes(g) || groups.get(g).some((e2) => e2.path === this.state.study);
         if (g && groups.size > 1) {
           const gh = listEl.createDiv({ cls: "scrabb-list-group" + (many ? " is-toggle" : "") });
-          if (many) (0, import_obsidian8.setIcon)(gh.createSpan("scrabb-group-caret"), open ? "chevron-down" : "chevron-right");
+          if (many) (0, import_obsidian9.setIcon)(gh.createSpan("scrabb-group-caret"), open ? "chevron-down" : "chevron-right");
           gh.createSpan({ text: g });
           if (many) {
             gh.createSpan({ cls: "scrabb-count", text: String(groups.get(g).length) });
@@ -3906,7 +3996,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
   async renderStudyDetail(el, e) {
     const head = el.createDiv(`scrabb-study-head scrabb-t-${e.tipo}`);
     const type = head.createDiv("scrabb-card-type");
-    (0, import_obsidian8.setIcon)(type.createSpan(), SCRABB_TYPES[e.tipo].icon);
+    (0, import_obsidian9.setIcon)(type.createSpan(), SCRABB_TYPES[e.tipo].icon);
     type.createSpan({ text: [SCRABB_TYPES[e.tipo].label, e.categoria].filter(Boolean).join(" \xB7 ") });
     const title = head.createEl("h2", { text: e.name });
     title.addEventListener("click", (evt) => this.openFile(e, evt));
@@ -3914,7 +4004,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     const acts = head.createDiv("scrabb-card-actions");
     const btn = (icon, label, fn, cta) => {
       const b = acts.createEl("button", { cls: `scrabb-btn${cta ? " mod-cta" : ""}` });
-      (0, import_obsidian8.setIcon)(b.createSpan(), icon);
+      (0, import_obsidian9.setIcon)(b.createSpan(), icon);
       b.createSpan({ text: label });
       b.addEventListener("click", fn);
     };
@@ -3950,7 +4040,7 @@ var ScrabbView = class extends import_obsidian8.ItemView {
     const zoom = (f) => this.zoomTimeline(f);
     const zb = (icon, label, fn) => {
       const b = bar.createEl("button", { cls: "clickable-icon", attr: { "aria-label": label } });
-      (0, import_obsidian8.setIcon)(b, icon);
+      (0, import_obsidian9.setIcon)(b, icon);
       b.addEventListener("click", fn);
     };
     zb("zoom-out", "Riduci", () => zoom(1 / 1.6));
@@ -4405,16 +4495,16 @@ function linkVerseToScrabb(plugin, label, refresh) {
       return;
     }
     await plugin.scrabb.addToField(e, "versetti", label);
-    new import_obsidian8.Notice(`${label} collegato a ${e.name}`);
+    new import_obsidian9.Notice(`${label} collegato a ${e.name}`);
     window.setTimeout(refresh, 1500);
   }).open();
 }
 
 // src/lettura.js
-var import_obsidian10 = require("obsidian");
+var import_obsidian11 = require("obsidian");
 
 // src/studio.js
-var import_obsidian9 = require("obsidian");
+var import_obsidian10 = require("obsidian");
 var fold = (s) => [...String(s)].map((c) => norm(c).replace(/[’‘`]/g, "'")[0] || c).join("");
 function wordKey(word) {
   const w = fold(word).replace(/[^a-z' ]+/g, " ").replace(/\s+/g, " ").trim();
@@ -4562,7 +4652,7 @@ async function parallelsInChapter(plugin, book, chapter) {
   }
   return out;
 }
-var ParallelModal = class extends import_obsidian9.Modal {
+var ParallelModal = class extends import_obsidian10.Modal {
   constructor(plugin, event, currentBook) {
     super(plugin.app);
     this.plugin = plugin;
@@ -4611,7 +4701,7 @@ function textKey(s) {
 async function openRouter(plugin, body) {
   const key = (plugin.settings.openrouterKey || "").trim();
   if (!key) throw new Error("Manca la chiave OpenRouter: Impostazioni \u2192 Lampada \u2192 Intelligenza artificiale.");
-  const res = await (0, import_obsidian9.requestUrl)({
+  const res = await (0, import_obsidian10.requestUrl)({
     url: "https://openrouter.ai/api/v1/chat/completions",
     method: "POST",
     contentType: "application/json",
@@ -4875,7 +4965,7 @@ function renderAskBox(plugin, getCtx, chat, onSource, placeholder = "Chiedi qual
       const copy = el.createEl("button", { cls: "lmp-small-btn lmp-ai-ask-copy", text: "Copia" });
       copy.addEventListener("click", async () => {
         await navigator.clipboard.writeText(t.a.replace(/\s*\[F\d+(?:\s*,\s*F\d+)*\]/g, ""));
-        new import_obsidian9.Notice("Risposta copiata");
+        new import_obsidian10.Notice("Risposta copiata");
       });
     }
     return el;
@@ -4889,9 +4979,9 @@ function renderAskBox(plugin, getCtx, chat, onSource, placeholder = "Chiedi qual
   const form = box.createDiv("lmp-ai-ask-form");
   const input = form.createEl("textarea", { cls: "lmp-ai-ask-input", attr: { rows: "1", "aria-label": placeholder } });
   const send = form.createEl("button", { cls: "clickable-icon lmp-ai-ask-send", attr: { "aria-label": "Chiedi" } });
-  (0, import_obsidian9.setIcon)(send, "send");
+  (0, import_obsidian10.setIcon)(send, "send");
   const clear = form.createEl("button", { cls: "clickable-icon lmp-ai-ask-clear", attr: { "aria-label": "Nuova conversazione" } });
-  (0, import_obsidian9.setIcon)(clear, "rotate-ccw");
+  (0, import_obsidian10.setIcon)(clear, "rotate-ccw");
   clear.addEventListener("click", () => {
     if (chat.busy) return;
     chat.turns = [];
@@ -4938,13 +5028,13 @@ function renderAskBox(plugin, getCtx, chat, onSource, placeholder = "Chiedi qual
   return box;
 }
 function aiMenu(plugin, evt, run) {
-  const menu = new import_obsidian9.Menu();
+  const menu = new import_obsidian10.Menu();
   for (const preset of parsePresets(plugin.settings.aiPresets)) menu.addItem((i) => i.setTitle(preset.name).onClick(() => run(preset)));
   menu.addSeparator();
   menu.addItem((i) => i.setTitle("Scrivi tu la richiesta\u2026").setIcon("pencil").onClick(() => new FreePromptModal(plugin, run).open()));
   menu.showAtMouseEvent(evt);
 }
-var FreePromptModal = class extends import_obsidian9.Modal {
+var FreePromptModal = class extends import_obsidian10.Modal {
   constructor(plugin, run) {
     super(plugin.app);
     this.plugin = plugin;
@@ -4985,7 +5075,7 @@ async function showAiSuggestions(plugin, preset, getCtx, { btn, ta, place, onSou
   const head = box.createDiv("lmp-ai-head");
   const note = head.createDiv({ cls: "lmp-ai-note", text: `${preset.name} \xB7 sto cercando nelle fonti\u2026` });
   const close = head.createEl("button", { cls: "clickable-icon lmp-ai-close", attr: { "aria-label": "Chiudi gli spunti" } });
-  (0, import_obsidian9.setIcon)(close, "x");
+  (0, import_obsidian10.setIcon)(close, "x");
   const drop = () => {
     box.remove();
     if (onClose) onClose(box);
@@ -5020,7 +5110,7 @@ ${c.testo}` : c.testo;
       const copy = acts.createEl("button", { cls: "lmp-small-btn", text: "Copia" });
       copy.addEventListener("click", async () => {
         await navigator.clipboard.writeText(c.testo);
-        new import_obsidian9.Notice("Spunto copiato");
+        new import_obsidian10.Notice("Spunto copiato");
       });
     }
   } catch (e) {
@@ -5070,12 +5160,12 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
       b.disabled = true;
       try {
         await plugin.ask("downloadReferenceBible", (t) => b.isConnected && b.setText(t));
-        new import_obsidian9.Notice("Bibbia con riferimenti pronta");
+        new import_obsidian10.Notice("Bibbia con riferimenti pronta");
         refresh();
       } catch (err) {
         b.disabled = false;
         b.setText("Riprova a scaricare");
-        new import_obsidian9.Notice(`Bibbia con riferimenti: ${err.message}`);
+        new import_obsidian10.Notice(`Bibbia con riferimenti: ${err.message}`);
       }
     });
     return;
@@ -5161,12 +5251,12 @@ var Pager = class {
       if (Math.abs(dx) > 50 && Math.abs(dy) < 60 && !hasSelection()) this.turn(dx < 0 ? 1 : -1);
     }, { passive: true });
     let frame = 0;
-    const settle = (0, import_obsidian10.debounce)(() => this.o.content() && this.o.settle(), 1500, true);
+    const settle = (0, import_obsidian11.debounce)(() => this.o.content() && this.o.settle(), 1500, true);
     view.registerDomEvent(scroller, "scroll", () => {
       if (!frame) frame = window.requestAnimationFrame(() => (frame = 0, this.updateFoot()));
       settle();
     }, { passive: true });
-    const relayout = (0, import_obsidian10.debounce)(() => this.layout(), 150, true);
+    const relayout = (0, import_obsidian11.debounce)(() => this.layout(), 150, true);
     const ro = new ResizeObserver(() => relayout());
     ro.observe(scroller);
     view.register(() => ro.disconnect());
@@ -5233,7 +5323,7 @@ var Pager = class {
       const H = this.el.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       const fold2 = foldIn(this.el);
       const n = fold2 || s.pageMode === "spread" || W >= 1e3 ? 2 : 1;
-      const pad2 = Math.max(import_obsidian10.Platform.isPhone && n === 1 ? 20 : 30, Math.round((W / n - (MEASURES[s.margins] || 720) + 52) / 2));
+      const pad2 = Math.max(import_obsidian11.Platform.isPhone && n === 1 ? 20 : 30, Math.round((W / n - (MEASURES[s.margins] || 720) + 52) / 2));
       let gap = 2 * pad2;
       let left = pad2;
       if (fold2) {
@@ -5270,7 +5360,7 @@ var Pager = class {
     this.layout(null);
     if (!this.on) return;
     if (land) this.goTo(this.pages() - 1);
-    if (import_obsidian10.Platform.isMobile && this.view.plugin.settings.autoHideBars !== false) setBarsHidden(this.view, true);
+    if (import_obsidian11.Platform.isMobile && this.view.plugin.settings.autoHideBars !== false) setBarsHidden(this.view, true);
   }
   /** Porta in vista un elemento: la sua pagina, oppure (scorrendo) in alto o al centro. */
   reveal(el, block = "start") {
@@ -5303,11 +5393,11 @@ var Pager = class {
     const t = e.target;
     if (!(t instanceof Element) || t.closest("a, button, input, textarea, select, .lmp-fn, .lmp-ref-mark, .lmp-par-mark, .lmp-ai-box") || hasSelection()) return;
     const r = this.el.getBoundingClientRect();
-    const zone = import_obsidian10.Platform.isMobile ? r.width * 0.2 : Math.max(this.pad, 40);
+    const zone = import_obsidian11.Platform.isMobile ? r.width * 0.2 : Math.max(this.pad, 40);
     let d = 0;
     if (e.clientX < r.left + zone) d = -1;
     else if (e.clientX > r.right - zone) d = 1;
-    else if (import_obsidian10.Platform.isMobile && e.clientY < r.top + r.height * 0.12) {
+    else if (import_obsidian11.Platform.isMobile && e.clientY < r.top + r.height * 0.12) {
       e.stopImmediatePropagation();
       setBarsHidden(this.view, !this.view.barsHidden);
       return;
@@ -5366,7 +5456,7 @@ function placeSelBar(view) {
   bar.style.left = `${left}px`;
   bar.style.top = `${Math.max(4, top)}px`;
 }
-var ReadingModal = class extends import_obsidian10.Modal {
+var ReadingModal = class extends import_obsidian11.Modal {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -5416,7 +5506,7 @@ var ReadingModal = class extends import_obsidian10.Modal {
 };
 
 // src/bibbia-vista.js
-var BibleView = class _BibleView extends import_obsidian11.ItemView {
+var BibleView = class _BibleView extends import_obsidian12.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -5478,9 +5568,9 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     this.popoverEl = root.createDiv("lmp-fn-popover");
     this.popoverEl.hide();
     this.buildSelectionBar();
-    this.registerDomEvent(document, "selectionchange", (0, import_obsidian11.debounce)(() => this.onSelectionChange(), 200, true));
+    this.registerDomEvent(document, "selectionchange", (0, import_obsidian12.debounce)(() => this.onSelectionChange(), 200, true));
     this.buildToolbar();
-    if (import_obsidian11.Platform.isPhone && this.addAction && !this.inShell) {
+    if (import_obsidian12.Platform.isPhone && this.addAction && !this.inShell) {
       this.addAction("chevron-right", "Capitolo successivo", () => this.stepChapter(1));
       this.addAction("chevron-left", "Capitolo precedente", () => this.stepChapter(-1));
       this.addAction("search", "Cerca ovunque", () => this.plugin.openSearch(this));
@@ -5539,7 +5629,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       ["ArrowDown", () => this.primary == null ? true : (this.stepVerse(1), false)],
       ["Escape", () => (this.clearSelection(), false)]
     ]);
-    const relayout = (0, import_obsidian11.debounce)(() => this.applyLayout(), 120, true);
+    const relayout = (0, import_obsidian12.debounce)(() => this.applyLayout(), 120, true);
     const ro = new ResizeObserver(() => relayout());
     ro.observe(this.bodyEl);
     this.register(() => ro.disconnect());
@@ -5565,7 +5655,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     this.contentEl.empty();
   }
   onVaultChange(file) {
-    const folder = (0, import_obsidian11.normalizePath)(this.plugin.settings.notesFolder || "");
+    const folder = (0, import_obsidian12.normalizePath)(this.plugin.settings.notesFolder || "");
     if (this.state.mode === "reader" && file && file.path.startsWith(folder)) {
       this.decorateVerses();
       this.renderPane();
@@ -5590,7 +5680,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     tb.empty();
     const btn = (icon, label, onClick, cls = "") => {
       const b = tb.createEl("button", { cls: `lmp-tb-btn clickable-icon ${cls}`, attr: { "aria-label": label } });
-      (0, import_obsidian11.setIcon)(b, icon);
+      (0, import_obsidian12.setIcon)(b, icon);
       b.addEventListener("click", onClick);
       return b;
     };
@@ -5614,7 +5704,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     this.updateToolbar();
   }
   isPhoneNavigator() {
-    return import_obsidian11.Platform.isPhone && this.leaf && this.plugin.leafLocation(this.leaf) !== "tab" && this.plugin.settings.readerLocation === "tab";
+    return import_obsidian12.Platform.isPhone && this.leaf && this.plugin.leafLocation(this.leaf) !== "tab" && this.plugin.settings.readerLocation === "tab";
   }
   openGoto() {
     new GotoModal(this.plugin, (ref) => this.navigate(ref)).open();
@@ -5626,14 +5716,14 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     this.updateToolbar();
   }
   showMoreMenu(evt) {
-    const menu = new import_obsidian11.Menu();
+    const menu = new import_obsidian12.Menu();
     this.fillMenu(menu);
     menu.showAtMouseEvent(evt);
   }
   /** Sul telefono le opzioni stanno nel menu ⋮ di Obsidian della scheda. */
   onPaneMenu(menu, source) {
     if (super.onPaneMenu) super.onPaneMenu(menu, source);
-    if (!import_obsidian11.Platform.isPhone) return;
+    if (!import_obsidian12.Platform.isPhone) return;
     menu.addSeparator();
     this.fillMenu(menu);
   }
@@ -5649,7 +5739,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       menu.addItem(
         (i) => i.setTitle(this.paneVisible ? "Nascondi pannello di studio" : "Mostra pannello di studio").setIcon("panel-right").onClick(() => this.togglePane())
       );
-      if (!import_obsidian11.Platform.isPhone)
+      if (!import_obsidian12.Platform.isPhone)
         menu.addItem(
           (i) => i.setTitle("Apri i riferimenti in un riquadro a parte").setIcon("columns-2").setChecked(!!this.plugin.ui.splitRefs).onClick(() => {
             this.plugin.ui.splitRefs = !this.plugin.ui.splitRefs;
@@ -5773,7 +5863,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
   }
   /** Modalità "riquadro a parte" (non sul telefono, dove non si può dividere lo schermo). */
   wantSplit() {
-    return !!this.plugin.ui.splitRefs && !import_obsidian11.Platform.isPhone;
+    return !!this.plugin.ui.splitRefs && !import_obsidian12.Platform.isPhone;
   }
   /**
    * Apre un versetto, un documento della biblioteca o una nota in un riquadro accanto al lettore.
@@ -5954,7 +6044,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     this.plugin.readPositions().catch(() => ({})).then(({ bible }) => {
       const last = [this.plugin.last, bible].filter(Boolean).sort((a, b) => (b.t || 0) - (a.t || 0))[0];
       if (!last || !this.bible.byNum.get(last.book) || !card.isConnected) return;
-      (0, import_obsidian11.setIcon)(card.createDiv("lmp-continue-icon"), "book-open");
+      (0, import_obsidian12.setIcon)(card.createDiv("lmp-continue-icon"), "book-open");
       const txt = card.createDiv();
       txt.createDiv({ cls: "lmp-continue-label", text: "Continua a leggere" });
       txt.createDiv({ cls: "lmp-continue-ref", text: this.bible.refLabel({ book: last.book, chapter: last.chapter, verse: last.verse }) });
@@ -5962,7 +6052,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       card.show();
     });
     const tagsCard = quick.createDiv("lmp-continue lmp-tags-card");
-    (0, import_obsidian11.setIcon)(tagsCard.createDiv("lmp-continue-icon"), "tags");
+    (0, import_obsidian12.setIcon)(tagsCard.createDiv("lmp-continue-icon"), "tags");
     const tagsTxt = tagsCard.createDiv();
     tagsTxt.createDiv({ cls: "lmp-continue-label", text: "Note di JW Library" });
     tagsTxt.createDiv({ cls: "lmp-continue-ref", text: "Etichette" });
@@ -6036,7 +6126,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
         const label = this.plugin.tagLabel(tag);
         if (q2 && !norm(label).includes(q2)) continue;
         const row = list.createDiv("lmp-tag-row");
-        (0, import_obsidian11.setIcon)(row.createSpan("lmp-tag-icon"), "tag");
+        (0, import_obsidian12.setIcon)(row.createSpan("lmp-tag-icon"), "tag");
         row.createSpan({ cls: "lmp-tag-name", text: label });
         row.createSpan({ cls: "lmp-badge", text: String(n) });
         row.addEventListener("click", () => this.navigate({ mode: "tag", tag }));
@@ -6051,7 +6141,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     main.scrollTop = 0;
     const wrap = main.createDiv("lmp-tags");
     const head = wrap.createDiv("lmp-tag-head");
-    (0, import_obsidian11.setIcon)(head.createSpan("lmp-tag-icon"), "tag");
+    (0, import_obsidian12.setIcon)(head.createSpan("lmp-tag-icon"), "tag");
     head.createEl("h2", { text: this.plugin.tagLabel(tag) });
     const notes = (await this.plugin.collectTaggedNotes()).filter((n) => n.tags.includes(tag));
     if (token !== this.renderToken) return;
@@ -6204,7 +6294,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
         return;
       }
       const i = createSpan();
-      (0, import_obsidian11.setIcon)(i, icon);
+      (0, import_obsidian12.setIcon)(i, icon);
       if (!after) b.appendChild(i);
       b.createSpan({ text: label + " " + this.bible.refLabel(ref) });
       if (after) b.appendChild(i);
@@ -6367,7 +6457,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
    */
   showSelectedNoteLinks() {
     this.clearNoteLinks();
-    if (this.plugin.ui.autoLinks === false || !this.paneEl || import_obsidian11.Platform.isPhone) return;
+    if (this.plugin.ui.autoLinks === false || !this.paneEl || import_obsidian12.Platform.isPhone) return;
     this.paneEl.querySelectorAll(".lmp-note-card[data-mid]").forEach((card) => card.offsetParent && this.drawNoteConnector(card.dataset.mid, card));
   }
   /** Dopo uno scorrimento le linee si ridisegnano quando il testo è fermo. */
@@ -6451,7 +6541,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       if (vNotes || this.bible.getFile(this.plugin.notePath(d.book, c, v))) {
         const n = vNotes ? vNotes.length : 0;
         const mark = createSpan({ cls: "lmp-note-mark", attr: { "aria-label": n ? `${n} not${n === 1 ? "a" : "e"}` : "Nota su questo versetto" } });
-        (0, import_obsidian11.setIcon)(mark, "sticky-note");
+        (0, import_obsidian12.setIcon)(mark, "sticky-note");
         if (vNotes && vNotes[0].color) mark.dataset.hl = vNotes[0].color;
         if (n > 1) mark.createSpan({ cls: "lmp-note-count", text: String(n) });
         mark.addEventListener("click", (evt) => {
@@ -6540,24 +6630,24 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       dot.addEventListener("click", () => this.applySelection(h.id));
     }
     const erase = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Rimuovi evidenziazione" } });
-    (0, import_obsidian11.setIcon)(erase, "eraser");
+    (0, import_obsidian12.setIcon)(erase, "eraser");
     erase.addEventListener("click", () => this.applySelection(null));
     const note = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Nota sul testo selezionato" } });
-    (0, import_obsidian11.setIcon)(note, "sticky-note");
+    (0, import_obsidian12.setIcon)(note, "sticky-note");
     note.addEventListener("click", () => this.noteFromSelection());
     const word = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Studia la parola" } });
-    (0, import_obsidian11.setIcon)(word, "book-a");
+    (0, import_obsidian12.setIcon)(word, "book-a");
     word.addEventListener("click", () => this.studyWord());
     const copy = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Copia" } });
-    (0, import_obsidian11.setIcon)(copy, "copy");
+    (0, import_obsidian12.setIcon)(copy, "copy");
     copy.addEventListener("click", async () => {
       if (!this.selInfo) return;
       await navigator.clipboard.writeText(this.selInfo.text);
-      new import_obsidian11.Notice("Testo copiato");
+      new import_obsidian12.Notice("Testo copiato");
       this.hideSelectionBar();
     });
     const ai = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Spunti sul testo selezionato" } });
-    (0, import_obsidian11.setIcon)(ai, "lightbulb");
+    (0, import_obsidian12.setIcon)(ai, "lightbulb");
     ai.addEventListener("click", (evt) => {
       const info = this.selInfo;
       if (!info) return;
@@ -6639,7 +6729,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     }
     this.hidePopover();
     const verseEl = target.closest(".lmp-verse");
-    if (!verseEl && import_obsidian11.Platform.isMobile && this.state.mode === "reader" && !target.closest("button, a, .lmp-margin-square, .lmp-print-refs")) {
+    if (!verseEl && import_obsidian12.Platform.isMobile && this.state.mode === "reader" && !target.closest("button, a, .lmp-margin-square, .lmp-print-refs")) {
       if (this.selected.size) this.clearSelection();
       else setBarsHidden(this, !this.barsHidden);
       return;
@@ -6766,7 +6856,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     this.paneEl.empty();
     this.paneEl.removeClass("lmp-tabbed");
     if (!show) return;
-    const comp = this.paneComponent = this.addChild(new import_obsidian11.Component());
+    const comp = this.paneComponent = this.addChild(new import_obsidian12.Component());
     const top = this.paneStack[this.paneStack.length - 1];
     if (top && top.word) await this.renderPaneWord(top, comp, token);
     else if (top && top.ai) {
@@ -6793,7 +6883,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     const header = this.paneEl.createDiv("lmp-pane-header");
     const iconBtn = (icon, label, fn) => {
       const b = header.createEl("button", { cls: "clickable-icon lmp-pane-btn", attr: { "aria-label": label } });
-      (0, import_obsidian11.setIcon)(b, icon);
+      (0, import_obsidian12.setIcon)(b, icon);
       b.addEventListener("click", fn);
       return b;
     };
@@ -6830,12 +6920,12 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       });
     }
     const erase = colors.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Rimuovi evidenziazione" } });
-    (0, import_obsidian11.setIcon)(erase, "eraser");
+    (0, import_obsidian12.setIcon)(erase, "eraser");
     erase.addEventListener("click", () => this.setHighlight(null));
     const tools = actions.createDiv("lmp-tools");
     const tool = (icon, label, fn, active) => {
       const b = tools.createEl("button", { cls: "clickable-icon lmp-tool", attr: { "aria-label": label } });
-      (0, import_obsidian11.setIcon)(b, icon);
+      (0, import_obsidian12.setIcon)(b, icon);
       if (active) b.addClass("is-active");
       b.addEventListener("click", fn);
       return b;
@@ -6847,15 +6937,15 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     }, !!bm);
     tool("copy", "Copia testo", async () => {
       await navigator.clipboard.writeText(`${info.text} (${info.label})`);
-      new import_obsidian11.Notice("Versetto copiato");
+      new import_obsidian12.Notice("Versetto copiato");
     });
     tool("lightbulb", "Spunti su questi versetti", (evt) => this.bibleAi(evt, [...this.selected]));
     tool("smartphone", "Apri in JW Library", () => this.plugin.openInJwLibrary(info.ref));
     tool("more-horizontal", "Altre azioni", (evt) => {
-      const menu = new import_obsidian11.Menu();
+      const menu = new import_obsidian12.Menu();
       menu.addItem((it) => it.setTitle("Copia link").setIcon("link").onClick(async () => {
         await navigator.clipboard.writeText(info.link);
-        new import_obsidian11.Notice("Link copiato");
+        new import_obsidian12.Notice("Link copiato");
       }));
       menu.addItem((it) => it.setTitle("Inserisci nella nota aperta").setIcon("text-cursor-input").onClick(() => this.plugin.insertIntoNote(info)));
       if (this.plugin.scrabb && this.plugin.scrabb.ready)
@@ -7035,7 +7125,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
         more.push(box);
       }
       const head = box.createDiv("lmp-cite-head");
-      (0, import_obsidian11.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
+      (0, import_obsidian12.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
       head.createSpan({ cls: "lmp-cite-name", text: file.basename });
       const folder = file.parent && file.parent.path !== "/" ? file.parent.path : "";
       if (folder) head.createSpan({ cls: "lmp-cite-folder", text: folder.split("/").pop() });
@@ -7062,14 +7152,14 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     sec.dataset.sourcePath = file ? file.path : "";
     const list = sec.createDiv("lmp-notes");
     for (const blk of blocks) await this.renderNoteCard(list, blk, ctx, comp);
-    if (!import_obsidian11.Platform.isPhone && list.querySelector(".lmp-note-card[data-mid]")) {
+    if (!import_obsidian12.Platform.isPhone && list.querySelector(".lmp-note-card[data-mid]")) {
       const summary = sec.parentElement.querySelector("summary");
       const tg = summary.createEl("button", { cls: "clickable-icon lmp-links-toggle" });
       const paint = () => {
         const on = this.plugin.ui.autoLinks !== false;
         tg.toggleClass("is-active", on);
         tg.setAttr("aria-label", on ? "Nascondi le linee di collegamento" : "Mostra le linee di collegamento");
-        (0, import_obsidian11.setIcon)(tg, on ? "spline" : "unlink");
+        (0, import_obsidian12.setIcon)(tg, on ? "spline" : "unlink");
       };
       paint();
       tg.addEventListener("click", (evt) => {
@@ -7126,7 +7216,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     const head = card.createDiv("lmp-note-card-head");
     head.createDiv({ cls: "lmp-note-card-title", text: blk.title && blk.title !== "Nota" ? blk.title : "Nota" });
     const edit = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": "Modifica" } });
-    (0, import_obsidian11.setIcon)(edit, "pencil");
+    (0, import_obsidian12.setIcon)(edit, "pencil");
     if (blk.content) await renderMd(this.app, blk.content, card.createDiv("lmp-md lmp-note-card-body"), ctx.file ? ctx.file.path : "", comp);
     if (blk.tags.length || blk.date) {
       const foot = card.createDiv("lmp-tag-chips");
@@ -7227,7 +7317,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     save.addEventListener("click", async () => {
       addTag();
       if (!title.value.trim() && !body.value.trim()) {
-        new import_obsidian11.Notice("Scrivi un titolo o un testo");
+        new import_obsidian12.Notice("Scrivi un titolo o un testo");
         return;
       }
       save.disabled = true;
@@ -7246,7 +7336,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
         this.renderPane();
       } catch (e) {
         console.error("[lampada] salvataggio della nota non riuscito", e);
-        new import_obsidian11.Notice(`Nota non salvata: ${e.message}`);
+        new import_obsidian12.Notice(`Nota non salvata: ${e.message}`);
         save.disabled = false;
       }
     });
@@ -7409,7 +7499,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
       if (!first) continue;
       for (const ev of events) {
         const mark = createSpan({ cls: "lmp-par-mark", attr: { "aria-label": "Confronta i racconti paralleli" } });
-        (0, import_obsidian11.setIcon)(mark.createSpan("lmp-par-icon"), "columns-3");
+        (0, import_obsidian12.setIcon)(mark.createSpan("lmp-par-icon"), "columns-3");
         mark.createSpan({ cls: "lmp-par-title", text: ev.title });
         const others = GOSPELS.filter((b, i) => b !== d.book.num && ev.refs[i].length).map(abbr);
         mark.createSpan({ cls: "lmp-par-books", text: others.join(" \xB7 ") });
@@ -7728,7 +7818,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
     const txt = parts.join(" ");
     pop.createDiv({ cls: "lmp-ref-pop-text", text: txt ? txt + (ref.verse ? "" : " \u2026") : "Testo non trovato." });
     const bar = pop.createDiv("lmp-cite-pop-actions");
-    if (!import_obsidian11.Platform.isPhone) bar.createEl("button", { text: "A lato" }).addEventListener("click", () => open(true));
+    if (!import_obsidian12.Platform.isPhone) bar.createEl("button", { text: "A lato" }).addEventListener("click", () => open(true));
     bar.createEl("button", { cls: "mod-cta", text: "Apri" }).addEventListener("click", () => open(false));
     this.positionPopover(anchor, 420);
   }
@@ -7757,7 +7847,7 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
         else this.navigate(ref2);
         return;
       }
-      new import_obsidian11.Notice(`Collegamento non trovato: ${linktext}`);
+      new import_obsidian12.Notice(`Collegamento non trovato: ${linktext}`);
       return;
     }
     const hash = linktext.indexOf("#");
@@ -7797,11 +7887,11 @@ var BibleView = class _BibleView extends import_obsidian11.ItemView {
 };
 
 // src/biblioteca-vista.js
-var import_obsidian12 = require("obsidian");
+var import_obsidian13 = require("obsidian");
 var blockText = (b) => b.innerText.replace(/\s+/g, " ").trim();
 var isQuestionBlock = (b) => /^\d+(\s*[-–,]\s*\d+)*\.\s/.test(blockText(b));
 var isLabelBlock = (b) => /^(la tua risposta|le tue risposte)$/i.test(blockText(b));
-var LibraryView = class extends import_obsidian12.ItemView {
+var LibraryView = class extends import_obsidian13.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -7874,7 +7964,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     ]);
     const btn = (icon, label, fn) => {
       const b = this.toolbarEl.createEl("button", { cls: "lmp-tb-btn clickable-icon", attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b, icon);
+      (0, import_obsidian13.setIcon)(b, icon);
       b.addEventListener("click", fn);
       return b;
     };
@@ -7887,7 +7977,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     btn("search", "Cerca ovunque", () => this.plugin.openSearch());
     btn("bookmark", "Segnalibri e recenti", () => new PlacesModal(this.plugin, this.herePlace()).open());
     btn("type", "Aspetto del testo", () => new ReadingModal(this.plugin).open());
-    if (import_obsidian12.Platform.isPhone && this.addAction && !this.inShell) {
+    if (import_obsidian13.Platform.isPhone && this.addAction && !this.inShell) {
       this.addAction("type", "Aspetto del testo", () => new ReadingModal(this.plugin).open());
       this.addAction("chevron-right", "Documento successivo", () => this.stepDoc(1));
       this.addAction("chevron-left", "Documento precedente", () => this.stepDoc(-1));
@@ -7898,7 +7988,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     }
     this.registerDomEvent(this.mainEl, "click", (evt) => this.onLinkClick(evt), { capture: true });
     this.buildSelectionBar();
-    this.registerDomEvent(document, "selectionchange", (0, import_obsidian12.debounce)(() => this.onSelectionChange(), 200, true));
+    this.registerDomEvent(document, "selectionchange", (0, import_obsidian13.debounce)(() => this.onSelectionChange(), 200, true));
     this.registerDomEvent(this.mainEl, "scroll", () => this.hideSelectionBar());
     autoHideBars(this, this.mainEl);
     this.registerEvent(this.app.workspace.on("lampada:scrabb-changed", () => {
@@ -7970,7 +8060,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
       this.bodyEl.removeClass("has-pane");
     }
     if (this.comp) this.removeChild(this.comp);
-    this.comp = this.addChild(new import_obsidian12.Component());
+    this.comp = this.addChild(new import_obsidian13.Component());
     this.mainEl.empty();
     this.mainEl.scrollTop = 0;
     this.docBody = null;
@@ -8032,7 +8122,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
       t.createDiv({ cls: "lmp-lib-cat-title", text: cat.label });
       const one = cat.pubs.length === 1 && cat.pubs[0];
       t.createDiv({ cls: "lmp-lib-cat-meta", text: one ? one.issues ? `${one.issues.length} numeri` : `${one.docs.length} documenti` : `${cat.pubs.length} pubblicazioni` });
-      (0, import_obsidian12.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
+      (0, import_obsidian13.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
       row.addEventListener("click", () => this.navigate(one ? { mode: "pub", sym: one.symbol } : { mode: "cat", cat: cat.id }));
     }
     const tools = sections.createDiv("lmp-lib-tools");
@@ -8047,9 +8137,9 @@ var LibraryView = class extends import_obsidian12.ItemView {
         more.disabled = true;
         try {
           const got = await this.plugin.ask("downloadCovers", (t) => more.setText(t));
-          new import_obsidian12.Notice(got ? `${got} copertine aggiunte` : "Nessuna nuova copertina trovata");
+          new import_obsidian13.Notice(got ? `${got} copertine aggiunte` : "Nessuna nuova copertina trovata");
         } catch (e) {
-          new import_obsidian12.Notice(`Copertine non scaricate: ${e.message}`);
+          new import_obsidian13.Notice(`Copertine non scaricate: ${e.message}`);
         }
         this.navigate({ mode: "home" }, { push: false });
       });
@@ -8126,7 +8216,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     };
     const navBtn = (icon, label, fn) => {
       const b = nav.createEl("button", { cls: "clickable-icon lmp-week-arrow", attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b, icon);
+      (0, import_obsidian13.setIcon)(b, icon);
       b.addEventListener("click", fn);
     };
     navBtn("chevron-left", "Settimana precedente", () => shift(-1));
@@ -8198,7 +8288,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
       }
       const cls = it.k === "h2" ? `lmp-week-sec is-${it.s || "plain"}` : it.k === "h3" ? `lmp-week-part is-${it.s || "plain"}${it.song ? " is-song" : ""}` : "lmp-week-p";
       const line = body.createDiv(cls);
-      if (it.song) (0, import_obsidian12.setIcon)(line.createSpan("lmp-week-song"), "music");
+      if (it.song) (0, import_obsidian13.setIcon)(line.createSpan("lmp-week-song"), "music");
       for (const [si, seg] of it.x.entries()) {
         if (typeof seg === "string") {
           if (si === 0 && min && it.k === "p") {
@@ -8464,7 +8554,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
       const b = nav.createEl("button", { cls: "lmp-nav-btn" });
       if (!doc) return b.addClass("is-hidden");
       const ic = createSpan();
-      (0, import_obsidian12.setIcon)(ic, icon);
+      (0, import_obsidian13.setIcon)(ic, icon);
       if (!after) b.appendChild(ic);
       b.createSpan({ text: doc.title.length > 40 ? `${doc.title.slice(0, 40)}\u2026` : doc.title });
       if (after) b.appendChild(ic);
@@ -8581,7 +8671,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     ta.before(wrap);
     wrap.appendChild(ta);
     const btn = wrap.createEl("button", { cls: "clickable-icon lmp-ai-btn", attr: { "aria-label": "Spunti per il commento" } });
-    (0, import_obsidian12.setIcon)(btn, "lightbulb");
+    (0, import_obsidian13.setIcon)(btn, "lightbulb");
     btn.addEventListener(
       "click",
       (evt) => aiMenu(
@@ -8852,7 +8942,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
       const crumbs = wrap.querySelector(".lmp-lib-crumbs");
       if (crumbs) {
         const btn = crumbs.createSpan({ cls: "lmp-doc-notes-btn", attr: { "aria-label": "Tutte le note del documento" } });
-        (0, import_obsidian12.setIcon)(btn.createSpan(), "sticky-note");
+        (0, import_obsidian13.setIcon)(btn.createSpan(), "sticky-note");
         btn.createSpan({ text: `${notes.length} not${notes.length === 1 ? "a" : "e"}` });
         btn.addEventListener("click", () => this.openNotesPane());
       }
@@ -8940,7 +9030,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
         if (!first) continue;
         const r = first.getClientRects()[0] || first.getBoundingClientRect();
         const ic = margin.createDiv({ cls: `lmp-doc-scrabb-mark scrabb-t-${ents[0].tipo}`, attr: { "aria-label": ents.map((e) => e.name).join(" \xB7 ") } });
-        (0, import_obsidian12.setIcon)(ic, SCRABB_TYPES[ents[0].tipo].icon);
+        (0, import_obsidian13.setIcon)(ic, SCRABB_TYPES[ents[0].tipo].icon);
         if (ents.length > 1) ic.createSpan({ cls: "lmp-doc-scrabb-n", text: String(ents.length) });
         ic.style.top = `${r.top - base + (r.height - 16) / 2}px`;
         ic.addEventListener("click", () => this.openParPane(par));
@@ -8994,14 +9084,14 @@ var LibraryView = class extends import_obsidian12.ItemView {
       return;
     }
     if (this.paneComp) this.removeChild(this.paneComp);
-    this.paneComp = this.addChild(new import_obsidian12.Component());
+    this.paneComp = this.addChild(new import_obsidian13.Component());
     const handle = pane.createDiv({ cls: "lmp-pane-handle", attr: { "aria-label": "Ingrandisci o riduci" } });
     handle.createDiv("lmp-pane-handle-bar");
     handle.addEventListener("click", () => this.bodyEl.toggleClass("pane-expanded", !this.bodyEl.hasClass("pane-expanded")));
     const header = pane.createDiv("lmp-pane-header");
     const iconBtn = (icon, label, fn) => {
       const b = header.createEl("button", { cls: "clickable-icon lmp-pane-btn", attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b, icon);
+      (0, import_obsidian13.setIcon)(b, icon);
       b.addEventListener("click", fn);
       return b;
     };
@@ -9043,7 +9133,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     const tools = actions.createDiv("lmp-tools");
     const tool = (icon, label, fn) => {
       const b = tools.createEl("button", { cls: "clickable-icon lmp-tool lmp-tool-labeled", attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b.createSpan(), icon);
+      (0, import_obsidian13.setIcon)(b.createSpan(), icon);
       b.createSpan({ cls: "lmp-tool-text", text: label });
       b.addEventListener("click", fn);
     };
@@ -9051,7 +9141,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     tool("waypoints", "Collega a SCRABB", () => this.linkToScrabb(pid, parText()));
     tool("copy", "Copia", async () => {
       await navigator.clipboard.writeText(parText());
-      new import_obsidian12.Notice("Paragrafo copiato");
+      new import_obsidian13.Notice("Paragrafo copiato");
     });
     tool("smartphone", "JW Library", () => window.open(`jwlibrary:///finder?docid=${d.id}&par=${pid}`));
     tool("lightbulb", "Spunti", (evt) => this.aiOnParagraph(evt, pid));
@@ -9213,7 +9303,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
         const head = c.createDiv("lmp-note-card-head");
         head.createDiv({ cls: "lmp-note-card-title", text: title });
         const edit = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": "Apri nel file delle note" } });
-        (0, import_obsidian12.setIcon)(edit, "pencil");
+        (0, import_obsidian13.setIcon)(edit, "pencil");
         edit.addEventListener("click", () => this.plugin.openNoteAt(noteFile, line));
         if (md) renderMd(this.app, md, c.createDiv("lmp-md lmp-note-card-body"), noteFile.path, this.paneComp);
       };
@@ -9269,7 +9359,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
           if (!f) continue;
           const row = sec.createDiv("lmp-cite");
           const head = row.createDiv("lmp-cite-head");
-          (0, import_obsidian12.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
+          (0, import_obsidian13.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
           head.createSpan({ cls: "lmp-cite-name", text: f.basename });
           head.addEventListener("click", (evt) => this.plugin.openNoteAt(f, line, evt));
         }
@@ -9342,7 +9432,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
     const head = card.createDiv("lmp-note-card-head");
     head.createDiv({ cls: "lmp-note-card-title", text: n.title && n.title !== "Nota" ? n.title : "Nota" });
     const open = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": "Apri nel file delle note" } });
-    (0, import_obsidian12.setIcon)(open, "pencil");
+    (0, import_obsidian13.setIcon)(open, "pencil");
     open.addEventListener("click", () => this.plugin.openNoteAt(n.file, n.line));
     if (n.content) await renderMd(this.app, n.content.replace(/([^\n])\n(?!\n)/g, "$1  \n"), card.createDiv("lmp-md lmp-note-card-body"), n.file.path, this.paneComp || this.comp);
     const meta = [n.tags.length ? n.tags.map((t) => this.plugin.tagLabel(t)).join(" \xB7 ") : "", n.date.replace(/\*/g, "")].filter(Boolean).join(" \xB7 ");
@@ -9368,7 +9458,7 @@ var LibraryView = class extends import_obsidian12.ItemView {
         return;
       }
       await sc.addFonte(e, link, text);
-      new import_obsidian12.Notice(`${pl.charAt(0).toUpperCase()}${pl.slice(1)} collegato a ${e.name}`);
+      new import_obsidian13.Notice(`${pl.charAt(0).toUpperCase()}${pl.slice(1)} collegato a ${e.name}`);
       refresh();
     }).open();
   }
@@ -9402,10 +9492,10 @@ var LibraryView = class extends import_obsidian12.ItemView {
       dot.addEventListener("click", () => this.applySelection(h.id));
     }
     const erase = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Rimuovi evidenziazione" } });
-    (0, import_obsidian12.setIcon)(erase, "eraser");
+    (0, import_obsidian13.setIcon)(erase, "eraser");
     erase.addEventListener("click", () => this.applySelection(null));
     const scr = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Collega a una scheda SCRABB" } });
-    (0, import_obsidian12.setIcon)(scr, "waypoints");
+    (0, import_obsidian13.setIcon)(scr, "waypoints");
     scr.addEventListener("click", () => {
       const info = this.selInfo;
       if (!info) return;
@@ -9414,15 +9504,15 @@ var LibraryView = class extends import_obsidian12.ItemView {
       this.linkToScrabb(info.ranges[0].v, info.text);
     });
     const copy = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Copia" } });
-    (0, import_obsidian12.setIcon)(copy, "copy");
+    (0, import_obsidian13.setIcon)(copy, "copy");
     copy.addEventListener("click", async () => {
       if (!this.selInfo) return;
       await navigator.clipboard.writeText(this.selInfo.text);
-      new import_obsidian12.Notice("Testo copiato");
+      new import_obsidian13.Notice("Testo copiato");
       this.hideSelectionBar();
     });
     const ai = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": "Spunti sul testo selezionato" } });
-    (0, import_obsidian12.setIcon)(ai, "lightbulb");
+    (0, import_obsidian13.setIcon)(ai, "lightbulb");
     ai.addEventListener("click", (evt) => {
       const info = this.selInfo;
       if (!info) return;
@@ -9519,16 +9609,16 @@ function renderWeekCard(plugin, parent, go) {
   const k = mondayOf(/* @__PURE__ */ new Date());
   const card = parent.createDiv("lmp-week-home");
   const head = card.createEl("button", { cls: "lmp-week-entry" });
-  (0, import_obsidian12.setIcon)(head.createSpan("lmp-week-entry-icon"), "calendar-days");
+  (0, import_obsidian13.setIcon)(head.createSpan("lmp-week-entry-icon"), "calendar-days");
   const t = head.createSpan();
   t.createDiv({ cls: "lmp-week-entry-title", text: "Adunanze della settimana" });
   t.createDiv({ cls: "lmp-week-entry-sub", text: weekLabel(k) });
-  (0, import_obsidian12.setIcon)(head.createSpan("lmp-week-entry-go"), "chevron-right");
+  (0, import_obsidian13.setIcon)(head.createSpan("lmp-week-entry-go"), "chevron-right");
   head.addEventListener("click", () => go({ mode: "week" }));
   const rows = card.createDiv("lmp-week-rows");
   const row = (icon, label, value, fn, done) => {
     const r = rows.createEl("button", { cls: `lmp-week-row${done ? " is-done" : ""}` });
-    (0, import_obsidian12.setIcon)(r.createSpan("lmp-week-row-icon"), done ? "check-circle-2" : icon);
+    (0, import_obsidian13.setIcon)(r.createSpan("lmp-week-row-icon"), done ? "check-circle-2" : icon);
     r.createSpan({ cls: "lmp-week-row-label", text: label });
     r.createSpan({ cls: "lmp-week-row-value", text: value });
     r.addEventListener("click", fn);
@@ -9559,7 +9649,7 @@ function renderWeekCard(plugin, parent, go) {
 }
 
 // src/chat-biblioteca.js
-var import_obsidian13 = require("obsidian");
+var import_obsidian14 = require("obsidian");
 
 // src/ricerca.js
 var STOP = new Set(
@@ -10025,7 +10115,7 @@ async function askLibrary(plugin, chat, question, status) {
   }
   throw new Error("Il modello non ha dato una risposta");
 }
-var LibraryChatView = class extends import_obsidian13.ItemView {
+var LibraryChatView = class extends import_obsidian14.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -10047,12 +10137,12 @@ var LibraryChatView = class extends import_obsidian13.ItemView {
     root.addClass("lmp-chat-view");
     const tb = root.createDiv("lmp-toolbar");
     this.backBtn = tb.createEl("button", { cls: "lmp-tb-btn clickable-icon", attr: { "aria-label": "Indietro" } });
-    (0, import_obsidian13.setIcon)(this.backBtn, "arrow-left");
+    (0, import_obsidian14.setIcon)(this.backBtn, "arrow-left");
     this.backBtn.addEventListener("click", () => this.inShell && this.inShell.goBack());
     this.backBtn.toggle(!!this.inShell);
     addViewSwitch(tb, this.plugin, "chat", () => {
     }, this.inShell);
-    tb.createDiv({ cls: "lmp-tb-title", text: import_obsidian13.Platform.isPhone ? "Chiedi" : "Chiedi alla biblioteca" });
+    tb.createDiv({ cls: "lmp-tb-title", text: import_obsidian14.Platform.isPhone ? "Chiedi" : "Chiedi alla biblioteca" });
     this.bodyEl = root.createDiv("lmp-chat");
     await (this.rendering = this.render());
   }
@@ -10080,7 +10170,7 @@ var LibraryChatView = class extends import_obsidian13.ItemView {
       info.createSpan({
         text: `Cerco in ${m.count.toLocaleString("it-IT")} paragrafi di ${(m.docs || []).length.toLocaleString("it-IT")} documenti${m.noteTotal ? ` (${m.noteTotal.toLocaleString("it-IT")} sono tue note)` : ""} \xB7 indice del ${new Date(m.built).toLocaleDateString("it-IT")}${fresh > 0 ? ` \xB7 ${fresh} documenti nuovi da aggiungere` : ""}${moved ? " \xB7 le cartelle delle note sono cambiate: aggiorna l\u2019indice" : ""}`
       });
-    } else info.createSpan({ text: `Per cercare nelle pubblicazioni serve l\u2019indice delle parole (circa 30 MB, ${import_obsidian13.Platform.isMobile ? "qualche minuto sul telefono" : "qualche secondo"}). Creato su un dispositivo, arriva sugli altri con la sincronizzazione.` });
+    } else info.createSpan({ text: `Per cercare nelle pubblicazioni serve l\u2019indice delle parole (circa 30 MB, ${import_obsidian14.Platform.isMobile ? "qualche minuto sul telefono" : "qualche secondo"}). Creato su un dispositivo, arriva sugli altri con la sincronizzazione.` });
     const btn = info.createEl("button", { cls: "lmp-small-btn", text: this.building ? "Creo l\u2019indice\u2026" : reader ? "Aggiorna l\u2019indice" : "Crea l\u2019indice" });
     btn.disabled = this.building;
     btn.addEventListener("click", () => this.buildIndex());
@@ -10088,7 +10178,7 @@ var LibraryChatView = class extends import_obsidian13.ItemView {
     el.appendChild(renderAskBox(this.plugin, null, this.chat, (t) => this.openSource(t), "Chiedi qualcosa alle pubblicazioni\u2026", { ask: (q2, chat, status) => askLibrary(this.plugin, chat, q2, status) }));
     this.canAsk = true;
     const input = el.querySelector("textarea");
-    if (input && !import_obsidian13.Platform.isMobile) input.focus();
+    if (input && !import_obsidian14.Platform.isMobile) input.focus();
   }
   /** Fa subito una domanda (da "Cerca o chiedi"): come scriverla nel campo e premere invio. */
   async askNow(q2) {
@@ -10103,7 +10193,7 @@ var LibraryChatView = class extends import_obsidian13.ItemView {
     if (this.building) return;
     this.building = true;
     await this.render();
-    const notice = new import_obsidian13.Notice("Creo l\u2019indice\u2026", 0);
+    const notice = new import_obsidian14.Notice("Creo l\u2019indice\u2026", 0);
     try {
       const t0 = Date.now();
       const meta = await this.plugin.librarySearch.build((s) => notice.setMessage(s));
@@ -10122,7 +10212,7 @@ var LibraryChatView = class extends import_obsidian13.ItemView {
     if (t.verse) return this.plugin.openReader(t.verse);
     if (t.note) {
       const f = this.app.vault.getAbstractFileByPath(t.note);
-      return f instanceof import_obsidian13.TFile ? this.plugin.openNoteAt(f, t.line) : this.app.workspace.openLinkText(t.note, "", true);
+      return f instanceof import_obsidian14.TFile ? this.plugin.openNoteAt(f, t.line) : this.app.workspace.openLinkText(t.note, "", true);
     }
     const lib = this.plugin.library;
     await lib.ensureLoaded();
@@ -10133,14 +10223,14 @@ var LibraryChatView = class extends import_obsidian13.ItemView {
 };
 
 // src/guscio.js
-var import_obsidian15 = require("obsidian");
+var import_obsidian16 = require("obsidian");
 
 // src/oggi.js
-var import_obsidian14 = require("obsidian");
+var import_obsidian15 = require("obsidian");
 var TODAY_VIEW_TYPE = "lampada-oggi";
 var DAYS = ["domenica", "luned\xEC", "marted\xEC", "mercoled\xEC", "gioved\xEC", "venerd\xEC", "sabato"];
 var MONTHS2 = ["gennaio", "febbraio", "marzo", "aprile", "maggio", "giugno", "luglio", "agosto", "settembre", "ottobre", "novembre", "dicembre"];
-var TodayView = class extends import_obsidian14.ItemView {
+var TodayView = class extends import_obsidian15.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -10160,7 +10250,7 @@ var TodayView = class extends import_obsidian14.ItemView {
     root.addClass("lmp-today-view");
     const tb = root.createDiv("lmp-toolbar");
     this.backBtn = tb.createEl("button", { cls: "lmp-tb-btn clickable-icon", attr: { "aria-label": "Indietro" } });
-    (0, import_obsidian14.setIcon)(this.backBtn, "arrow-left");
+    (0, import_obsidian15.setIcon)(this.backBtn, "arrow-left");
     this.backBtn.addEventListener("click", () => this.inShell && this.inShell.goBack());
     this.backBtn.toggle(!!this.inShell);
     addViewSwitch(tb, this.plugin, "home", () => this.render(), this.inShell);
@@ -10186,7 +10276,7 @@ var TodayView = class extends import_obsidian14.ItemView {
     const dl = wrap.createDiv();
     p.bible.ensureLoaded().catch((e) => e && e.noBible && dl.isConnected && renderBibleDownload(p, dl, { onDone: () => p.openReader({ book: 1, chapter: 1 }) }));
     const search = wrap.createEl("button", { cls: "lmp-today-search" });
-    (0, import_obsidian14.setIcon)(search.createSpan("lmp-today-search-icon"), "search");
+    (0, import_obsidian15.setIcon)(search.createSpan("lmp-today-search-icon"), "search");
     search.createSpan({ text: "Cerca o chiedi: un versetto, un titolo, un argomento, una domanda\u2026" });
     search.addEventListener("click", () => p.openSearch());
     renderWeekCard(p, wrap, (st) => p.openLibraryAt(st));
@@ -10203,7 +10293,7 @@ var TodayView = class extends import_obsidian14.ItemView {
       const row = wrap.createDiv("lmp-today-continue");
       for (const c of cont) {
         const b = row.createEl("button", { cls: "lmp-today-card" });
-        (0, import_obsidian14.setIcon)(b.createSpan("lmp-today-card-icon"), c.icon);
+        (0, import_obsidian15.setIcon)(b.createSpan("lmp-today-card-icon"), c.icon);
         const t = b.createSpan("lmp-today-card-text");
         t.createSpan({ cls: "lmp-today-card-kind", text: c.kind });
         t.createSpan({ cls: "lmp-today-card-title", text: c.title });
@@ -10219,7 +10309,7 @@ var TodayView = class extends import_obsidian14.ItemView {
 var APP_VIEW_TYPE = "lampada-app";
 var SECTIONS = { home: TodayView, bible: BibleView, lib: LibraryView, scrabb: ScrabbView, chat: LibraryChatView };
 var KEYS = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Escape"];
-var LampadaView = class extends import_obsidian15.ItemView {
+var LampadaView = class extends import_obsidian16.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -10266,7 +10356,7 @@ var LampadaView = class extends import_obsidian15.ItemView {
     root.addClass("lmp-shell");
     this.hostEl = root.createDiv("lmp-shell-host");
     this.buildTabbar(root);
-    this.scope = new import_obsidian15.Scope(this.app.scope);
+    this.scope = new import_obsidian16.Scope(this.app.scope);
     for (const key of KEYS) {
       this.scope.register([], key, (evt, ctx) => {
         const h = ((this.current() || {}).keyHandlers || []).find(([k]) => k === key);
@@ -10388,25 +10478,25 @@ var LampadaView = class extends import_obsidian15.ItemView {
     const bar = this.tabbarEl = root.createDiv("lmp-tabbar");
     for (const [id, icon, text] of AREAS) {
       const b = bar.createEl("button", { cls: "lmp-tab", attr: { "data-area": id, "aria-label": text } });
-      (0, import_obsidian15.setIcon)(b.createSpan("lmp-tab-icon"), icon);
+      (0, import_obsidian16.setIcon)(b.createSpan("lmp-tab-icon"), icon);
       b.createSpan({ cls: "lmp-tab-label", text });
       b.addEventListener("click", () => id === this.area ? this.home(id) : this.go(id));
     }
     const app = bar.createEl("button", { cls: "lmp-tab lmp-app-toggle", attr: { "aria-label": "Modalit\xE0 app (nasconde Obsidian)" } });
-    (0, import_obsidian15.setIcon)(app.createSpan("lmp-tab-icon"), "maximize-2");
+    (0, import_obsidian16.setIcon)(app.createSpan("lmp-tab-icon"), "maximize-2");
     app.createSpan({ cls: "lmp-tab-label", text: "App" });
     app.addEventListener("click", () => this.plugin.toggleAppMode());
   }
 };
 
 // src/impostazioni.js
-var import_obsidian18 = require("obsidian");
+var import_obsidian19 = require("obsidian");
 
 // src/jwl-esporta.js
-var import_obsidian17 = require("obsidian");
+var import_obsidian18 = require("obsidian");
 
 // src/jwl-importa.js
-var import_obsidian16 = require("obsidian");
+var import_obsidian17 = require("obsidian");
 
 // vendor/sql-wasm.txt
 var sql_wasm_default = '\n// We are modularizing this manually because the current modularize setting in Emscripten has some issues:\n// https://github.com/kripken/emscripten/issues/5820\n// In addition, When you use emcc\'s modularization, it still expects to export a global object called `Module`,\n// which is able to be used/called before the WASM is loaded.\n// The modularization below exports a promise that loads and resolves to the actual sql.js module.\n// That way, this module can\'t be used before the WASM is finished loading.\n\n// We are going to define a function that a user will call to start loading initializing our Sql.js library\n// However, that function might be called multiple times, and on subsequent calls, we don\'t actually want it to instantiate a new instance of the Module\n// Instead, we want to return the previously loaded module\n\n// TODO: Make this not declare a global if used in the browser\nvar initSqlJsPromise = undefined;\n\nvar initSqlJs = function (moduleConfig) {\n\n    if (initSqlJsPromise){\n      return initSqlJsPromise;\n    }\n    // If we\'re here, we\'ve never called this function before\n    initSqlJsPromise = new Promise(function (resolveModule, reject) {\n\n        // We are modularizing this manually because the current modularize setting in Emscripten has some issues:\n        // https://github.com/kripken/emscripten/issues/5820\n\n        // The way to affect the loading of emcc compiled modules is to create a variable called `Module` and add\n        // properties to it, like `preRun`, `postRun`, etc\n        // We are using that to get notified when the WASM has finished loading.\n        // Only then will we return our promise\n\n        // If they passed in a moduleConfig object, use that\n        // Otherwise, initialize Module to the empty object\n        var Module = typeof moduleConfig !== \'undefined\' ? moduleConfig : {};\n\n        // EMCC only allows for a single onAbort function (not an array of functions)\n        // So if the user defined their own onAbort function, we remember it and call it\n        var originalOnAbortFunction = Module[\'onAbort\'];\n        Module[\'onAbort\'] = function (errorThatCausedAbort) {\n            reject(new Error(errorThatCausedAbort));\n            if (originalOnAbortFunction){\n              originalOnAbortFunction(errorThatCausedAbort);\n            }\n        };\n\n        Module[\'postRun\'] = Module[\'postRun\'] || [];\n        Module[\'postRun\'].push(function () {\n            // When Emscripted calls postRun, this promise resolves with the built Module\n            resolveModule(Module);\n        });\n\n        // There is a section of code in the emcc-generated code below that looks like this:\n        // (Note that this is lowercase `module`)\n        // if (typeof module !== \'undefined\') {\n        //     module[\'exports\'] = Module;\n        // }\n        // When that runs, it\'s going to overwrite our own modularization export efforts in shell-post.js!\n        // The only way to tell emcc not to emit it is to pass the MODULARIZE=1 or MODULARIZE_INSTANCE=1 flags,\n        // but that carries with it additional unnecessary baggage/bugs we don\'t want either.\n        // So, we have three options:\n        // 1) We undefine `module`\n        // 2) We remember what `module[\'exports\']` was at the beginning of this function and we restore it later\n        // 3) We write a script to remove those lines of code as part of the Make process.\n        //\n        // Since those are the only lines of code that care about module, we will undefine it. It\'s the most straightforward\n        // of the options, and has the side effect of reducing emcc\'s efforts to modify the module if its output were to change in the future.\n        // That\'s a nice side effect since we\'re handling the modularization efforts ourselves\n        module = undefined;\n\n        // The emcc-generated code and shell-post.js code goes below,\n        // meaning that all of it runs inside of this promise. If anything throws an exception, our promise will abort\nvar f;f||=typeof Module !== \'undefined\' ? Module : {};"use strict";\nf.onRuntimeInitialized=function(){function a(g,l){switch(typeof l){case "boolean":mc(g,l?1:0);break;case "number":nc(g,l);break;case "string":oc(g,l,-1,-1);break;case "object":if(null===l)lb(g);else if(null!=l.length){var n=aa(l,ba);pc(g,n,l.length,-1);ca(n)}else Aa(g,"Wrong API use : tried to return a value of an unknown type ("+l+").",-1);break;default:lb(g)}}function b(g,l){for(var n=[],t=0;t<g;t+=1){var w=m(l+4*t,"i32"),z=qc(w);if(1===z||2===z)w=rc(w);else if(3===z)w=sc(w);else if(4===z){z=w;\nw=tc(z);z=uc(z);for(var N=new Uint8Array(w),L=0;L<w;L+=1)N[L]=p[z+L];w=N}else w=null;n.push(w)}return n}function c(g,l){this.La=g;this.db=l;this.Ja=1;this.fb=[]}function d(g,l){this.db=l;l=da(g)+1;this.Ya=ea(l);if(null===this.Ya)throw Error("Unable to allocate memory for the SQL string");fa(g,q,this.Ya,l);this.eb=this.Ya;this.Ua=this.ib=null}function e(g){this.filename="dbfile_"+(4294967295*Math.random()>>>0);if(null!=g){var l=this.filename,n="/",t=l;n&&(n="string"==typeof n?n:ha(n),t=l?u(n+"/"+l):\nn);l=ia(!0,!0);t=ja(t,(void 0!==l?l:438)&4095|32768,0);if(g){if("string"==typeof g){n=Array(g.length);for(var w=0,z=g.length;w<z;++w)n[w]=g.charCodeAt(w);g=n}ka(t,l|146);n=la(t,577);ma(n,g,0,g.length,0);na(n);ka(t,l)}}this.handleError(r(this.filename,h));this.db=m(h,"i32");ob(this.db);this.Za={};this.Na={}}var h=x(4),k=f.cwrap,r=k("sqlite3_open","number",["string","number"]),y=k("sqlite3_close_v2","number",["number"]),v=k("sqlite3_exec","number",["number","string","number","number","number"]),F=k("sqlite3_changes",\n"number",["number"]),H=k("sqlite3_prepare_v2","number",["number","string","number","number","number"]),pb=k("sqlite3_sql","string",["number"]),vc=k("sqlite3_normalized_sql","string",["number"]),qb=k("sqlite3_prepare_v2","number",["number","number","number","number","number"]),wc=k("sqlite3_bind_text","number",["number","number","number","number","number"]),rb=k("sqlite3_bind_blob","number",["number","number","number","number","number"]),xc=k("sqlite3_bind_double","number",["number","number","number"]),\nyc=k("sqlite3_bind_int","number",["number","number","number"]),zc=k("sqlite3_bind_parameter_index","number",["number","string"]),Ac=k("sqlite3_step","number",["number"]),Bc=k("sqlite3_errmsg","string",["number"]),Cc=k("sqlite3_column_count","number",["number"]),Dc=k("sqlite3_data_count","number",["number"]),Ec=k("sqlite3_column_double","number",["number","number"]),sb=k("sqlite3_column_text","string",["number","number"]),Fc=k("sqlite3_column_blob","number",["number","number"]),Gc=k("sqlite3_column_bytes",\n"number",["number","number"]),Hc=k("sqlite3_column_type","number",["number","number"]),Ic=k("sqlite3_column_name","string",["number","number"]),Jc=k("sqlite3_reset","number",["number"]),Kc=k("sqlite3_clear_bindings","number",["number"]),Lc=k("sqlite3_finalize","number",["number"]),tb=k("sqlite3_create_function_v2","number","number string number number number number number number number".split(" ")),qc=k("sqlite3_value_type","number",["number"]),tc=k("sqlite3_value_bytes","number",["number"]),sc=k("sqlite3_value_text",\n"string",["number"]),uc=k("sqlite3_value_blob","number",["number"]),rc=k("sqlite3_value_double","number",["number"]),nc=k("sqlite3_result_double","",["number","number"]),lb=k("sqlite3_result_null","",["number"]),oc=k("sqlite3_result_text","",["number","string","number","number"]),pc=k("sqlite3_result_blob","",["number","number","number","number"]),mc=k("sqlite3_result_int","",["number","number"]),Aa=k("sqlite3_result_error","",["number","string","number"]),ub=k("sqlite3_aggregate_context","number",\n["number","number"]),ob=k("RegisterExtensionFunctions","number",["number"]);c.prototype.bind=function(g){if(!this.La)throw"Statement closed";this.reset();return Array.isArray(g)?this.wb(g):null!=g&&"object"===typeof g?this.xb(g):!0};c.prototype.step=function(){if(!this.La)throw"Statement closed";this.Ja=1;var g=Ac(this.La);switch(g){case 100:return!0;case 101:return!1;default:throw this.db.handleError(g);}};c.prototype.rb=function(g){null==g&&(g=this.Ja,this.Ja+=1);return Ec(this.La,g)};c.prototype.Ab=\nfunction(g){null==g&&(g=this.Ja,this.Ja+=1);g=sb(this.La,g);if("function"!==typeof BigInt)throw Error("BigInt is not supported");return BigInt(g)};c.prototype.Bb=function(g){null==g&&(g=this.Ja,this.Ja+=1);return sb(this.La,g)};c.prototype.getBlob=function(g){null==g&&(g=this.Ja,this.Ja+=1);var l=Gc(this.La,g);g=Fc(this.La,g);for(var n=new Uint8Array(l),t=0;t<l;t+=1)n[t]=p[g+t];return n};c.prototype.get=function(g,l){l=l||{};null!=g&&this.bind(g)&&this.step();g=[];for(var n=Dc(this.La),t=0;t<n;t+=\n1)switch(Hc(this.La,t)){case 1:var w=l.useBigInt?this.Ab(t):this.rb(t);g.push(w);break;case 2:g.push(this.rb(t));break;case 3:g.push(this.Bb(t));break;case 4:g.push(this.getBlob(t));break;default:g.push(null)}return g};c.prototype.getColumnNames=function(){for(var g=[],l=Cc(this.La),n=0;n<l;n+=1)g.push(Ic(this.La,n));return g};c.prototype.getAsObject=function(g,l){g=this.get(g,l);l=this.getColumnNames();for(var n={},t=0;t<l.length;t+=1)n[l[t]]=g[t];return n};c.prototype.getSQL=function(){return pb(this.La)};\nc.prototype.getNormalizedSQL=function(){return vc(this.La)};c.prototype.run=function(g){null!=g&&this.bind(g);this.step();return this.reset()};c.prototype.nb=function(g,l){null==l&&(l=this.Ja,this.Ja+=1);g=oa(g);var n=aa(g,ba);this.fb.push(n);this.db.handleError(wc(this.La,l,n,g.length-1,0))};c.prototype.vb=function(g,l){null==l&&(l=this.Ja,this.Ja+=1);var n=aa(g,ba);this.fb.push(n);this.db.handleError(rb(this.La,l,n,g.length,0))};c.prototype.mb=function(g,l){null==l&&(l=this.Ja,this.Ja+=1);this.db.handleError((g===\n(g|0)?yc:xc)(this.La,l,g))};c.prototype.yb=function(g){null==g&&(g=this.Ja,this.Ja+=1);rb(this.La,g,0,0,0)};c.prototype.ob=function(g,l){null==l&&(l=this.Ja,this.Ja+=1);switch(typeof g){case "string":this.nb(g,l);return;case "number":this.mb(g,l);return;case "bigint":this.nb(g.toString(),l);return;case "boolean":this.mb(g+0,l);return;case "object":if(null===g){this.yb(l);return}if(null!=g.length){this.vb(g,l);return}}throw"Wrong API use : tried to bind a value of an unknown type ("+g+").";};c.prototype.xb=\nfunction(g){var l=this;Object.keys(g).forEach(function(n){var t=zc(l.La,n);0!==t&&l.ob(g[n],t)});return!0};c.prototype.wb=function(g){for(var l=0;l<g.length;l+=1)this.ob(g[l],l+1);return!0};c.prototype.reset=function(){this.freemem();return 0===Kc(this.La)&&0===Jc(this.La)};c.prototype.freemem=function(){for(var g;void 0!==(g=this.fb.pop());)ca(g)};c.prototype.free=function(){this.freemem();var g=0===Lc(this.La);delete this.db.Za[this.La];this.La=0;return g};d.prototype.next=function(){if(null===\nthis.Ya)return{done:!0};null!==this.Ua&&(this.Ua.free(),this.Ua=null);if(!this.db.db)throw this.gb(),Error("Database closed");var g=pa(),l=x(4);qa(h);qa(l);try{this.db.handleError(qb(this.db.db,this.eb,-1,h,l));this.eb=m(l,"i32");var n=m(h,"i32");if(0===n)return this.gb(),{done:!0};this.Ua=new c(n,this.db);this.db.Za[n]=this.Ua;return{value:this.Ua,done:!1}}catch(t){throw this.ib=ra(this.eb),this.gb(),t;}finally{sa(g)}};d.prototype.gb=function(){ca(this.Ya);this.Ya=null};d.prototype.getRemainingSQL=\nfunction(){return null!==this.ib?this.ib:ra(this.eb)};"function"===typeof Symbol&&"symbol"===typeof Symbol.iterator&&(d.prototype[Symbol.iterator]=function(){return this});e.prototype.run=function(g,l){if(!this.db)throw"Database closed";if(l){g=this.prepare(g,l);try{g.step()}finally{g.free()}}else this.handleError(v(this.db,g,0,0,h));return this};e.prototype.exec=function(g,l,n){if(!this.db)throw"Database closed";var t=pa(),w=null;try{var z=ta(g),N=x(4);for(g=[];0!==m(z,"i8");){qa(h);qa(N);this.handleError(qb(this.db,\nz,-1,h,N));var L=m(h,"i32");z=m(N,"i32");if(0!==L){var K=null;w=new c(L,this);for(null!=l&&w.bind(l);w.step();)null===K&&(K={columns:w.getColumnNames(),values:[]},g.push(K)),K.values.push(w.get(null,n));w.free()}}return g}catch(O){throw w&&w.free(),O;}finally{sa(t)}};e.prototype.each=function(g,l,n,t,w){"function"===typeof l&&(t=n,n=l,l=void 0);g=this.prepare(g,l);try{for(;g.step();)n(g.getAsObject(null,w))}finally{g.free()}if("function"===typeof t)return t()};e.prototype.prepare=function(g,l){qa(h);\nthis.handleError(H(this.db,g,-1,h,0));g=m(h,"i32");if(0===g)throw"Nothing to prepare";var n=new c(g,this);null!=l&&n.bind(l);return this.Za[g]=n};e.prototype.iterateStatements=function(g){return new d(g,this)};e.prototype["export"]=function(){Object.values(this.Za).forEach(function(l){l.free()});Object.values(this.Na).forEach(ua);this.Na={};this.handleError(y(this.db));var g=va(this.filename);this.handleError(r(this.filename,h));this.db=m(h,"i32");ob(this.db);return g};e.prototype.close=function(){null!==\nthis.db&&(Object.values(this.Za).forEach(function(g){g.free()}),Object.values(this.Na).forEach(ua),this.Na={},this.handleError(y(this.db)),wa("/"+this.filename),this.db=null)};e.prototype.handleError=function(g){if(0===g)return null;g=Bc(this.db);throw Error(g);};e.prototype.getRowsModified=function(){return F(this.db)};e.prototype.create_function=function(g,l){Object.prototype.hasOwnProperty.call(this.Na,g)&&(ua(this.Na[g]),delete this.Na[g]);var n=xa(function(t,w,z){w=b(w,z);try{var N=l.apply(null,\nw)}catch(L){Aa(t,L,-1);return}a(t,N)},"viii");this.Na[g]=n;this.handleError(tb(this.db,g,l.length,1,0,n,0,0,0));return this};e.prototype.create_aggregate=function(g,l){var n=l.init||function(){return null},t=l.finalize||function(K){return K},w=l.step;if(!w)throw"An aggregate function must have a step function in "+g;var z={};Object.hasOwnProperty.call(this.Na,g)&&(ua(this.Na[g]),delete this.Na[g]);l=g+"__finalize";Object.hasOwnProperty.call(this.Na,l)&&(ua(this.Na[l]),delete this.Na[l]);var N=xa(function(K,\nO,Ua){var X=ub(K,1);Object.hasOwnProperty.call(z,X)||(z[X]=n());O=b(O,Ua);O=[z[X]].concat(O);try{z[X]=w.apply(null,O)}catch(Nc){delete z[X],Aa(K,Nc,-1)}},"viii"),L=xa(function(K){var O=ub(K,1);try{var Ua=t(z[O])}catch(X){delete z[O];Aa(K,X,-1);return}a(K,Ua);delete z[O]},"vi");this.Na[g]=N;this.Na[l]=L;this.handleError(tb(this.db,g,w.length-1,1,0,0,N,L,0));return this};f.Database=e};\nvar ya=Object.assign({},f),za="./this.program",Ba="object"==typeof window,Ca="function"==typeof importScripts,Da="object"==typeof process&&"object"==typeof process.versions&&"string"==typeof process.versions.node,A="",Ea,Fa,Ga;\nif(Da){var fs=require("fs"),Ha=require("path");A=Ca?Ha.dirname(A)+"/":__dirname+"/";Ea=(a,b)=>{a=Ia(a)?new URL(a):Ha.normalize(a);return fs.readFileSync(a,b?void 0:"utf8")};Ga=a=>{a=Ea(a,!0);a.buffer||(a=new Uint8Array(a));return a};Fa=(a,b,c,d=!0)=>{a=Ia(a)?new URL(a):Ha.normalize(a);fs.readFile(a,d?void 0:"utf8",(e,h)=>{e?c(e):b(d?h.buffer:h)})};!f.thisProgram&&1<process.argv.length&&(za=process.argv[1].replace(/\\\\/g,"/"));process.argv.slice(2);"undefined"!=typeof module&&(module.exports=f);f.inspect=\n()=>"[Emscripten Module object]"}else if(Ba||Ca)Ca?A=self.location.href:"undefined"!=typeof document&&document.currentScript&&(A=document.currentScript.src),A=0!==A.indexOf("blob:")?A.substr(0,A.replace(/[?#].*/,"").lastIndexOf("/")+1):"",Ea=a=>{var b=new XMLHttpRequest;b.open("GET",a,!1);b.send(null);return b.responseText},Ca&&(Ga=a=>{var b=new XMLHttpRequest;b.open("GET",a,!1);b.responseType="arraybuffer";b.send(null);return new Uint8Array(b.response)}),Fa=(a,b,c)=>{var d=new XMLHttpRequest;d.open("GET",\na,!0);d.responseType="arraybuffer";d.onload=()=>{200==d.status||0==d.status&&d.response?b(d.response):c()};d.onerror=c;d.send(null)};var Ja=f.print||console.log.bind(console),B=f.printErr||console.error.bind(console);Object.assign(f,ya);ya=null;f.thisProgram&&(za=f.thisProgram);var Ka;f.wasmBinary&&(Ka=f.wasmBinary);"object"!=typeof WebAssembly&&C("no native wasm support detected");var La,Ma=!1,p,q,Na,D,E,Oa,Pa;\nfunction Qa(){var a=La.buffer;f.HEAP8=p=new Int8Array(a);f.HEAP16=Na=new Int16Array(a);f.HEAPU8=q=new Uint8Array(a);f.HEAPU16=new Uint16Array(a);f.HEAP32=D=new Int32Array(a);f.HEAPU32=E=new Uint32Array(a);f.HEAPF32=Oa=new Float32Array(a);f.HEAPF64=Pa=new Float64Array(a)}var Ra=[],Sa=[],Ta=[];function Va(){var a=f.preRun.shift();Ra.unshift(a)}var G=0,Wa=null,Xa=null;\nfunction C(a){f.onAbort?.(a);a="Aborted("+a+")";B(a);Ma=!0;throw new WebAssembly.RuntimeError(a+". Build with -sASSERTIONS for more info.");}var Ya=a=>a.startsWith("data:application/octet-stream;base64,"),Ia=a=>a.startsWith("file://"),Za;Za="sql-wasm.wasm";if(!Ya(Za)){var $a=Za;Za=f.locateFile?f.locateFile($a,A):A+$a}function ab(a){if(a==Za&&Ka)return new Uint8Array(Ka);if(Ga)return Ga(a);throw"both async and sync fetching of the wasm failed";}\nfunction bb(a){if(!Ka&&(Ba||Ca)){if("function"==typeof fetch&&!Ia(a))return fetch(a,{credentials:"same-origin"}).then(b=>{if(!b.ok)throw"failed to load wasm binary file at \'"+a+"\'";return b.arrayBuffer()}).catch(()=>ab(a));if(Fa)return new Promise((b,c)=>{Fa(a,d=>b(new Uint8Array(d)),c)})}return Promise.resolve().then(()=>ab(a))}function cb(a,b,c){return bb(a).then(d=>WebAssembly.instantiate(d,b)).then(d=>d).then(c,d=>{B(`failed to asynchronously prepare wasm: ${d}`);C(d)})}\nfunction db(a,b){var c=Za;Ka||"function"!=typeof WebAssembly.instantiateStreaming||Ya(c)||Ia(c)||Da||"function"!=typeof fetch?cb(c,a,b):fetch(c,{credentials:"same-origin"}).then(d=>WebAssembly.instantiateStreaming(d,a).then(b,function(e){B(`wasm streaming compile failed: ${e}`);B("falling back to ArrayBuffer instantiation");return cb(c,a,b)}))}var I,J,eb=a=>{for(;0<a.length;)a.shift()(f)};\nfunction m(a,b="i8"){b.endsWith("*")&&(b="*");switch(b){case "i1":return p[a>>0];case "i8":return p[a>>0];case "i16":return Na[a>>1];case "i32":return D[a>>2];case "i64":C("to do getValue(i64) use WASM_BIGINT");case "float":return Oa[a>>2];case "double":return Pa[a>>3];case "*":return E[a>>2];default:C(`invalid type for getValue: ${b}`)}}\nfunction qa(a){var b="i32";b.endsWith("*")&&(b="*");switch(b){case "i1":p[a>>0]=0;break;case "i8":p[a>>0]=0;break;case "i16":Na[a>>1]=0;break;case "i32":D[a>>2]=0;break;case "i64":C("to do setValue(i64) use WASM_BIGINT");case "float":Oa[a>>2]=0;break;case "double":Pa[a>>3]=0;break;case "*":E[a>>2]=0;break;default:C(`invalid type for setValue: ${b}`)}}\nvar fb="undefined"!=typeof TextDecoder?new TextDecoder("utf8"):void 0,M=(a,b,c)=>{var d=b+c;for(c=b;a[c]&&!(c>=d);)++c;if(16<c-b&&a.buffer&&fb)return fb.decode(a.subarray(b,c));for(d="";b<c;){var e=a[b++];if(e&128){var h=a[b++]&63;if(192==(e&224))d+=String.fromCharCode((e&31)<<6|h);else{var k=a[b++]&63;e=224==(e&240)?(e&15)<<12|h<<6|k:(e&7)<<18|h<<12|k<<6|a[b++]&63;65536>e?d+=String.fromCharCode(e):(e-=65536,d+=String.fromCharCode(55296|e>>10,56320|e&1023))}}else d+=String.fromCharCode(e)}return d},\nra=(a,b)=>a?M(q,a,b):"",gb=(a,b)=>{for(var c=0,d=a.length-1;0<=d;d--){var e=a[d];"."===e?a.splice(d,1):".."===e?(a.splice(d,1),c++):c&&(a.splice(d,1),c--)}if(b)for(;c;c--)a.unshift("..");return a},u=a=>{var b="/"===a.charAt(0),c="/"===a.substr(-1);(a=gb(a.split("/").filter(d=>!!d),!b).join("/"))||b||(a=".");a&&c&&(a+="/");return(b?"/":"")+a},hb=a=>{var b=/^(\\/?|)([\\s\\S]*?)((?:\\.{1,2}|[^\\/]+?|)(\\.[^.\\/]*|))(?:[\\/]*)$/.exec(a).slice(1);a=b[0];b=b[1];if(!a&&!b)return".";b&&=b.substr(0,b.length-1);return a+\nb},ib=a=>{if("/"===a)return"/";a=u(a);a=a.replace(/\\/$/,"");var b=a.lastIndexOf("/");return-1===b?a:a.substr(b+1)},jb=()=>{if("object"==typeof crypto&&"function"==typeof crypto.getRandomValues)return c=>crypto.getRandomValues(c);if(Da)try{var a=require("crypto");if(a.randomFillSync)return c=>a.randomFillSync(c);var b=a.randomBytes;return c=>(c.set(b(c.byteLength)),c)}catch(c){}C("initRandomDevice")},kb=a=>(kb=jb())(a);\nfunction mb(){for(var a="",b=!1,c=arguments.length-1;-1<=c&&!b;c--){b=0<=c?arguments[c]:"/";if("string"!=typeof b)throw new TypeError("Arguments to path.resolve must be strings");if(!b)return"";a=b+"/"+a;b="/"===b.charAt(0)}a=gb(a.split("/").filter(d=>!!d),!b).join("/");return(b?"/":"")+a||"."}\nvar nb=[],da=a=>{for(var b=0,c=0;c<a.length;++c){var d=a.charCodeAt(c);127>=d?b++:2047>=d?b+=2:55296<=d&&57343>=d?(b+=4,++c):b+=3}return b},fa=(a,b,c,d)=>{if(!(0<d))return 0;var e=c;d=c+d-1;for(var h=0;h<a.length;++h){var k=a.charCodeAt(h);if(55296<=k&&57343>=k){var r=a.charCodeAt(++h);k=65536+((k&1023)<<10)|r&1023}if(127>=k){if(c>=d)break;b[c++]=k}else{if(2047>=k){if(c+1>=d)break;b[c++]=192|k>>6}else{if(65535>=k){if(c+2>=d)break;b[c++]=224|k>>12}else{if(c+3>=d)break;b[c++]=240|k>>18;b[c++]=128|k>>\n12&63}b[c++]=128|k>>6&63}b[c++]=128|k&63}}b[c]=0;return c-e};function oa(a,b){var c=Array(da(a)+1);a=fa(a,c,0,c.length);b&&(c.length=a);return c}var vb=[];function wb(a,b){vb[a]={input:[],output:[],Xa:b};xb(a,yb)}\nvar yb={open(a){var b=vb[a.node.rdev];if(!b)throw new P(43);a.tty=b;a.seekable=!1},close(a){a.tty.Xa.fsync(a.tty)},fsync(a){a.tty.Xa.fsync(a.tty)},read(a,b,c,d){if(!a.tty||!a.tty.Xa.sb)throw new P(60);for(var e=0,h=0;h<d;h++){try{var k=a.tty.Xa.sb(a.tty)}catch(r){throw new P(29);}if(void 0===k&&0===e)throw new P(6);if(null===k||void 0===k)break;e++;b[c+h]=k}e&&(a.node.timestamp=Date.now());return e},write(a,b,c,d){if(!a.tty||!a.tty.Xa.jb)throw new P(60);try{for(var e=0;e<d;e++)a.tty.Xa.jb(a.tty,b[c+\ne])}catch(h){throw new P(29);}d&&(a.node.timestamp=Date.now());return e}},zb={sb(){a:{if(!nb.length){var a=null;if(Da){var b=Buffer.alloc(256),c=0,d=process.stdin.fd;try{c=fs.readSync(d,b)}catch(e){if(e.toString().includes("EOF"))c=0;else throw e;}0<c?a=b.slice(0,c).toString("utf-8"):a=null}else"undefined"!=typeof window&&"function"==typeof window.prompt?(a=window.prompt("Input: "),null!==a&&(a+="\\n")):"function"==typeof readline&&(a=readline(),null!==a&&(a+="\\n"));if(!a){a=null;break a}nb=oa(a,!0)}a=\nnb.shift()}return a},jb(a,b){null===b||10===b?(Ja(M(a.output,0)),a.output=[]):0!=b&&a.output.push(b)},fsync(a){a.output&&0<a.output.length&&(Ja(M(a.output,0)),a.output=[])},Mb(){return{Ib:25856,Kb:5,Hb:191,Jb:35387,Gb:[3,28,127,21,4,0,1,0,17,19,26,0,18,15,23,22,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}},Nb(){return 0},Ob(){return[24,80]}},Ab={jb(a,b){null===b||10===b?(B(M(a.output,0)),a.output=[]):0!=b&&a.output.push(b)},fsync(a){a.output&&0<a.output.length&&(B(M(a.output,0)),a.output=[])}};\nfunction Bb(a,b){var c=a.Ia?a.Ia.length:0;c>=b||(b=Math.max(b,c*(1048576>c?2:1.125)>>>0),0!=c&&(b=Math.max(b,256)),c=a.Ia,a.Ia=new Uint8Array(b),0<a.Ma&&a.Ia.set(c.subarray(0,a.Ma),0))}\nvar Q={Qa:null,Ra(){return Q.createNode(null,"/",16895,0)},createNode(a,b,c,d){if(24576===(c&61440)||4096===(c&61440))throw new P(63);Q.Qa||(Q.Qa={dir:{node:{Pa:Q.Ga.Pa,Oa:Q.Ga.Oa,lookup:Q.Ga.lookup,ab:Q.Ga.ab,rename:Q.Ga.rename,unlink:Q.Ga.unlink,rmdir:Q.Ga.rmdir,readdir:Q.Ga.readdir,symlink:Q.Ga.symlink},stream:{Ta:Q.Ha.Ta}},file:{node:{Pa:Q.Ga.Pa,Oa:Q.Ga.Oa},stream:{Ta:Q.Ha.Ta,read:Q.Ha.read,write:Q.Ha.write,lb:Q.Ha.lb,bb:Q.Ha.bb,cb:Q.Ha.cb}},link:{node:{Pa:Q.Ga.Pa,Oa:Q.Ga.Oa,readlink:Q.Ga.readlink},\nstream:{}},pb:{node:{Pa:Q.Ga.Pa,Oa:Q.Ga.Oa},stream:Cb}});c=Db(a,b,c,d);R(c.mode)?(c.Ga=Q.Qa.dir.node,c.Ha=Q.Qa.dir.stream,c.Ia={}):32768===(c.mode&61440)?(c.Ga=Q.Qa.file.node,c.Ha=Q.Qa.file.stream,c.Ma=0,c.Ia=null):40960===(c.mode&61440)?(c.Ga=Q.Qa.link.node,c.Ha=Q.Qa.link.stream):8192===(c.mode&61440)&&(c.Ga=Q.Qa.pb.node,c.Ha=Q.Qa.pb.stream);c.timestamp=Date.now();a&&(a.Ia[b]=c,a.timestamp=c.timestamp);return c},Lb(a){return a.Ia?a.Ia.subarray?a.Ia.subarray(0,a.Ma):new Uint8Array(a.Ia):new Uint8Array(0)},\nGa:{Pa(a){var b={};b.dev=8192===(a.mode&61440)?a.id:1;b.ino=a.id;b.mode=a.mode;b.nlink=1;b.uid=0;b.gid=0;b.rdev=a.rdev;R(a.mode)?b.size=4096:32768===(a.mode&61440)?b.size=a.Ma:40960===(a.mode&61440)?b.size=a.link.length:b.size=0;b.atime=new Date(a.timestamp);b.mtime=new Date(a.timestamp);b.ctime=new Date(a.timestamp);b.zb=4096;b.blocks=Math.ceil(b.size/b.zb);return b},Oa(a,b){void 0!==b.mode&&(a.mode=b.mode);void 0!==b.timestamp&&(a.timestamp=b.timestamp);if(void 0!==b.size&&(b=b.size,a.Ma!=b))if(0==\nb)a.Ia=null,a.Ma=0;else{var c=a.Ia;a.Ia=new Uint8Array(b);c&&a.Ia.set(c.subarray(0,Math.min(b,a.Ma)));a.Ma=b}},lookup(){throw Eb[44];},ab(a,b,c,d){return Q.createNode(a,b,c,d)},rename(a,b,c){if(R(a.mode)){try{var d=Fb(b,c)}catch(h){}if(d)for(var e in d.Ia)throw new P(55);}delete a.parent.Ia[a.name];a.parent.timestamp=Date.now();a.name=c;b.Ia[c]=a;b.timestamp=a.parent.timestamp;a.parent=b},unlink(a,b){delete a.Ia[b];a.timestamp=Date.now()},rmdir(a,b){var c=Fb(a,b),d;for(d in c.Ia)throw new P(55);delete a.Ia[b];\na.timestamp=Date.now()},readdir(a){var b=[".",".."],c;for(c of Object.keys(a.Ia))b.push(c);return b},symlink(a,b,c){a=Q.createNode(a,b,41471,0);a.link=c;return a},readlink(a){if(40960!==(a.mode&61440))throw new P(28);return a.link}},Ha:{read(a,b,c,d,e){var h=a.node.Ia;if(e>=a.node.Ma)return 0;a=Math.min(a.node.Ma-e,d);if(8<a&&h.subarray)b.set(h.subarray(e,e+a),c);else for(d=0;d<a;d++)b[c+d]=h[e+d];return a},write(a,b,c,d,e,h){b.buffer===p.buffer&&(h=!1);if(!d)return 0;a=a.node;a.timestamp=Date.now();\nif(b.subarray&&(!a.Ia||a.Ia.subarray)){if(h)return a.Ia=b.subarray(c,c+d),a.Ma=d;if(0===a.Ma&&0===e)return a.Ia=b.slice(c,c+d),a.Ma=d;if(e+d<=a.Ma)return a.Ia.set(b.subarray(c,c+d),e),d}Bb(a,e+d);if(a.Ia.subarray&&b.subarray)a.Ia.set(b.subarray(c,c+d),e);else for(h=0;h<d;h++)a.Ia[e+h]=b[c+h];a.Ma=Math.max(a.Ma,e+d);return d},Ta(a,b,c){1===c?b+=a.position:2===c&&32768===(a.node.mode&61440)&&(b+=a.node.Ma);if(0>b)throw new P(28);return b},lb(a,b,c){Bb(a.node,b+c);a.node.Ma=Math.max(a.node.Ma,b+c)},\nbb(a,b,c,d,e){if(32768!==(a.node.mode&61440))throw new P(43);a=a.node.Ia;if(e&2||a.buffer!==p.buffer){if(0<c||c+b<a.length)a.subarray?a=a.subarray(c,c+b):a=Array.prototype.slice.call(a,c,c+b);c=!0;b=65536*Math.ceil(b/65536);(e=Gb(65536,b))?(q.fill(0,e,e+b),b=e):b=0;if(!b)throw new P(48);p.set(a,b)}else c=!1,b=a.byteOffset;return{Db:b,ub:c}},cb(a,b,c,d){Q.Ha.write(a,b,0,d,c,!1);return 0}}},ia=(a,b)=>{var c=0;a&&(c|=365);b&&(c|=146);return c},Hb=null,Ib={},Jb=[],Kb=1,S=null,Lb=!0,P=null,Eb={};\nfunction T(a,b={}){a=mb(a);if(!a)return{path:"",node:null};b=Object.assign({qb:!0,kb:0},b);if(8<b.kb)throw new P(32);a=a.split("/").filter(k=>!!k);for(var c=Hb,d="/",e=0;e<a.length;e++){var h=e===a.length-1;if(h&&b.parent)break;c=Fb(c,a[e]);d=u(d+"/"+a[e]);c.Va&&(!h||h&&b.qb)&&(c=c.Va.root);if(!h||b.Sa)for(h=0;40960===(c.mode&61440);)if(c=Mb(d),d=mb(hb(d),c),c=T(d,{kb:b.kb+1}).node,40<h++)throw new P(32);}return{path:d,node:c}}\nfunction ha(a){for(var b;;){if(a===a.parent)return a=a.Ra.tb,b?"/"!==a[a.length-1]?`${a}/${b}`:a+b:a;b=b?`${a.name}/${b}`:a.name;a=a.parent}}function Nb(a,b){for(var c=0,d=0;d<b.length;d++)c=(c<<5)-c+b.charCodeAt(d)|0;return(a+c>>>0)%S.length}function Ob(a){var b=Nb(a.parent.id,a.name);if(S[b]===a)S[b]=a.Wa;else for(b=S[b];b;){if(b.Wa===a){b.Wa=a.Wa;break}b=b.Wa}}\nfunction Fb(a,b){var c;if(c=(c=Pb(a,"x"))?c:a.Ga.lookup?0:2)throw new P(c,a);for(c=S[Nb(a.id,b)];c;c=c.Wa){var d=c.name;if(c.parent.id===a.id&&d===b)return c}return a.Ga.lookup(a,b)}function Db(a,b,c,d){a=new Qb(a,b,c,d);b=Nb(a.parent.id,a.name);a.Wa=S[b];return S[b]=a}function R(a){return 16384===(a&61440)}function Rb(a){var b=["r","w","rw"][a&3];a&512&&(b+="w");return b}\nfunction Pb(a,b){if(Lb)return 0;if(!b.includes("r")||a.mode&292){if(b.includes("w")&&!(a.mode&146)||b.includes("x")&&!(a.mode&73))return 2}else return 2;return 0}function Sb(a,b){try{return Fb(a,b),20}catch(c){}return Pb(a,"wx")}function Tb(a,b,c){try{var d=Fb(a,b)}catch(e){return e.Ka}if(a=Pb(a,"wx"))return a;if(c){if(!R(d.mode))return 54;if(d===d.parent||"/"===ha(d))return 10}else if(R(d.mode))return 31;return 0}function Ub(){for(var a=0;4096>=a;a++)if(!Jb[a])return a;throw new P(33);}\nfunction U(a){a=Jb[a];if(!a)throw new P(8);return a}function Vb(a,b=-1){Wb||(Wb=function(){this.$a={}},Wb.prototype={},Object.defineProperties(Wb.prototype,{object:{get(){return this.node},set(c){this.node=c}},flags:{get(){return this.$a.flags},set(c){this.$a.flags=c}},position:{get(){return this.$a.position},set(c){this.$a.position=c}}}));a=Object.assign(new Wb,a);-1==b&&(b=Ub());a.fd=b;return Jb[b]=a}var Cb={open(a){a.Ha=Ib[a.node.rdev].Ha;a.Ha.open?.(a)},Ta(){throw new P(70);}};\nfunction xb(a,b){Ib[a]={Ha:b}}function Xb(a,b){var c="/"===b,d=!b;if(c&&Hb)throw new P(10);if(!c&&!d){var e=T(b,{qb:!1});b=e.path;e=e.node;if(e.Va)throw new P(10);if(!R(e.mode))throw new P(54);}b={type:a,Pb:{},tb:b,Cb:[]};a=a.Ra(b);a.Ra=b;b.root=a;c?Hb=a:e&&(e.Va=b,e.Ra&&e.Ra.Cb.push(b))}function ja(a,b,c){var d=T(a,{parent:!0}).node;a=ib(a);if(!a||"."===a||".."===a)throw new P(28);var e=Sb(d,a);if(e)throw new P(e);if(!d.Ga.ab)throw new P(63);return d.Ga.ab(d,a,b,c)}\nfunction V(a,b){return ja(a,(void 0!==b?b:511)&1023|16384,0)}function Yb(a,b,c){"undefined"==typeof c&&(c=b,b=438);ja(a,b|8192,c)}function Zb(a,b){if(!mb(a))throw new P(44);var c=T(b,{parent:!0}).node;if(!c)throw new P(44);b=ib(b);var d=Sb(c,b);if(d)throw new P(d);if(!c.Ga.symlink)throw new P(63);c.Ga.symlink(c,b,a)}function $b(a){var b=T(a,{parent:!0}).node;a=ib(a);var c=Fb(b,a),d=Tb(b,a,!0);if(d)throw new P(d);if(!b.Ga.rmdir)throw new P(63);if(c.Va)throw new P(10);b.Ga.rmdir(b,a);Ob(c)}\nfunction wa(a){var b=T(a,{parent:!0}).node;if(!b)throw new P(44);a=ib(a);var c=Fb(b,a),d=Tb(b,a,!1);if(d)throw new P(d);if(!b.Ga.unlink)throw new P(63);if(c.Va)throw new P(10);b.Ga.unlink(b,a);Ob(c)}function Mb(a){a=T(a).node;if(!a)throw new P(44);if(!a.Ga.readlink)throw new P(28);return mb(ha(a.parent),a.Ga.readlink(a))}function ac(a,b){a=T(a,{Sa:!b}).node;if(!a)throw new P(44);if(!a.Ga.Pa)throw new P(63);return a.Ga.Pa(a)}function bc(a){return ac(a,!0)}\nfunction ka(a,b){a="string"==typeof a?T(a,{Sa:!0}).node:a;if(!a.Ga.Oa)throw new P(63);a.Ga.Oa(a,{mode:b&4095|a.mode&-4096,timestamp:Date.now()})}function cc(a,b){if(0>b)throw new P(28);a="string"==typeof a?T(a,{Sa:!0}).node:a;if(!a.Ga.Oa)throw new P(63);if(R(a.mode))throw new P(31);if(32768!==(a.mode&61440))throw new P(28);var c=Pb(a,"w");if(c)throw new P(c);a.Ga.Oa(a,{size:b,timestamp:Date.now()})}\nfunction la(a,b,c){if(""===a)throw new P(44);if("string"==typeof b){var d={r:0,"r+":2,w:577,"w+":578,a:1089,"a+":1090}[b];if("undefined"==typeof d)throw Error(`Unknown file open mode: ${b}`);b=d}c=b&64?("undefined"==typeof c?438:c)&4095|32768:0;if("object"==typeof a)var e=a;else{a=u(a);try{e=T(a,{Sa:!(b&131072)}).node}catch(h){}}d=!1;if(b&64)if(e){if(b&128)throw new P(20);}else e=ja(a,c,0),d=!0;if(!e)throw new P(44);8192===(e.mode&61440)&&(b&=-513);if(b&65536&&!R(e.mode))throw new P(54);if(!d&&(c=\ne?40960===(e.mode&61440)?32:R(e.mode)&&("r"!==Rb(b)||b&512)?31:Pb(e,Rb(b)):44))throw new P(c);b&512&&!d&&cc(e,0);b&=-131713;e=Vb({node:e,path:ha(e),flags:b,seekable:!0,position:0,Ha:e.Ha,Fb:[],error:!1});e.Ha.open&&e.Ha.open(e);!f.logReadFiles||b&1||(dc||={},a in dc||(dc[a]=1));return e}function na(a){if(null===a.fd)throw new P(8);a.hb&&(a.hb=null);try{a.Ha.close&&a.Ha.close(a)}catch(b){throw b;}finally{Jb[a.fd]=null}a.fd=null}\nfunction ec(a,b,c){if(null===a.fd)throw new P(8);if(!a.seekable||!a.Ha.Ta)throw new P(70);if(0!=c&&1!=c&&2!=c)throw new P(28);a.position=a.Ha.Ta(a,b,c);a.Fb=[]}function fc(a,b,c,d,e){if(0>d||0>e)throw new P(28);if(null===a.fd)throw new P(8);if(1===(a.flags&2097155))throw new P(8);if(R(a.node.mode))throw new P(31);if(!a.Ha.read)throw new P(28);var h="undefined"!=typeof e;if(!h)e=a.position;else if(!a.seekable)throw new P(70);b=a.Ha.read(a,b,c,d,e);h||(a.position+=b);return b}\nfunction ma(a,b,c,d,e){if(0>d||0>e)throw new P(28);if(null===a.fd)throw new P(8);if(0===(a.flags&2097155))throw new P(8);if(R(a.node.mode))throw new P(31);if(!a.Ha.write)throw new P(28);a.seekable&&a.flags&1024&&ec(a,0,2);var h="undefined"!=typeof e;if(!h)e=a.position;else if(!a.seekable)throw new P(70);b=a.Ha.write(a,b,c,d,e,void 0);h||(a.position+=b);return b}\nfunction va(a){var b="binary";if("utf8"!==b&&"binary"!==b)throw Error(`Invalid encoding type "${b}"`);var c;var d=la(a,d||0);a=ac(a).size;var e=new Uint8Array(a);fc(d,e,0,a,0);"utf8"===b?c=M(e,0):"binary"===b&&(c=e);na(d);return c}function gc(){P||(P=function(a,b){this.name="ErrnoError";this.node=b;this.Eb=function(c){this.Ka=c};this.Eb(a);this.message="FS error"},P.prototype=Error(),P.prototype.constructor=P,[44].forEach(a=>{Eb[a]=new P(a);Eb[a].stack="<generic error, no stack>"}))}var hc;\nfunction ic(a,b,c){a=u("/dev/"+a);var d=ia(!!b,!!c);jc||=64;var e=jc++<<8|0;xb(e,{open(h){h.seekable=!1},close(){c?.buffer?.length&&c(10)},read(h,k,r,y){for(var v=0,F=0;F<y;F++){try{var H=b()}catch(pb){throw new P(29);}if(void 0===H&&0===v)throw new P(6);if(null===H||void 0===H)break;v++;k[r+F]=H}v&&(h.node.timestamp=Date.now());return v},write(h,k,r,y){for(var v=0;v<y;v++)try{c(k[r+v])}catch(F){throw new P(29);}y&&(h.node.timestamp=Date.now());return v}});Yb(a,d,e)}var jc,W={},Wb,dc;\nfunction kc(a,b,c){if("/"===b.charAt(0))return b;a=-100===a?"/":U(a).path;if(0==b.length){if(!c)throw new P(44);return a}return u(a+"/"+b)}\nfunction lc(a,b,c){try{var d=a(b)}catch(h){if(h&&h.node&&u(b)!==u(ha(h.node)))return-54;throw h;}D[c>>2]=d.dev;D[c+4>>2]=d.mode;E[c+8>>2]=d.nlink;D[c+12>>2]=d.uid;D[c+16>>2]=d.gid;D[c+20>>2]=d.rdev;J=[d.size>>>0,(I=d.size,1<=+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[c+24>>2]=J[0];D[c+28>>2]=J[1];D[c+32>>2]=4096;D[c+36>>2]=d.blocks;a=d.atime.getTime();b=d.mtime.getTime();var e=d.ctime.getTime();J=[Math.floor(a/1E3)>>>0,(I=Math.floor(a/1E3),1<=\n+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[c+40>>2]=J[0];D[c+44>>2]=J[1];E[c+48>>2]=a%1E3*1E3;J=[Math.floor(b/1E3)>>>0,(I=Math.floor(b/1E3),1<=+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[c+56>>2]=J[0];D[c+60>>2]=J[1];E[c+64>>2]=b%1E3*1E3;J=[Math.floor(e/1E3)>>>0,(I=Math.floor(e/1E3),1<=+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[c+72>>2]=J[0];\nD[c+76>>2]=J[1];E[c+80>>2]=e%1E3*1E3;J=[d.ino>>>0,(I=d.ino,1<=+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[c+88>>2]=J[0];D[c+92>>2]=J[1];return 0}var Mc=void 0;function Oc(){var a=D[+Mc>>2];Mc+=4;return a}\nvar Pc=(a,b)=>b+2097152>>>0<4194305-!!a?(a>>>0)+4294967296*b:NaN,Qc=[0,31,60,91,121,152,182,213,244,274,305,335],Rc=[0,31,59,90,120,151,181,212,243,273,304,334],Sc=a=>{var b=da(a)+1,c=ea(b);c&&fa(a,q,c,b);return c},Tc={},Vc=()=>{if(!Uc){var a={USER:"web_user",LOGNAME:"web_user",PATH:"/",PWD:"/",HOME:"/home/web_user",LANG:("object"==typeof navigator&&navigator.languages&&navigator.languages[0]||"C").replace("-","_")+".UTF-8",_:za||"./this.program"},b;for(b in Tc)void 0===Tc[b]?delete a[b]:a[b]=Tc[b];\nvar c=[];for(b in a)c.push(`${b}=${a[b]}`);Uc=c}return Uc},Uc,ta=a=>{var b=da(a)+1,c=x(b);fa(a,q,c,b);return c},Wc=(a,b,c,d)=>{var e={string:v=>{var F=0;null!==v&&void 0!==v&&0!==v&&(F=ta(v));return F},array:v=>{var F=x(v.length);p.set(v,F);return F}};a=f["_"+a];var h=[],k=0;if(d)for(var r=0;r<d.length;r++){var y=e[c[r]];y?(0===k&&(k=pa()),h[r]=y(d[r])):h[r]=d[r]}c=a.apply(null,h);return c=function(v){0!==k&&sa(k);return"string"===b?v?M(q,v):"":"boolean"===b?!!v:v}(c)},ba=0,aa=(a,b)=>{b=1==b?x(a.length):\nea(a.length);a.subarray||a.slice||(a=new Uint8Array(a));q.set(a,b);return b},Xc,Yc=[],Y,ua=a=>{Xc.delete(Y.get(a));Y.set(a,null);Yc.push(a)},xa=(a,b)=>{if(!Xc){Xc=new WeakMap;var c=Y.length;if(Xc)for(var d=0;d<0+c;d++){var e=Y.get(d);e&&Xc.set(e,d)}}if(c=Xc.get(a)||0)return c;if(Yc.length)c=Yc.pop();else{try{Y.grow(1)}catch(r){if(!(r instanceof RangeError))throw r;throw"Unable to grow wasm table. Set ALLOW_TABLE_GROWTH.";}c=Y.length-1}try{Y.set(c,a)}catch(r){if(!(r instanceof TypeError))throw r;if("function"==\ntypeof WebAssembly.Function){d=WebAssembly.Function;e={i:"i32",j:"i64",f:"f32",d:"f64",e:"externref",p:"i32"};for(var h={parameters:[],results:"v"==b[0]?[]:[e[b[0]]]},k=1;k<b.length;++k)h.parameters.push(e[b[k]]);b=new d(h,a)}else{d=[1];e=b.slice(0,1);b=b.slice(1);h={i:127,p:127,j:126,f:125,d:124,e:111};d.push(96);k=b.length;128>k?d.push(k):d.push(k%128|128,k>>7);for(k=0;k<b.length;++k)d.push(h[b[k]]);"v"==e?d.push(0):d.push(1,h[e]);b=[0,97,115,109,1,0,0,0,1];e=d.length;128>e?b.push(e):b.push(e%128|\n128,e>>7);b.push.apply(b,d);b.push(2,7,1,1,101,1,102,0,0,7,5,1,1,102,0,0);b=new WebAssembly.Module(new Uint8Array(b));b=(new WebAssembly.Instance(b,{e:{f:a}})).exports.f}Y.set(c,b)}Xc.set(a,c);return c};function Qb(a,b,c,d){a||=this;this.parent=a;this.Ra=a.Ra;this.Va=null;this.id=Kb++;this.name=b;this.mode=c;this.Ga={};this.Ha={};this.rdev=d}\nObject.defineProperties(Qb.prototype,{read:{get:function(){return 365===(this.mode&365)},set:function(a){a?this.mode|=365:this.mode&=-366}},write:{get:function(){return 146===(this.mode&146)},set:function(a){a?this.mode|=146:this.mode&=-147}}});gc();S=Array(4096);Xb(Q,"/");V("/tmp");V("/home");V("/home/web_user");\n(function(){V("/dev");xb(259,{read:()=>0,write:(d,e,h,k)=>k});Yb("/dev/null",259);wb(1280,zb);wb(1536,Ab);Yb("/dev/tty",1280);Yb("/dev/tty1",1536);var a=new Uint8Array(1024),b=0,c=()=>{0===b&&(b=kb(a).byteLength);return a[--b]};ic("random",c);ic("urandom",c);V("/dev/shm");V("/dev/shm/tmp")})();\n(function(){V("/proc");var a=V("/proc/self");V("/proc/self/fd");Xb({Ra(){var b=Db(a,"fd",16895,73);b.Ga={lookup(c,d){var e=U(+d);c={parent:null,Ra:{tb:"fake"},Ga:{readlink:()=>e.path}};return c.parent=c}};return b}},"/proc/self/fd")})();\nvar $c={a:(a,b,c,d)=>{C(`Assertion failed: ${a?M(q,a):""}, at: `+[b?b?M(q,b):"":"unknown filename",c,d?d?M(q,d):"":"unknown function"])},h:function(a,b){try{return a=a?M(q,a):"",ka(a,b),0}catch(c){if("undefined"==typeof W||"ErrnoError"!==c.name)throw c;return-c.Ka}},H:function(a,b,c){try{b=b?M(q,b):"";b=kc(a,b);if(c&-8)return-28;var d=T(b,{Sa:!0}).node;if(!d)return-44;a="";c&4&&(a+="r");c&2&&(a+="w");c&1&&(a+="x");return a&&Pb(d,a)?-2:0}catch(e){if("undefined"==typeof W||"ErrnoError"!==e.name)throw e;\nreturn-e.Ka}},i:function(a,b){try{var c=U(a);ka(c.node,b);return 0}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return-d.Ka}},g:function(a){try{var b=U(a).node;var c="string"==typeof b?T(b,{Sa:!0}).node:b;if(!c.Ga.Oa)throw new P(63);c.Ga.Oa(c,{timestamp:Date.now()});return 0}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return-d.Ka}},b:function(a,b,c){Mc=c;try{var d=U(a);switch(b){case 0:var e=Oc();if(0>e)return-28;for(;Jb[e];)e++;return Vb(d,e).fd;case 1:case 2:return 0;\ncase 3:return d.flags;case 4:return e=Oc(),d.flags|=e,0;case 5:return e=Oc(),Na[e+0>>1]=2,0;case 6:case 7:return 0;case 16:case 8:return-28;case 9:return D[Zc()>>2]=28,-1;default:return-28}}catch(h){if("undefined"==typeof W||"ErrnoError"!==h.name)throw h;return-h.Ka}},f:function(a,b){try{var c=U(a);return lc(ac,c.path,b)}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return-d.Ka}},n:function(a,b,c){b=Pc(b,c);try{if(isNaN(b))return 61;var d=U(a);if(0===(d.flags&2097155))throw new P(28);\ncc(d.node,b);return 0}catch(e){if("undefined"==typeof W||"ErrnoError"!==e.name)throw e;return-e.Ka}},C:function(a,b){try{if(0===b)return-28;var c=da("/")+1;if(b<c)return-68;fa("/",q,a,b);return c}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return-d.Ka}},F:function(a,b){try{return a=a?M(q,a):"",lc(bc,a,b)}catch(c){if("undefined"==typeof W||"ErrnoError"!==c.name)throw c;return-c.Ka}},z:function(a,b,c){try{return b=b?M(q,b):"",b=kc(a,b),b=u(b),"/"===b[b.length-1]&&(b=b.substr(0,\nb.length-1)),V(b,c),0}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return-d.Ka}},E:function(a,b,c,d){try{b=b?M(q,b):"";var e=d&256;b=kc(a,b,d&4096);return lc(e?bc:ac,b,c)}catch(h){if("undefined"==typeof W||"ErrnoError"!==h.name)throw h;return-h.Ka}},y:function(a,b,c,d){Mc=d;try{b=b?M(q,b):"";b=kc(a,b);var e=d?Oc():0;return la(b,c,e).fd}catch(h){if("undefined"==typeof W||"ErrnoError"!==h.name)throw h;return-h.Ka}},w:function(a,b,c,d){try{b=b?M(q,b):"";b=kc(a,b);if(0>=d)return-28;\nvar e=Mb(b),h=Math.min(d,da(e)),k=p[c+h];fa(e,q,c,d+1);p[c+h]=k;return h}catch(r){if("undefined"==typeof W||"ErrnoError"!==r.name)throw r;return-r.Ka}},v:function(a){try{return a=a?M(q,a):"",$b(a),0}catch(b){if("undefined"==typeof W||"ErrnoError"!==b.name)throw b;return-b.Ka}},G:function(a,b){try{return a=a?M(q,a):"",lc(ac,a,b)}catch(c){if("undefined"==typeof W||"ErrnoError"!==c.name)throw c;return-c.Ka}},r:function(a,b,c){try{return b=b?M(q,b):"",b=kc(a,b),0===c?wa(b):512===c?$b(b):C("Invalid flags passed to unlinkat"),\n0}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return-d.Ka}},q:function(a,b,c){try{b=b?M(q,b):"";b=kc(a,b,!0);if(c){var d=E[c>>2]+4294967296*D[c+4>>2],e=D[c+8>>2];h=1E3*d+e/1E6;c+=16;d=E[c>>2]+4294967296*D[c+4>>2];e=D[c+8>>2];k=1E3*d+e/1E6}else var h=Date.now(),k=h;a=h;var r=T(b,{Sa:!0}).node;r.Ga.Oa(r,{timestamp:Math.max(a,k)});return 0}catch(y){if("undefined"==typeof W||"ErrnoError"!==y.name)throw y;return-y.Ka}},l:function(a,b,c){a=new Date(1E3*Pc(a,b));D[c>>2]=a.getSeconds();\nD[c+4>>2]=a.getMinutes();D[c+8>>2]=a.getHours();D[c+12>>2]=a.getDate();D[c+16>>2]=a.getMonth();D[c+20>>2]=a.getFullYear()-1900;D[c+24>>2]=a.getDay();b=a.getFullYear();D[c+28>>2]=(0!==b%4||0===b%100&&0!==b%400?Rc:Qc)[a.getMonth()]+a.getDate()-1|0;D[c+36>>2]=-(60*a.getTimezoneOffset());b=(new Date(a.getFullYear(),6,1)).getTimezoneOffset();var d=(new Date(a.getFullYear(),0,1)).getTimezoneOffset();D[c+32>>2]=(b!=d&&a.getTimezoneOffset()==Math.min(d,b))|0},j:function(a,b,c,d,e,h,k,r){e=Pc(e,h);try{if(isNaN(e))return 61;\nvar y=U(d);if(0!==(b&2)&&0===(c&2)&&2!==(y.flags&2097155))throw new P(2);if(1===(y.flags&2097155))throw new P(2);if(!y.Ha.bb)throw new P(43);var v=y.Ha.bb(y,a,e,b,c);var F=v.Db;D[k>>2]=v.ub;E[r>>2]=F;return 0}catch(H){if("undefined"==typeof W||"ErrnoError"!==H.name)throw H;return-H.Ka}},k:function(a,b,c,d,e,h,k){h=Pc(h,k);try{if(isNaN(h))return 61;var r=U(e);if(c&2){if(32768!==(r.node.mode&61440))throw new P(43);if(!(d&2)){var y=q.slice(a,a+b);r.Ha.cb&&r.Ha.cb(r,y,h,b,d)}}}catch(v){if("undefined"==\ntypeof W||"ErrnoError"!==v.name)throw v;return-v.Ka}},s:(a,b,c)=>{function d(y){return(y=y.toTimeString().match(/\\(([A-Za-z ]+)\\)$/))?y[1]:"GMT"}var e=(new Date).getFullYear(),h=new Date(e,0,1),k=new Date(e,6,1);e=h.getTimezoneOffset();var r=k.getTimezoneOffset();E[a>>2]=60*Math.max(e,r);D[b>>2]=Number(e!=r);a=d(h);b=d(k);a=Sc(a);b=Sc(b);r<e?(E[c>>2]=a,E[c+4>>2]=b):(E[c>>2]=b,E[c+4>>2]=a)},d:()=>Date.now(),t:()=>2147483648,c:()=>performance.now(),o:a=>{var b=q.length;a>>>=0;if(2147483648<a)return!1;\nfor(var c=1;4>=c;c*=2){var d=b*(1+.2/c);d=Math.min(d,a+100663296);var e=Math;d=Math.max(a,d);a:{e=(e.min.call(e,2147483648,d+(65536-d%65536)%65536)-La.buffer.byteLength+65535)/65536;try{La.grow(e);Qa();var h=1;break a}catch(k){}h=void 0}if(h)return!0}return!1},A:(a,b)=>{var c=0;Vc().forEach((d,e)=>{var h=b+c;e=E[a+4*e>>2]=h;for(h=0;h<d.length;++h)p[e++>>0]=d.charCodeAt(h);p[e>>0]=0;c+=d.length+1});return 0},B:(a,b)=>{var c=Vc();E[a>>2]=c.length;var d=0;c.forEach(e=>d+=e.length+1);E[b>>2]=d;return 0},\ne:function(a){try{var b=U(a);na(b);return 0}catch(c){if("undefined"==typeof W||"ErrnoError"!==c.name)throw c;return c.Ka}},p:function(a,b){try{var c=U(a);p[b>>0]=c.tty?2:R(c.mode)?3:40960===(c.mode&61440)?7:4;Na[b+2>>1]=0;J=[0,(I=0,1<=+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[b+8>>2]=J[0];D[b+12>>2]=J[1];J=[0,(I=0,1<=+Math.abs(I)?0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[b+16>>2]=J[0];D[b+20>>2]=J[1];\nreturn 0}catch(d){if("undefined"==typeof W||"ErrnoError"!==d.name)throw d;return d.Ka}},x:function(a,b,c,d){try{a:{var e=U(a);a=b;for(var h,k=b=0;k<c;k++){var r=E[a>>2],y=E[a+4>>2];a+=8;var v=fc(e,p,r,y,h);if(0>v){var F=-1;break a}b+=v;if(v<y)break;"undefined"!==typeof h&&(h+=v)}F=b}E[d>>2]=F;return 0}catch(H){if("undefined"==typeof W||"ErrnoError"!==H.name)throw H;return H.Ka}},m:function(a,b,c,d,e){b=Pc(b,c);try{if(isNaN(b))return 61;var h=U(a);ec(h,b,d);J=[h.position>>>0,(I=h.position,1<=+Math.abs(I)?\n0<I?+Math.floor(I/4294967296)>>>0:~~+Math.ceil((I-+(~~I>>>0))/4294967296)>>>0:0)];D[e>>2]=J[0];D[e+4>>2]=J[1];h.hb&&0===b&&0===d&&(h.hb=null);return 0}catch(k){if("undefined"==typeof W||"ErrnoError"!==k.name)throw k;return k.Ka}},D:function(a){try{var b=U(a);return b.Ha?.fsync?b.Ha.fsync(b):0}catch(c){if("undefined"==typeof W||"ErrnoError"!==c.name)throw c;return c.Ka}},u:function(a,b,c,d){try{a:{var e=U(a);a=b;for(var h,k=b=0;k<c;k++){var r=E[a>>2],y=E[a+4>>2];a+=8;var v=ma(e,p,r,y,h);if(0>v){var F=\n-1;break a}b+=v;"undefined"!==typeof h&&(h+=v)}F=b}E[d>>2]=F;return 0}catch(H){if("undefined"==typeof W||"ErrnoError"!==H.name)throw H;return H.Ka}}},Z=function(){function a(c){Z=c.exports;La=Z.I;Qa();Y=Z.Aa;Sa.unshift(Z.J);G--;f.monitorRunDependencies?.(G);0==G&&(null!==Wa&&(clearInterval(Wa),Wa=null),Xa&&(c=Xa,Xa=null,c()));return Z}var b={a:$c};G++;f.monitorRunDependencies?.(G);if(f.instantiateWasm)try{return f.instantiateWasm(b,a)}catch(c){return B(`Module.instantiateWasm callback failed with error: ${c}`),\n!1}db(b,function(c){a(c.instance)});return{}}();f._sqlite3_free=a=>(f._sqlite3_free=Z.K)(a);f._sqlite3_value_text=a=>(f._sqlite3_value_text=Z.L)(a);var Zc=()=>(Zc=Z.M)();f._sqlite3_prepare_v2=(a,b,c,d,e)=>(f._sqlite3_prepare_v2=Z.N)(a,b,c,d,e);f._sqlite3_step=a=>(f._sqlite3_step=Z.O)(a);f._sqlite3_reset=a=>(f._sqlite3_reset=Z.P)(a);f._sqlite3_exec=(a,b,c,d,e)=>(f._sqlite3_exec=Z.Q)(a,b,c,d,e);f._sqlite3_finalize=a=>(f._sqlite3_finalize=Z.R)(a);\nf._sqlite3_column_name=(a,b)=>(f._sqlite3_column_name=Z.S)(a,b);f._sqlite3_column_text=(a,b)=>(f._sqlite3_column_text=Z.T)(a,b);f._sqlite3_column_type=(a,b)=>(f._sqlite3_column_type=Z.U)(a,b);f._sqlite3_errmsg=a=>(f._sqlite3_errmsg=Z.V)(a);f._sqlite3_clear_bindings=a=>(f._sqlite3_clear_bindings=Z.W)(a);f._sqlite3_value_blob=a=>(f._sqlite3_value_blob=Z.X)(a);f._sqlite3_value_bytes=a=>(f._sqlite3_value_bytes=Z.Y)(a);f._sqlite3_value_double=a=>(f._sqlite3_value_double=Z.Z)(a);\nf._sqlite3_value_int=a=>(f._sqlite3_value_int=Z._)(a);f._sqlite3_value_type=a=>(f._sqlite3_value_type=Z.$)(a);f._sqlite3_result_blob=(a,b,c,d)=>(f._sqlite3_result_blob=Z.aa)(a,b,c,d);f._sqlite3_result_double=(a,b)=>(f._sqlite3_result_double=Z.ba)(a,b);f._sqlite3_result_error=(a,b,c)=>(f._sqlite3_result_error=Z.ca)(a,b,c);f._sqlite3_result_int=(a,b)=>(f._sqlite3_result_int=Z.da)(a,b);f._sqlite3_result_int64=(a,b,c)=>(f._sqlite3_result_int64=Z.ea)(a,b,c);\nf._sqlite3_result_null=a=>(f._sqlite3_result_null=Z.fa)(a);f._sqlite3_result_text=(a,b,c,d)=>(f._sqlite3_result_text=Z.ga)(a,b,c,d);f._sqlite3_aggregate_context=(a,b)=>(f._sqlite3_aggregate_context=Z.ha)(a,b);f._sqlite3_column_count=a=>(f._sqlite3_column_count=Z.ia)(a);f._sqlite3_data_count=a=>(f._sqlite3_data_count=Z.ja)(a);f._sqlite3_column_blob=(a,b)=>(f._sqlite3_column_blob=Z.ka)(a,b);f._sqlite3_column_bytes=(a,b)=>(f._sqlite3_column_bytes=Z.la)(a,b);\nf._sqlite3_column_double=(a,b)=>(f._sqlite3_column_double=Z.ma)(a,b);f._sqlite3_bind_blob=(a,b,c,d,e)=>(f._sqlite3_bind_blob=Z.na)(a,b,c,d,e);f._sqlite3_bind_double=(a,b,c)=>(f._sqlite3_bind_double=Z.oa)(a,b,c);f._sqlite3_bind_int=(a,b,c)=>(f._sqlite3_bind_int=Z.pa)(a,b,c);f._sqlite3_bind_text=(a,b,c,d,e)=>(f._sqlite3_bind_text=Z.qa)(a,b,c,d,e);f._sqlite3_bind_parameter_index=(a,b)=>(f._sqlite3_bind_parameter_index=Z.ra)(a,b);f._sqlite3_sql=a=>(f._sqlite3_sql=Z.sa)(a);\nf._sqlite3_normalized_sql=a=>(f._sqlite3_normalized_sql=Z.ta)(a);f._sqlite3_changes=a=>(f._sqlite3_changes=Z.ua)(a);f._sqlite3_close_v2=a=>(f._sqlite3_close_v2=Z.va)(a);f._sqlite3_create_function_v2=(a,b,c,d,e,h,k,r,y)=>(f._sqlite3_create_function_v2=Z.wa)(a,b,c,d,e,h,k,r,y);f._sqlite3_open=(a,b)=>(f._sqlite3_open=Z.xa)(a,b);var ea=f._malloc=a=>(ea=f._malloc=Z.ya)(a),ca=f._free=a=>(ca=f._free=Z.za)(a);f._RegisterExtensionFunctions=a=>(f._RegisterExtensionFunctions=Z.Ba)(a);\nvar Gb=(a,b)=>(Gb=Z.Ca)(a,b),pa=()=>(pa=Z.Da)(),sa=a=>(sa=Z.Ea)(a),x=a=>(x=Z.Fa)(a);f.stackAlloc=x;f.stackSave=pa;f.stackRestore=sa;f.cwrap=(a,b,c,d)=>{var e=!c||c.every(h=>"number"===h||"boolean"===h);return"string"!==b&&e&&!d?f["_"+a]:function(){return Wc(a,b,c,arguments)}};f.addFunction=xa;f.removeFunction=ua;f.UTF8ToString=ra;f.ALLOC_NORMAL=ba;f.allocate=aa;f.allocateUTF8OnStack=ta;var ad;Xa=function bd(){ad||cd();ad||(Xa=bd)};\nfunction cd(){function a(){if(!ad&&(ad=!0,f.calledRun=!0,!Ma)){f.noFSInit||hc||(hc=!0,gc(),f.stdin=f.stdin,f.stdout=f.stdout,f.stderr=f.stderr,f.stdin?ic("stdin",f.stdin):Zb("/dev/tty","/dev/stdin"),f.stdout?ic("stdout",null,f.stdout):Zb("/dev/tty","/dev/stdout"),f.stderr?ic("stderr",null,f.stderr):Zb("/dev/tty1","/dev/stderr"),la("/dev/stdin",0),la("/dev/stdout",1),la("/dev/stderr",1));Lb=!1;eb(Sa);if(f.onRuntimeInitialized)f.onRuntimeInitialized();if(f.postRun)for("function"==typeof f.postRun&&\n(f.postRun=[f.postRun]);f.postRun.length;){var b=f.postRun.shift();Ta.unshift(b)}eb(Ta)}}if(!(0<G)){if(f.preRun)for("function"==typeof f.preRun&&(f.preRun=[f.preRun]);f.preRun.length;)Va();eb(Ra);0<G||(f.setStatus?(f.setStatus("Running..."),setTimeout(function(){setTimeout(function(){f.setStatus("")},1);a()},1)):a())}}if(f.preInit)for("function"==typeof f.preInit&&(f.preInit=[f.preInit]);0<f.preInit.length;)f.preInit.pop()();cd();\n\n\n        // The shell-pre.js and emcc-generated code goes above\n        return Module;\n    }); // The end of the promise being returned\n\n  return initSqlJsPromise;\n} // The end of our initSqlJs function\n\n// This bit below is copied almost exactly from what you get when you use the MODULARIZE=1 flag with emcc\n// However, we don\'t want to use the emcc modularization. See shell-pre.js\nif (typeof exports === \'object\' && typeof module === \'object\'){\n    module.exports = initSqlJs;\n    // This will allow the module to be used in ES6 or CommonJS\n    module.exports.default = initSqlJs;\n}\nelse if (typeof define === \'function\' && define[\'amd\']) {\n    define([], function() { return initSqlJs; });\n}\nelse if (typeof exports === \'object\'){\n    exports["Module"] = initSqlJs;\n}\n';
@@ -10447,7 +10537,7 @@ var JwlImporter = class {
     return titles;
   }
   async ensureFolder(path) {
-    const parts = (0, import_obsidian16.normalizePath)(path).split("/");
+    const parts = (0, import_obsidian17.normalizePath)(path).split("/");
     let cur = "";
     for (const part of parts) {
       cur = cur ? `${cur}/${part}` : part;
@@ -10490,7 +10580,7 @@ ${todo.map((b) => b.md).join("\n\n")}
     return todo.length;
   }
   get baseFolder() {
-    return (0, import_obsidian16.normalizePath)(`${this.plugin.settings.notesFolder}/JW Library`);
+    return (0, import_obsidian17.normalizePath)(`${this.plugin.settings.notesFolder}/JW Library`);
   }
   async run(buffer, opts, progress, fileName) {
     await this.bible.ensureLoaded();
@@ -10551,7 +10641,7 @@ ${todo.map((b) => b.md).join("\n\n")}
       for (const n of plan.bibleNotes) {
         const book = this.bible.byNum.get(n.b);
         if (!book) continue;
-        const path = n.verse ? this.plugin.notePath(book, n.ch, n.verse) : (0, import_obsidian16.normalizePath)(`${this.plugin.settings.notesFolder}/${book.title} ${n.ch}.md`);
+        const path = n.verse ? this.plugin.notePath(book, n.ch, n.verse) : (0, import_obsidian17.normalizePath)(`${this.plugin.settings.notesFolder}/${book.title} ${n.ch}.md`);
         if (!byPath2.has(path)) byPath2.set(path, { book, chapter: n.ch, verse: n.verse, notes: [] });
         byPath2.get(path).notes.push(n);
       }
@@ -10588,7 +10678,7 @@ ${todo.map((b) => b.md).join("\n\n")}
     }
     if (opts.pubNotes) {
       const titles = await this.loadDocTitles();
-      const folder = (0, import_obsidian16.normalizePath)(`${this.plugin.settings.notesFolder}/JW Library`);
+      const folder = (0, import_obsidian17.normalizePath)(`${this.plugin.settings.notesFolder}/JW Library`);
       const byFile = /* @__PURE__ */ new Map();
       for (const n of plan.pubNotes) {
         const issue = formatIssue(n.issue);
@@ -10629,7 +10719,7 @@ ${todo.map((b) => b.md).join("\n\n")}
     return res;
   }
 };
-var JwlImportModal = class extends import_obsidian16.Modal {
+var JwlImportModal = class extends import_obsidian17.Modal {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -10642,14 +10732,14 @@ var JwlImportModal = class extends import_obsidian16.Modal {
       text: "Scegli un file .jwlibrary (in JW Library: Impostazioni \u2192 Backup e ripristino \u2192 Crea un backup). Puoi reimportare backup pi\xF9 recenti: le note gi\xE0 importate vengono saltate.",
       cls: "setting-item-description"
     });
-    const opt = (key, name, desc) => new import_obsidian16.Setting(contentEl).setName(name).setDesc(desc).addToggle((t) => t.setValue(this.opts[key]).onChange((v) => this.opts[key] = v));
+    const opt = (key, name, desc) => new import_obsidian17.Setting(contentEl).setName(name).setDesc(desc).addToggle((t) => t.setValue(this.opts[key]).onChange((v) => this.opts[key] = v));
     opt("bibleNotes", "Note sulla Bibbia", `Nelle note personali dei versetti (${this.plugin.settings.notesFolder}).`);
     opt("highlights", "Evidenziazioni sulla Bibbia", "Parola per parola, come in JW Library. Sostituiscono quelle importate prima; quelle create in Obsidian e non ancora esportate restano.");
     opt("bookmarks", "Segnalibri sulla Bibbia", "Nei segnalibri del lettore.");
     opt("pubNotes", "Note sulle pubblicazioni", `Un file per pubblicazione in ${this.plugin.settings.notesFolder}/JW Library.`);
     this.statusEl = contentEl.createDiv("lmp-import-status");
     const input = contentEl.createEl("input", { type: "file", attr: { style: "display:none" } });
-    new import_obsidian16.Setting(contentEl).addButton(
+    new import_obsidian17.Setting(contentEl).addButton(
       (b) => b.setButtonText("Scegli il backup\u2026").setCta().onClick(() => input.click())
     );
     input.addEventListener("change", async () => {
@@ -10890,7 +10980,7 @@ var JwlExporter = class {
         res.answers++;
       }
       progress("Note\u2026");
-      const folder = (0, import_obsidian17.normalizePath)(this.plugin.settings.notesFolder);
+      const folder = (0, import_obsidian18.normalizePath)(this.plugin.settings.notesFolder);
       for (const f of this.app.vault.getMarkdownFiles().filter((x) => x.path.startsWith(`${folder}/`))) {
         const text = await this.app.vault.cachedRead(f);
         if (!text.includes("<!-- jwl:")) continue;
@@ -10955,7 +11045,7 @@ var JwlExporter = class {
     return { ...res, path: outPath };
   }
 };
-var JwlExportModal = class extends import_obsidian17.Modal {
+var JwlExportModal = class extends import_obsidian18.Modal {
   constructor(plugin) {
     super(plugin.app);
     this.plugin = plugin;
@@ -10966,7 +11056,7 @@ var JwlExportModal = class extends import_obsidian17.Modal {
     this.titleEl.setText("Esporta backup JW Library");
     if (!base) {
       contentEl.createEl("p", { text: "Prima importa un backup di JW Library: l\u2019esportazione parte da quello e ci aggiunge le modifiche fatte in Obsidian." });
-      new import_obsidian17.Setting(contentEl).addButton(
+      new import_obsidian18.Setting(contentEl).addButton(
         (b) => b.setButtonText("Importa un backup\u2026").setCta().onClick(() => {
           this.close();
           new JwlImportModal(this.plugin).open();
@@ -10984,7 +11074,7 @@ var JwlExportModal = class extends import_obsidian17.Modal {
       "ripristinare un backup in JW Library sostituisce tutti i dati del dispositivo. Ci\xF2 che hai fatto in JW Library dopo il backup di partenza andrebbe perso: prima di esportare, importa un backup recente."
     );
     this.statusEl = contentEl.createDiv("lmp-import-status");
-    new import_obsidian17.Setting(contentEl).addButton(
+    new import_obsidian18.Setting(contentEl).addButton(
       (b) => b.setButtonText("Crea backup").setCta().onClick(async () => {
         b.setDisabled(true);
         try {
@@ -11013,7 +11103,7 @@ var JwlExportModal = class extends import_obsidian17.Modal {
 };
 
 // src/impostazioni.js
-var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
+var BibleSettingTab = class extends import_obsidian19.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -11023,8 +11113,8 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
     const s = this.plugin.settings;
     containerEl.empty();
     containerEl.addClass("lmp-settings");
-    const toggle = (name, desc, get, set) => new import_obsidian18.Setting(containerEl).setName(name).setDesc(desc).addToggle((t) => t.setValue(get()).onChange(set));
-    const text = (name, desc, key, { placeholder = DEFAULT_SETTINGS[key], clean = (v) => v.trim(), after } = {}) => new import_obsidian18.Setting(containerEl).setName(name).setDesc(desc).addText(
+    const toggle = (name, desc, get, set) => new import_obsidian19.Setting(containerEl).setName(name).setDesc(desc).addToggle((t) => t.setValue(get()).onChange(set));
+    const text = (name, desc, key, { placeholder = DEFAULT_SETTINGS[key], clean = (v) => v.trim(), after } = {}) => new import_obsidian19.Setting(containerEl).setName(name).setDesc(desc).addText(
       (t) => t.setPlaceholder(placeholder || "").setValue(s[key] || "").onChange(async (v) => {
         s[key] = clean(v);
         await (after ? after() : this.plugin.saveAll(false));
@@ -11039,7 +11129,7 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
         view.navigate({ ...view.getState() }, { push: false });
       }
     };
-    new import_obsidian18.Setting(containerEl).setName("Lampada come app").setHeading();
+    new import_obsidian19.Setting(containerEl).setName("Lampada come app").setHeading();
     toggle("Vista unica", "Bibbia, Biblioteca, SCRABB e Chiedi in una sola scheda, con un solo Indietro. Le icone nella barra di sinistra cambiano al prossimo avvio.", () => s.appShell !== false, async (v) => {
       s.appShell = v;
       await this.plugin.saveAll(false);
@@ -11048,7 +11138,7 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
     });
     toggle("Modalit\xE0 app", "Mentre usi Lampada nasconde le barre di Obsidian. Tornano quando apri una nota o con il pulsante \u2922.", () => !!this.plugin.ui.appMode, (v) => this.plugin.toggleAppMode(v));
     if (s.appShell === false) {
-      new import_obsidian18.Setting(containerEl).setName("Posizione del lettore").setDesc("Dove si apre la Bibbia. Si pu\xF2 spostare anche dal menu \u22EF del lettore.").addDropdown(
+      new import_obsidian19.Setting(containerEl).setName("Posizione del lettore").setDesc("Dove si apre la Bibbia. Si pu\xF2 spostare anche dal menu \u22EF del lettore.").addDropdown(
         (d) => d.addOptions({ tab: "Scheda normale", left: "Barra laterale sinistra", right: "Barra laterale destra" }).setValue(s.readerLocation).onChange(async (v) => {
           s.readerLocation = v;
           await this.plugin.settingsChanged();
@@ -11060,8 +11150,8 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
         await this.plugin.ensureLeftTab();
       });
     }
-    new import_obsidian18.Setting(containerEl).setName("Lettura").setHeading();
-    new import_obsidian18.Setting(containerEl).setDesc("Carattere, dimensione, interlinea, tema e pagine si regolano dal pannello Aa del lettore.");
+    new import_obsidian19.Setting(containerEl).setName("Lettura").setHeading();
+    new import_obsidian19.Setting(containerEl).setDesc("Carattere, dimensione, interlinea, tema e pagine si regolano dal pannello Aa del lettore.");
     toggle("Nascondi le barre mentre scorri", "Tablet e telefono. Spegnilo se lo scorrimento ti sembra a scatti.", () => s.autoHideBars !== false, async (v) => {
       s.autoHideBars = v;
       await this.plugin.saveAll(false);
@@ -11085,8 +11175,8 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
       s.showCiteMarkers = v;
       await this.plugin.settingsChanged();
     });
-    new import_obsidian18.Setting(containerEl).setName("Riferimenti nelle note").setHeading();
-    new import_obsidian18.Setting(containerEl).setName("Clic su un riferimento biblico").setDesc("Con \u2318/Ctrl-clic ottieni l\u2019altra azione.").addDropdown(
+    new import_obsidian19.Setting(containerEl).setName("Riferimenti nelle note").setHeading();
+    new import_obsidian19.Setting(containerEl).setName("Clic su un riferimento biblico").setDesc("Con \u2318/Ctrl-clic ottieni l\u2019altra azione.").addDropdown(
       (d) => d.addOptions({ reader: "Apri in Lampada", jwlibrary: "Apri in JW Library" }).setValue(s.clickAction === "jwlibrary" ? "jwlibrary" : "reader").onChange(async (v) => {
         s.clickAction = v;
         await this.plugin.settingsChanged();
@@ -11109,7 +11199,7 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
       s.openAfterCite = v;
       await this.plugin.saveAll(false);
     });
-    new import_obsidian18.Setting(containerEl).setClass("lmp-setting-wide").setName("Modello di inserimento").setDesc('Testo inserito con "Inserisci nella nota". Variabili: {{link}}, {{ref}}, {{text}}.').addTextArea((t) => {
+    new import_obsidian19.Setting(containerEl).setClass("lmp-setting-wide").setName("Modello di inserimento").setDesc('Testo inserito con "Inserisci nella nota". Variabili: {{link}}, {{ref}}, {{text}}.').addTextArea((t) => {
       t.setValue(s.insertTemplate).onChange(async (v) => {
         s.insertTemplate = v;
         await this.plugin.settingsChanged();
@@ -11117,11 +11207,11 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
       t.inputEl.rows = 3;
       t.inputEl.addClass("lmp-template-input");
     });
-    new import_obsidian18.Setting(containerEl).setName("SCRABB").setHeading();
+    new import_obsidian19.Setting(containerEl).setName("SCRABB").setHeading();
     text("Cartella delle schede", "Dove vengono create le nuove schede (una sottocartella per tipo). Le schede sono riconosciute ovunque dal campo \u201Ctipo\u201D.", "scrabbFolder", { clean: folder });
     text("Attivatore", "Mentre scrivi, questo pi\xF9 qualche lettera (es. ++umil) collega una scheda. Vuoto = disattivato.", "scrabbTrigger");
-    new import_obsidian18.Setting(containerEl).setName("Intelligenza artificiale").setHeading();
-    new import_obsidian18.Setting(containerEl).setName("Chiave OpenRouter").setDesc("Facoltativa, per la lampadina e Chiedi. Resta su questo dispositivo.").addText((t) => {
+    new import_obsidian19.Setting(containerEl).setName("Intelligenza artificiale").setHeading();
+    new import_obsidian19.Setting(containerEl).setName("Chiave OpenRouter").setDesc("Facoltativa, per la lampadina e Chiedi. Resta su questo dispositivo.").addText((t) => {
       t.inputEl.type = "password";
       t.setPlaceholder("sk-or-\u2026").setValue(s.openrouterKey || "").onChange(async (v) => {
         s.openrouterKey = v.trim();
@@ -11133,14 +11223,14 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
         b.setDisabled(true);
         try {
           const json = await openRouter(this.plugin, { messages: [{ role: "user", content: "Rispondi solo: ok" }], max_tokens: 5 });
-          new import_obsidian18.Notice(`Funziona: ${json.model || "modello pronto"}`);
+          new import_obsidian19.Notice(`Funziona: ${json.model || "modello pronto"}`);
         } catch (e) {
-          new import_obsidian18.Notice(e.message);
+          new import_obsidian19.Notice(e.message);
         }
         b.setDisabled(false);
       })
     );
-    new import_obsidian18.Setting(containerEl).setClass("lmp-setting-wide").setName("Istruzioni personali").setDesc('Valgono per tutte le risposte: spunti, domande e Chiedi. Es. "Frasi brevi e parole semplici, ho 14 anni".').addTextArea((t) => {
+    new import_obsidian19.Setting(containerEl).setClass("lmp-setting-wide").setName("Istruzioni personali").setDesc('Valgono per tutte le risposte: spunti, domande e Chiedi. Es. "Frasi brevi e parole semplici, ho 14 anni".').addTextArea((t) => {
       t.setValue(s.aiInstructions || "").onChange(async (v) => {
         s.aiInstructions = v;
         await this.plugin.saveAll(false);
@@ -11150,11 +11240,11 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
     });
     this.renderPresets(containerEl.createDiv());
     this.renderChatFolders(containerEl);
-    new import_obsidian18.Setting(containerEl).setName("Dati e backup").setHeading();
+    new import_obsidian19.Setting(containerEl).setName("Dati e backup").setHeading();
     text("Cartella delle tue note e dei tuoi dati", "Le note sui versetti e, in JW Library/, evidenziazioni, segnalibri, risposte e posizione di lettura.", "notesFolder", { clean: folder, after: () => this.plugin.settingsChanged() });
-    new import_obsidian18.Setting(containerEl).setName("Importa backup JW Library").setDesc("Note, evidenziazioni e segnalibri da un file .jwlibrary.").addButton((b) => b.setButtonText("Importa\u2026").onClick(() => new JwlImportModal(this.plugin).open()));
-    new import_obsidian18.Setting(containerEl).setName("Esporta backup JW Library").setDesc(this.plugin.jwlBase ? `Nuovo .jwlibrary con le modifiche fatte qui, partendo da \xAB${this.plugin.jwlBase.name}\xBB.` : "Disponibile dopo aver importato un backup.").addButton((b) => b.setButtonText("Esporta\u2026").onClick(() => new JwlExportModal(this.plugin).open()));
-    new import_obsidian18.Setting(containerEl).setName("Indice delle note").setDesc(`${this.plugin.marks.length} evidenziazioni, ${this.plugin.bookmarks.length} segnalibri, ${this.plugin.noteIndex.byFile.size} note con riferimenti biblici.`).addButton(
+    new import_obsidian19.Setting(containerEl).setName("Importa backup JW Library").setDesc("Note, evidenziazioni e segnalibri da un file .jwlibrary.").addButton((b) => b.setButtonText("Importa\u2026").onClick(() => new JwlImportModal(this.plugin).open()));
+    new import_obsidian19.Setting(containerEl).setName("Esporta backup JW Library").setDesc(this.plugin.jwlBase ? `Nuovo .jwlibrary con le modifiche fatte qui, partendo da \xAB${this.plugin.jwlBase.name}\xBB.` : "Disponibile dopo aver importato un backup.").addButton((b) => b.setButtonText("Esporta\u2026").onClick(() => new JwlExportModal(this.plugin).open()));
+    new import_obsidian19.Setting(containerEl).setName("Indice delle note").setDesc(`${this.plugin.marks.length} evidenziazioni, ${this.plugin.bookmarks.length} segnalibri, ${this.plugin.noteIndex.byFile.size} note con riferimenti biblici.`).addButton(
       (b) => b.setButtonText("Ricostruisci").onClick(async () => {
         b.setDisabled(true);
         await this.plugin.noteIndex.build();
@@ -11172,9 +11262,9 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
       await this.plugin.saveAll(false);
       if (again) this.renderPresets(el);
     };
-    new import_obsidian18.Setting(el).setName("Prompt rapidi").setDesc('Le voci che compaiono toccando la lampadina nel campo "La tua risposta".');
+    new import_obsidian19.Setting(el).setName("Prompt rapidi").setDesc('Le voci che compaiono toccando la lampadina nel campo "La tua risposta".');
     list.forEach((p, i) => {
-      const row = new import_obsidian18.Setting(el).setClass("lmp-setting-wide").setClass("lmp-preset");
+      const row = new import_obsidian19.Setting(el).setClass("lmp-setting-wide").setClass("lmp-preset");
       row.addText((t) => t.setPlaceholder("Nome").setValue(p.name).onChange((v) => (p.name = v, save())));
       row.addTextArea((t) => {
         t.setPlaceholder("Cosa deve fare").setValue(p.prompt).onChange((v) => (p.prompt = v, save()));
@@ -11183,7 +11273,7 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
       row.addExtraButton((b) => b.setIcon("arrow-up").setTooltip("Sposta su").setDisabled(i === 0).onClick(() => (list.splice(i - 1, 0, ...list.splice(i, 1)), save(true))));
       row.addExtraButton((b) => b.setIcon("trash-2").setTooltip("Elimina").onClick(() => (list.splice(i, 1), save(true))));
     });
-    new import_obsidian18.Setting(el).addButton((b) => b.setButtonText("Aggiungi").onClick(() => (list.push({ name: "Nuovo", prompt: "" }), save(true)))).addButton(
+    new import_obsidian19.Setting(el).addButton((b) => b.setButtonText("Aggiungi").onClick(() => (list.push({ name: "Nuovo", prompt: "" }), save(true)))).addButton(
       (b) => b.setButtonText("Ripristina predefiniti").onClick(async () => {
         s.aiPresets = "";
         await this.plugin.saveAll(false);
@@ -11194,7 +11284,7 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
   /** Cartelle di note in cui cerca anche Chiedi; quelle che non esistono si vedono subito. */
   renderChatFolders(containerEl) {
     const s = this.plugin.settings;
-    const folders = new import_obsidian18.Setting(containerEl).setClass("lmp-setting-wide").setName("Cartelle in cui cerca anche Chiedi").setDesc('Oltre alle pubblicazioni. Una per riga, dalla radice del vault (es. "Studio/Discorsi"). Dopo una modifica premi "Aggiorna l\u2019indice" in Chiedi, dal computer.');
+    const folders = new import_obsidian19.Setting(containerEl).setClass("lmp-setting-wide").setName("Cartelle in cui cerca anche Chiedi").setDesc('Oltre alle pubblicazioni. Una per riga, dalla radice del vault (es. "Studio/Discorsi"). Dopo una modifica premi "Aggiorna l\u2019indice" in Chiedi, dal computer.');
     const warn = folders.descEl.createDiv({ cls: "mod-warning" });
     const check = () => {
       const missing = String(s.chatFolders || "").split("\n").map((f) => f.trim().replace(/^\/+|\/+$/g, "")).filter((f) => f && !this.app.vault.getAbstractFileByPath(f));
@@ -11214,7 +11304,7 @@ var BibleSettingTab = class extends import_obsidian18.PluginSettingTab {
 };
 
 // src/indice-note.js
-var import_obsidian19 = require("obsidian");
+var import_obsidian20 = require("obsidian");
 var NoteIndex = class {
   constructor(plugin) {
     this.plugin = plugin;
@@ -11225,14 +11315,14 @@ var NoteIndex = class {
     this.ready = false;
     this.pending = /* @__PURE__ */ new Map();
     this.emptyFiles = /* @__PURE__ */ new Map();
-    this.requestCacheSave = (0, import_obsidian19.debounce)(() => this.saveCache(), 2e4, true);
-    this.onChange = (0, import_obsidian19.debounce)(() => this.app.workspace.trigger("lampada:index-changed"), 400, true);
+    this.requestCacheSave = (0, import_obsidian20.debounce)(() => this.saveCache(), 2e4, true);
+    this.onChange = (0, import_obsidian20.debounce)(() => this.app.workspace.trigger("lampada:index-changed"), 400, true);
   }
   excluded(file) {
-    return !(file instanceof import_obsidian19.TFile) || file.extension !== "md" || this.bible.isPublicationFile(file.path);
+    return !(file instanceof import_obsidian20.TFile) || file.extension !== "md" || this.bible.isPublicationFile(file.path);
   }
   get cachePath() {
-    return `${this.plugin.manifest.dir}/index-cache-${import_obsidian19.Platform.isMobile ? "mobile" : "desktop"}.json`;
+    return `${this.plugin.manifest.dir}/index-cache-${import_obsidian20.Platform.isMobile ? "mobile" : "desktop"}.json`;
   }
   async loadCache() {
     try {
@@ -11360,14 +11450,14 @@ var NoteIndex = class {
 // src/plugin.js
 var DEVICE_KEY = "lampada-lettura";
 var DEVICE_SETTINGS = ["fontFamily", "fontSize", "lineHeight", "margins", "justify", "pageMode", "readingTheme"];
-var LampadaPlugin = class extends import_obsidian20.Plugin {
+var LampadaPlugin = class extends import_obsidian21.Plugin {
   async onload() {
     this.providers = [];
     await this.loadAll();
     await this.moveDerivedData();
     this.bible = new BibleData(this);
     this.lastMarkdownView = null;
-    const save = (0, import_obsidian20.debounce)(() => this.saveAll(false), 800, true);
+    const save = (0, import_obsidian21.debounce)(() => this.saveAll(false), 800, true);
     this.requestSave = (userData) => {
       if (userData) this.userDataDirty = true;
       save();
@@ -11385,7 +11475,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
     this.addCommand({
       id: "refresh",
       name: "Ricarica le pubblicazioni",
-      callback: () => this.refresh().then(() => new import_obsidian20.Notice("Pubblicazioni ricaricate"), (e) => new import_obsidian20.Notice(`Ricarica non riuscita: ${e.message}`))
+      callback: () => this.refresh().then(() => new import_obsidian21.Notice("Pubblicazioni ricaricate"), (e) => new import_obsidian21.Notice(`Ricarica non riuscita: ${e.message}`))
     });
     this.addCommand({ id: "download-bible", name: "Scarica la Bibbia", callback: () => new BibleDownloadModal(this).open() });
     this.addCommand({ id: "import-epub", name: "Importa un EPUB\u2026", callback: () => new EpubImportModal(this).open() });
@@ -11420,8 +11510,8 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
         if (!this.has("downloadCovers")) return false;
         if (!checking)
           this.ask("downloadCovers").then(
-            (got) => new import_obsidian20.Notice(got ? `${got} copertine aggiunte` : "Nessuna nuova copertina trovata"),
-            (e) => new import_obsidian20.Notice(`Copertine non scaricate: ${e.message}`)
+            (got) => new import_obsidian21.Notice(got ? `${got} copertine aggiunte` : "Nessuna nuova copertina trovata"),
+            (e) => new import_obsidian21.Notice(`Copertine non scaricate: ${e.message}`)
           );
         return true;
       }
@@ -11561,7 +11651,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
         const hits = this.bible.scanLine(editor.getLine(cur.line), true);
         const hit = hits.find((h) => cur.ch >= h.start && cur.ch <= h.end) || hits[0];
         if (hit) this.openReader(hit.ref);
-        else new import_obsidian20.Notice("Nessun riferimento biblico in questa riga.");
+        else new import_obsidian21.Notice("Nessun riferimento biblico in questa riga.");
       }
     });
     this.addCommand({ id: "import-jwlibrary", name: "Importa backup JW Library\u2026", callback: () => new JwlImportModal(this).open() });
@@ -11577,7 +11667,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
       }
     });
     this.setupLinkHandling();
-    this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.scrabb.ensure(), import_obsidian20.Platform.isMobile ? 9e3 : 3500));
+    this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.scrabb.ensure(), import_obsidian21.Platform.isMobile ? 9e3 : 3500));
     this.app.workspace.onLayoutReady(async () => {
       await this.migrateToShell().catch((e) => console.warn("[lampada] passaggio alla vista unica", e));
       this.applyAppMode();
@@ -11593,7 +11683,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
           if (f.path === this.userDataPath) this.onUserDataChanged();
         })
       );
-      await sleep(import_obsidian20.Platform.isMobile ? 8e3 : 3e3);
+      await sleep(import_obsidian21.Platform.isMobile ? 8e3 : 3e3);
       try {
         await this.bible.ensureLoaded();
       } catch (e) {
@@ -11614,12 +11704,12 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
     });
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
-        if (leaf && leaf.view instanceof import_obsidian20.MarkdownView) this.lastMarkdownView = leaf.view;
+        if (leaf && leaf.view instanceof import_obsidian21.MarkdownView) this.lastMarkdownView = leaf.view;
       })
     );
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
-        if (!(file instanceof import_obsidian20.TFile) || !file.path.startsWith(this.bible.bibleFolder + "/")) return;
+        if (!(file instanceof import_obsidian21.TFile) || !file.path.startsWith(this.bible.bibleFolder + "/")) return;
         menu.addItem(
           (item) => item.setTitle("Apri nel lettore Bibbia").setIcon("book-open").onClick(async () => {
             await this.bible.ensureLoaded();
@@ -11762,7 +11852,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
     document.querySelectorAll(".lmp-app-toggle").forEach((b) => {
       b.toggleClass("is-active", !!this.ui.appMode);
       const icon = b.querySelector(".lmp-tab-icon") || b;
-      (0, import_obsidian20.setIcon)(icon, this.ui.appMode ? "minimize-2" : "maximize-2");
+      (0, import_obsidian21.setIcon)(icon, this.ui.appMode ? "minimize-2" : "maximize-2");
     });
   }
   onunload() {
@@ -11792,8 +11882,8 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
   async moveDerivedData() {
     const a = this.app.vault.adapter;
     if (!await a.exists(DATA_DIR)) await a.mkdir(DATA_DIR);
-    const notes = (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/JW Library`);
-    const idx = (0, import_obsidian20.normalizePath)(`${this.settings.rootFolder}/Indici`);
+    const notes = (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library`);
+    const idx = (0, import_obsidian21.normalizePath)(`${this.settings.rootFolder}/Indici`);
     const moves = [
       [`${notes}/campi-risposta.json`, this.answerFieldsPath],
       [`${notes}/immagini.json`, this.imageAltsPath],
@@ -11801,7 +11891,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
       [`${notes}/Bibbia con riferimenti`, this.rbi8Dir],
       [`${idx}/copertine`, `${DATA_DIR}/covers`],
       [`${idx}/ricerca`, `${DATA_DIR}/search`],
-      [idx, (0, import_obsidian20.normalizePath)(`${this.settings.rootFolder}/${INDEX_MIRROR}`)],
+      [idx, (0, import_obsidian21.normalizePath)(`${this.settings.rootFolder}/${INDEX_MIRROR}`)],
       // Se un dispositivo non aggiornato riscrive il nome vecchio, mergeConflictCopies lo unisce.
       [`${notes}/evidenziazioni.json`, this.userDataPath],
       [`${notes}/posizione.json`, this.positionPath]
@@ -11812,10 +11902,10 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
     }
   }
   get userDataPath() {
-    return (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/JW Library/highlights.json`);
+    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library/highlights.json`);
   }
   get localUserDataPath() {
-    return `${this.manifest.dir}/stato-${import_obsidian20.Platform.isMobile ? "mobile" : "desktop"}.json`;
+    return `${this.manifest.dir}/stato-${import_obsidian21.Platform.isMobile ? "mobile" : "desktop"}.json`;
   }
   async readJson(path) {
     try {
@@ -12175,7 +12265,7 @@ var LampadaPlugin = class extends import_obsidian20.Plugin {
     if (!this.settings.openAfterCite) return;
     const noteLeaf = this.app.workspace.getMostRecentLeaf();
     await this.openReader(ref);
-    if (import_obsidian20.Platform.isPhone || !noteLeaf) return;
+    if (import_obsidian21.Platform.isPhone || !noteLeaf) return;
     this.app.workspace.setActiveLeaf(noteLeaf, { focus: true });
     editor.focus();
   }
@@ -12334,7 +12424,7 @@ Fonte: ${source}`;
    */
   updateScrabbAction(leaf) {
     const view = leaf && leaf.view;
-    if (!(view instanceof import_obsidian20.MarkdownView)) return;
+    if (!(view instanceof import_obsidian21.MarkdownView)) return;
     const path = view.file && view.file.path;
     const isCard = !!(path && this.scrabb && this.scrabb.ready && this.scrabb.get(path));
     if (isCard && !view.lmpScrabbAction) {
@@ -12349,7 +12439,7 @@ Fonte: ${source}`;
     const ws = this.app.workspace;
     let leaf = ws.getLeavesOfType(CHAT_VIEW_TYPE)[0];
     if (!leaf) {
-      leaf = import_obsidian20.Platform.isMobile ? ws.getLeaf("tab") : ws.getRightLeaf(false);
+      leaf = import_obsidian21.Platform.isMobile ? ws.getLeaf("tab") : ws.getRightLeaf(false);
       await leaf.setViewState({ type: CHAT_VIEW_TYPE, active: true });
     }
     await ws.revealLeaf(leaf);
@@ -12384,10 +12474,10 @@ Fonte: ${source}`;
   }
   /** Ultimo backup di JW Library importato (base per l'esportazione). Calcolato: jwlBase.path può avere una cartella vecchia. */
   get jwlBasePath() {
-    return (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/JW Library/backup-base.jwlibrary`);
+    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library/backup-base.jwlibrary`);
   }
   get positionPath() {
-    return (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/JW Library/position.json`);
+    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library/position.json`);
   }
   /**
    * Dove si è arrivati a leggere (Bibbia e ogni documento), condiviso tra dispositivi: vince la lettura più recente.
@@ -12429,7 +12519,7 @@ Fonte: ${source}`;
       const par = /\^p(\d+)/.exec(subpath || "");
       if (d) return this.openLibraryDoc(d, par ? +par[1] : void 0);
       if (file.extension !== "md") return window.open(fileSrc(this.app, file));
-      return new import_obsidian20.Notice("Questo file si apre solo dentro Lampada");
+      return new import_obsidian21.Notice("Questo file si apre solo dentro Lampada");
     }
     const leaf = this.app.workspace.getLeaf(mode === "split" ? "split" : "tab");
     await leaf.openFile(file, subpath ? { eState: { subpath } } : void 0);
@@ -12465,7 +12555,7 @@ Fonte: ${source}`;
   /** Tutte le note (blocchi JW Library) nella cartella delle note, con le loro etichette. */
   async collectTaggedNotes() {
     await this.loadTagNames();
-    const folder = (0, import_obsidian20.normalizePath)(this.settings.notesFolder);
+    const folder = (0, import_obsidian21.normalizePath)(this.settings.notesFolder);
     const out = [];
     for (const f of this.app.vault.getMarkdownFiles()) {
       if (!f.path.startsWith(`${folder}/`)) continue;
@@ -12592,7 +12682,7 @@ Fonte: ${source}`;
       this.bmTomb[bookmarkKey(place)] = Date.now();
     } else this.bookmarks.push({ ...place, created: Date.now(), t: Date.now() });
     this.requestSave(true);
-    new import_obsidian20.Notice(existing ? "Segnalibro rimosso" : "Segnalibro aggiunto");
+    new import_obsidian21.Notice(existing ? "Segnalibro rimosso" : "Segnalibro aggiunto");
   }
   /** Aperti di recente (capitoli della Bibbia e documenti), su questo dispositivo. */
   addRecent(place) {
@@ -12633,7 +12723,7 @@ Fonte: ${source}`;
       const row = el.createDiv("lmp-strip");
       for (const [, x] of items) {
         const chip = row.createEl("button", { cls: "lmp-chip", attr: { "aria-label": `${x.title} \xB7 ${x.sub}` } });
-        (0, import_obsidian20.setIcon)(chip.createSpan("lmp-chip-icon"), x.icon);
+        (0, import_obsidian21.setIcon)(chip.createSpan("lmp-chip-icon"), x.icon);
         chip.createSpan({ cls: "lmp-chip-text", text: x.title });
         chip.addEventListener("click", () => x.open());
       }
@@ -12646,7 +12736,7 @@ Fonte: ${source}`;
       const box = el.createDiv("lmp-places");
       for (const [p, x] of items) {
         const row = box.createDiv("lmp-place");
-        (0, import_obsidian20.setIcon)(row.createSpan("lmp-place-icon"), x.icon);
+        (0, import_obsidian21.setIcon)(row.createSpan("lmp-place-icon"), x.icon);
         const txt = row.createDiv("lmp-place-text");
         txt.createDiv({ cls: "lmp-place-title", text: x.title });
         txt.createDiv({ cls: "lmp-place-sub", text: x.sub });
@@ -12656,7 +12746,7 @@ Fonte: ${source}`;
         });
         if (!removable) continue;
         const del = row.createEl("button", { cls: "clickable-icon lmp-place-remove", attr: { "aria-label": "Rimuovi segnalibro" } });
-        (0, import_obsidian20.setIcon)(del, "x");
+        (0, import_obsidian21.setIcon)(del, "x");
         del.addEventListener("click", (evt) => {
           evt.stopPropagation();
           this.toggleBookmark(p);
@@ -12668,13 +12758,13 @@ Fonte: ${source}`;
     section("Aperti di recente", this.ui.recent || [], false);
   }
   notePath(book, chapter, verse) {
-    return (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/${book.title} ${chapter}-${verse}.md`);
+    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/${book.title} ${chapter}-${verse}.md`);
   }
   async ensureNoteFile(book, chapter, verse, text) {
     const path = this.notePath(book, chapter, verse);
     let file = this.bible.getFile(path);
     if (!file) {
-      const folder = (0, import_obsidian20.normalizePath)(this.settings.notesFolder);
+      const folder = (0, import_obsidian21.normalizePath)(this.settings.notesFolder);
       if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
       const label = `${book.title} ${chapter}:${verse}`;
       const content = [
@@ -12715,7 +12805,7 @@ ${md}
       this.app.workspace.setActiveLeaf(existing, { focus: true });
       return;
     }
-    const leaf = this.readerInMainArea() && !import_obsidian20.Platform.isPhone ? this.app.workspace.getLeaf("split", "vertical") : this.mainAreaLeaf();
+    const leaf = this.readerInMainArea() && !import_obsidian21.Platform.isPhone ? this.app.workspace.getLeaf("split", "vertical") : this.mainAreaLeaf();
     await leaf.openFile(file, { active: true });
   }
   readerInMainArea() {
@@ -12739,7 +12829,7 @@ ${md}
    */
   async pubNotesFor(doc) {
     if (!this.pubNoteIndex) {
-      const folder = (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
+      const folder = (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
       const map = /* @__PURE__ */ new Map();
       for (const f of this.app.vault.getMarkdownFiles()) {
         if (!f.path.startsWith(folder)) continue;
@@ -12756,7 +12846,7 @@ ${md}
     return this.pubNoteIndex.get(String(doc)) || [];
   }
   onPubNoteFileChange(f) {
-    const folder = (0, import_obsidian20.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
+    const folder = (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
     if (!f || !f.path.startsWith(folder) || !this.pubNoteIndex) return;
     this.pubNoteIndex = null;
     window.clearTimeout(this.pubNoteTimer);
@@ -12812,11 +12902,11 @@ ${md}
       return line;
     });
     if (!count) {
-      new import_obsidian20.Notice("Nessun riferimento da convertire.");
+      new import_obsidian21.Notice("Nessun riferimento da convertire.");
       return;
     }
     editor.replaceRange(out.join("\n"), from, to);
-    new import_obsidian20.Notice(`${count} riferiment${count === 1 ? "o convertito" : "i convertiti"} in link`);
+    new import_obsidian21.Notice(`${count} riferiment${count === 1 ? "o convertito" : "i convertiti"} in link`);
   }
   async showNoteRefs(file) {
     await this.bible.ensureLoaded();
@@ -12968,11 +13058,11 @@ ${md}
     const view = this.lastMarkdownView;
     const stillOpen = view && this.app.workspace.getLeavesOfType("markdown").some((l) => l.view === view);
     if (!stillOpen || !view.editor) {
-      new import_obsidian20.Notice("Apri prima una nota in cui inserire il versetto.");
+      new import_obsidian21.Notice("Apri prima una nota in cui inserire il versetto.");
       return;
     }
     view.editor.replaceSelection(this.fillTemplate(info));
-    new import_obsidian20.Notice(`Inserito in ${view.file ? view.file.basename : "nota"}`);
+    new import_obsidian21.Notice(`Inserito in ${view.file ? view.file.basename : "nota"}`);
   }
 };
 
