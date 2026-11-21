@@ -1,7 +1,7 @@
 import { Modal, Notice, Platform, requestUrl } from 'obsidian';
 import { decode, epubInfo, jwLink, mb, q, slugify } from './bibbia-epub.js';
 import { jwDownload } from './scarica-jw.js';
-import { MONTHS, issueLabel } from './biblioteca-dati.js';
+import { MONTHS, issueLabel, LIB_CATEGORIES } from './biblioteca-dati.js';
 import { epubExtras } from './epub-extra.js';
 import { writeBinary } from './file.js';
 import { unzipEntries } from './jwl-formati.js';
@@ -211,7 +211,8 @@ async function convertPubEpub(src, opts = {}) {
     });
   if (!docs.length) throw new Error('Nell’EPUB non ci sono documenti da importare.');
   const fromName = /^([a-z0-9-]+)_[a-z]+(?:_(\d{6,8}))?\.epub$/i.exec(opts.fileName || '') || [];
-  const symbol = (opts.symbol || (/\bpub-(\S+)/.exec(docs[0].cls) || [])[1] || fromName[1] || '').toLowerCase();
+  // Simbolo dal sito come lo scrive lui (T-31, come le esportazioni .jwpub); ricavato dal file: minuscolo.
+  const symbol = opts.symbol || ((/\bpub-(\S+)/.exec(docs[0].cls) || [])[1] || fromName[1] || '').toLowerCase();
   if (!symbol) throw new Error('Non trovo il simbolo della pubblicazione.');
   const dcTitle = decode((/<dc:title[^>]*>([^<]*)</.exec(opf) || [])[1] || '').trim();
   const issue = opts.issue || fromName[2] || (CATEGORY[symbol] ? issueFromTitle(dcTitle) : '');
@@ -312,8 +313,9 @@ async function importEpub(plugin, src, meta = {}, progress = () => {}) {
   const lib = await plugin.library.ensureLoaded().then(() => plugin.library, () => null);
   const res = await convertPubEpub(src, { ...meta, bible, findRef: lib ? refFinder(lib) : null });
   res.lang = plugin.settings.bibleLang || 'I';
-  // ponytail: una pubblicazione nuova che non è un periodico noto va tra i libri.
-  res.category = (lib && lib.bySym.get(res.symbol)?.category) || CATEGORY[res.symbol] || 'libri';
+  // ponytail: una pubblicazione nuova che non è un periodico noto va tra i libri (o nella categoria data da chi chiama).
+  const asked = LIB_CATEGORIES.some(([id]) => id === meta.category) && meta.category;
+  res.category = (lib && lib.bySym.get(res.symbol)?.category) || CATEGORY[res.symbol] || asked || 'libri';
   return { ...res, ...(await saveEpub(plugin, res, src, progress)) };
 }
 
@@ -336,7 +338,7 @@ async function importInfos(plugin, infos, progress) {
   await jwDownload(plugin.app, infos, async (info, buf, say) => {
     const p = (t) => (say(t), progress(t));
     const src = buf || rangeSource(info.url, info.size);
-    out.push(await importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || '') ? info.issue : '', title: info.title }, p));
+    out.push(await importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || '') ? info.issue : '', title: info.title, category: info.category }, p));
   });
   return out;
 }
@@ -479,4 +481,4 @@ class EpubImportModal extends Modal {
   }
 }
 
-export { EpubImportModal, convertPubEpub, importEpub, newIssues, parseSymbol, refRange, runNewIssues };
+export { EpubImportModal, convertPubEpub, importEpub, importInfo, newIssues, parseSymbol, refRange, runNewIssues };

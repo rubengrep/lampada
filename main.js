@@ -1854,7 +1854,7 @@ function epubInfo(lang2, pub, issue = "") {
       if (r.status >= 400) throw Object.assign(new Error(`il sito ha risposto con l\u2019errore ${r.status}.`), { status: r.status });
       const f = r.json?.files?.[lang2]?.EPUB?.[0];
       if (!f?.file?.url) return null;
-      return { url: f.file.url, size: f.filesize || 0, title: decode(r.json.pubName || "").replace(/\u00a0/g, " "), pub: r.json.pub || pub, issue: r.json.issue || issue };
+      return { url: f.file.url, size: f.filesize || 0, title: decode((r.json.pubName || "").replace(/<[^>]*>/g, "")).replace(/\u00a0/g, " "), pub: r.json.pub || pub, issue: r.json.issue || issue };
     });
     p.then((v) => v || infoCache.delete(key), () => infoCache.delete(key));
     infoCache.set(key, p);
@@ -2183,7 +2183,7 @@ async function convertPubEpub(src, opts = {}) {
   });
   if (!docs.length) throw new Error("Nell\u2019EPUB non ci sono documenti da importare.");
   const fromName = /^([a-z0-9-]+)_[a-z]+(?:_(\d{6,8}))?\.epub$/i.exec(opts.fileName || "") || [];
-  const symbol = (opts.symbol || (/\bpub-(\S+)/.exec(docs[0].cls) || [])[1] || fromName[1] || "").toLowerCase();
+  const symbol = opts.symbol || ((/\bpub-(\S+)/.exec(docs[0].cls) || [])[1] || fromName[1] || "").toLowerCase();
   if (!symbol) throw new Error("Non trovo il simbolo della pubblicazione.");
   const dcTitle = decode((/<dc:title[^>]*>([^<]*)</.exec(opf) || [])[1] || "").trim();
   const issue = opts.issue || fromName[2] || (CATEGORY[symbol] ? issueFromTitle(dcTitle) : "");
@@ -2276,7 +2276,8 @@ async function importEpub(plugin, src, meta = {}, progress = () => {
   const lib = await plugin.library.ensureLoaded().then(() => plugin.library, () => null);
   const res = await convertPubEpub(src, { ...meta, bible, findRef: lib ? refFinder(lib) : null });
   res.lang = plugin.settings.bibleLang || "I";
-  res.category = lib && lib.bySym.get(res.symbol)?.category || CATEGORY[res.symbol] || "libri";
+  const asked = LIB_CATEGORIES.some(([id]) => id === meta.category) && meta.category;
+  res.category = lib && lib.bySym.get(res.symbol)?.category || CATEGORY[res.symbol] || asked || "libri";
   return { ...res, ...await saveEpub(plugin, res, src, progress) };
 }
 var rangeSource = (url, size) => ({
@@ -2292,7 +2293,7 @@ async function importInfos(plugin, infos, progress) {
   await jwDownload(plugin.app, infos, async (info, buf, say) => {
     const p = (t) => (say(t), progress(t));
     const src = buf || rangeSource(info.url, info.size);
-    out.push(await importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || "") ? info.issue : "", title: info.title }, p));
+    out.push(await importEpub(plugin, src, { symbol: info.pub, issue: /^\d{6,8}$/.test(info.issue || "") ? info.issue : "", title: info.title, category: info.category }, p));
   });
   return out;
 }
@@ -12440,6 +12441,19 @@ Fonte: ${source}`;
     if (d) return this.openLibraryDoc(d);
     if (f && f.disk) return this.openFileRaw(f, "tab");
     if (f) this.mainAreaLeaf().openFile(f, { active: true });
+  }
+  /**
+   * Per le estensioni: pubblicazione da jw.org in EPUB (finestra "Scarica da jw.org", va anche sul telefono), poi la
+   * biblioteca si rilegge. null = non c'è in EPUB; { skipped: true } = c'è già da un'altra fonte. Annullato: errore con cancelled.
+   * category: id di una categoria della biblioteca (es. "volantini") per una pubblicazione nuova; ignorato se non esiste.
+   */
+  async importFromJw(pub, issue = "", progress = () => {
+  }, category = "") {
+    const info = await epubInfo(this.settings.bibleLang || "I", pub, issue || "");
+    if (!info) return null;
+    const r = await importInfo(this, { ...info, category }, progress);
+    await this.refresh();
+    return r;
   }
   async openLibraryAt(state) {
     if (await this.shellGo("lib", (v) => v.navigate(state))) return;

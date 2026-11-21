@@ -1,7 +1,7 @@
 import { Plugin, MarkdownView, Notice, TFile, setIcon, debounce, Platform, normalizePath } from 'obsidian';
 import { BibleData } from './bibbia-dati.js';
-import { BibleDownloadModal } from './bibbia-epub.js';
-import { EpubImportModal, runNewIssues } from './biblioteca-epub.js';
+import { BibleDownloadModal, epubInfo } from './bibbia-epub.js';
+import { EpubImportModal, importInfo, runNewIssues } from './biblioteca-epub.js';
 import { GotoModal, NoteRefsModal, RefSuggest, SearchModal } from './bibbia-modali.js';
 import { BibleView } from './bibbia-vista.js';
 import { LIB_VIEW_TYPE, LibraryData } from './biblioteca-dati.js';
@@ -1074,6 +1074,19 @@ class LampadaPlugin extends Plugin {
     if (d) return this.openLibraryDoc(d);
     if (f && f.disk) return this.openFileRaw(f, 'tab');
     if (f) this.mainAreaLeaf().openFile(f, { active: true });
+  }
+
+  /**
+   * Per le estensioni: pubblicazione da jw.org in EPUB (finestra "Scarica da jw.org", va anche sul telefono), poi la
+   * biblioteca si rilegge. null = non c'è in EPUB; { skipped: true } = c'è già da un'altra fonte. Annullato: errore con cancelled.
+   * category: id di una categoria della biblioteca (es. "volantini") per una pubblicazione nuova; ignorato se non esiste.
+   */
+  async importFromJw(pub, issue = '', progress = () => {}, category = '') {
+    const info = await epubInfo(this.settings.bibleLang || 'I', pub, issue || '');
+    if (!info) return null;
+    const r = await importInfo(this, { ...info, category }, progress);
+    await this.refresh();
+    return r;
   }
 
   async openLibraryAt(state) {

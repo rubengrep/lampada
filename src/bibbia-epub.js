@@ -202,7 +202,7 @@ function epubInfo(lang, pub, issue = '') {
       if (r.status >= 400) throw Object.assign(new Error(`il sito ha risposto con l’errore ${r.status}.`), { status: r.status });
       const f = r.json?.files?.[lang]?.EPUB?.[0];
       if (!f?.file?.url) return null;
-      return { url: f.file.url, size: f.filesize || 0, title: decode(r.json.pubName || '').replace(/\u00a0/g, ' '), pub: r.json.pub || pub, issue: r.json.issue || issue };
+      return { url: f.file.url, size: f.filesize || 0, title: decode((r.json.pubName || '').replace(/<[^>]*>/g, '')).replace(/\u00a0/g, ' '), pub: r.json.pub || pub, issue: r.json.issue || issue };
     });
     // Errori e "non c'è" non restano in memoria: si può riprovare.
     p.then((v) => v || infoCache.delete(key), () => infoCache.delete(key));
