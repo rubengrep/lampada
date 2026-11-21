@@ -230,10 +230,11 @@ class BibleView extends ItemView {
     this.prevBtn = btn('chevron-left', 'Capitolo precedente (←)', () => this.stepChapter(-1), 'lmp-reader-only');
     this.nextBtn = btn('chevron-right', 'Capitolo successivo (→)', () => this.stepChapter(1), 'lmp-reader-only');
     btn('search', 'Cerca ovunque', () => this.plugin.openSearch(this));
-    this.parBtn = btn('columns-3', 'Racconti paralleli', () => this.toggleParallels(), 'lmp-reader-only');
-    btn('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
-    btn('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
-    btn('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open());
+    // Sul telefono questi stanno nel menu ⋯ (fillMenu): la barra resta leggibile, col titolo intero.
+    this.parBtn = btn('columns-3', 'Racconti paralleli', () => this.toggleParallels(), 'lmp-reader-only lmp-desktop-only');
+    btn('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open(), 'lmp-desktop-only');
+    btn('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open(), 'lmp-desktop-only');
+    btn('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open(), 'lmp-desktop-only');
     this.paneBtn = btn('panel-right', 'Mostra/nascondi pannello di studio', () => this.togglePane(), 'lmp-reader-only lmp-desktop-only');
     btn('more-vertical', 'Altre opzioni', (evt) => this.showMoreMenu(evt));
     this.updateToolbar();
@@ -270,6 +271,11 @@ class BibleView extends ItemView {
 
   fillMenu(menu) {
     const s = this.plugin.settings;
+    if (Platform.isPhone) {
+      menu.addItem((i) => i.setTitle('Segnalibri').setIcon('bookmark').onClick(() => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open()));
+      menu.addItem((i) => i.setTitle('Aperti di recente').setIcon('history').onClick(() => new PlacesModal(this.plugin, null, 'recent').open()));
+      menu.addSeparator();
+    }
     menu.addItem((i) => i.setTitle('Vai a riferimento…').setIcon('locate').onClick(() => this.openGoto()));
     menu.addItem((i) => i.setTitle('Libri della Bibbia').setIcon('library').onClick(() => this.navigate({ mode: 'books' })));
     if ((this.bible.bibles || []).length > 1) {
