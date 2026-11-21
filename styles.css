@@ -2122,3 +2122,5 @@ input[type='text'].lmp-epub-sym { font-size: 16px; flex: 1; min-width: 10em; }
 .lmp-jw-bar { -webkit-appearance: none; appearance: none; width: 100%; height: 10px; margin: 8px 0 4px; border: none; border-radius: 5px; overflow: hidden; background: var(--background-modifier-border); }
 .lmp-jw-bar::-webkit-progress-bar { background: var(--background-modifier-border); border-radius: 5px; }
 .lmp-jw-bar::-webkit-progress-value { background: var(--interactive-accent); border-radius: 5px; transition: width 0.2s; }
+.lmp-lib-ext .lmp-lib-cat-covers { align-items: center; justify-content: center; color: var(--text-muted); }
+.lmp-lib-ext .lmp-lib-cat-covers svg { width: 26px; height: 26px; }

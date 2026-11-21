@@ -7915,6 +7915,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     const pub = s.sym && this.lib.bySym.get(s.sym);
     if (s.mode === "doc" && s.doc) return this.lib.byDocId.get(s.doc)?.title || "Biblioteca";
     if (s.mode === "week") return "Adunanze della settimana";
+    if (s.mode === "ext") return s.title || "Biblioteca";
     if (s.mode === "cat") return (this.lib.categories().find((c) => c.id === s.cat) || {}).label || "Biblioteca";
     if (s.mode === "issue" && pub) return `${pub.title.replace(/\s*\(\d{4}\)$/, "")} \xB7 ${issueLabel(s.issue)}`;
     if (pub) return pub.title;
@@ -8053,7 +8054,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     }
     if (token !== this.renderToken) return;
     if (opts.push !== false && this.state.mode) this.pushHistory();
-    this.state = { mode: target.mode || "home", sym: target.sym, issue: target.issue, doc: target.doc, letter: target.letter, week: target.week, cat: target.cat };
+    this.state = { mode: target.mode || "home", sym: target.sym, issue: target.issue, doc: target.doc, letter: target.letter, week: target.week, cat: target.cat, url: target.url, title: target.title };
     this.paneMode = null;
     this.panePar = null;
     this.docWrap = null;
@@ -8087,6 +8088,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     else if (m === "issue") this.renderIssue();
     else if (m === "pub") this.renderPub();
     else if (m === "cat") this.renderCat();
+    else if (m === "ext") await this.renderExt(token);
     else this.renderHome();
     if (m !== "doc") this.pager.refresh();
     if (m === "pub" || m === "issue") this.fillLabels(token);
@@ -8127,6 +8129,17 @@ var LibraryView = class extends import_obsidian13.ItemView {
       t.createDiv({ cls: "lmp-lib-cat-meta", text: one ? one.issues ? `${one.issues.length} numeri` : `${one.docs.length} documenti` : `${cat.pubs.length} pubblicazioni` });
       (0, import_obsidian13.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
       row.addEventListener("click", () => this.navigate(one ? { mode: "pub", sym: one.symbol } : { mode: "cat", cat: cat.id }));
+    }
+    for (const p of this.plugin.providers) {
+      const b = typeof p.libraryBrowse === "function" && p.libraryBrowse();
+      if (!b) continue;
+      const row = cats.createEl("button", { cls: "lmp-lib-cat lmp-lib-ext" });
+      (0, import_obsidian13.setIcon)(row.createDiv("lmp-lib-cat-covers"), b.icon || "globe");
+      const t = row.createDiv("lmp-lib-cat-text");
+      t.createDiv({ cls: "lmp-lib-cat-title", text: b.text });
+      if (b.meta) t.createDiv({ cls: "lmp-lib-cat-meta", text: b.meta });
+      (0, import_obsidian13.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
+      row.addEventListener("click", () => this.navigate({ mode: "ext", url: b.url, title: b.text }));
     }
     const tools = sections.createDiv("lmp-lib-tools");
     tools.createEl("button", { cls: "lmp-small-btn", text: "Importa\u2026" }).addEventListener("click", () => new EpubImportModal(this.plugin).open());
@@ -8184,6 +8197,21 @@ var LibraryView = class extends import_obsidian13.ItemView {
     });
   }
   /** Una categoria del catalogo: le sue pubblicazioni con le copertine (e un filtro se sono tante). */
+  /** Pagina di un'estensione (hook libraryPage): la disegna lei; go() apre un'altra pagina con la cronologia della biblioteca. */
+  async renderExt(token) {
+    if (!this.state.url || !this.plugin.has("libraryPage")) return this.renderHome();
+    const wrap = this.mainEl.createDiv("lmp-lib-page");
+    const ctx = {
+      go: (url, title) => this.navigate({ mode: "ext", url, title }),
+      reload: () => this.navigate({ ...this.state }, { push: false }),
+      current: () => token === this.renderToken
+    };
+    try {
+      await this.plugin.ask("libraryPage", this.state.url, wrap, ctx);
+    } catch (e) {
+      wrap.createDiv({ cls: "lmp-empty", text: `Pagina non caricata: ${e.message || e}` });
+    }
+  }
   renderCat() {
     const cat = this.lib.categories().find((c) => c.id === this.state.cat);
     if (!cat) return this.renderHome();
