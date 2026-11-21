@@ -2,7 +2,7 @@ import { ItemView, Component, Notice, setIcon, debounce, Platform, Menu, normali
 import { GotoModal } from './bibbia-modali.js';
 import { renderBibleDownload } from './bibbia-epub.js';
 import { LIB_VIEW_TYPE } from './biblioteca-dati.js';
-import { CATEGORIES, HIGHLIGHTS, SECTION_ORDER, VIEW_TYPE, paneOrder } from './costanti.js';
+import { CATEGORIES, HIGHLIGHTS, SECTION_ORDER, VIEW_TYPE, paneOrder, paneLabel } from './costanti.js';
 import { fileMeta, fileSrc, readFile, renderMd } from './file.js';
 import { jwlTag } from './jwl-formati.js';
 import { SCRABB_TYPES } from './scrabb-dati.js';
@@ -1737,15 +1737,14 @@ class BibleView extends ItemView {
     const secs = [...content.querySelectorAll(':scope > .lmp-section')];
     this.paneEl.removeClass('lmp-tabbed');
     if (secs.length < 2) return;
-    const short = { Approfondimenti: 'Studio', 'Note in calce': 'Note in calce', 'Nelle mie note': 'Mie note' };
     const nav = createDiv('lmp-pane-nav');
     content.before(nav);
     this.paneEl.addClass('lmp-tabbed');
     const tabs = secs.map((det) => {
       const summary = det.querySelector('summary');
-      const title = summary.firstChild ? summary.firstChild.textContent.trim() : '';
+      const title = det.dataset.title || '';
       const chip = nav.createEl('button', { cls: 'lmp-pane-chip' });
-      chip.createSpan({ text: short[title] || title });
+      chip.createSpan({ text: paneLabel(title) });
       const n = chip.createSpan({ cls: 'lmp-pane-chip-n' });
       // il numero può arrivare dopo (Bibbia con riferimenti, conteggi): lo si copia quando compare
       const sync = () => n.setText(summary.querySelector('.lmp-badge')?.textContent || '');
@@ -2087,7 +2086,7 @@ class BibleView extends ItemView {
     else parent.appendChild(det);
     const collapsed = this.plugin.ui.collapsed || {};
     det.open = !collapsed[title];
-    const summary = det.createEl('summary', { text: title });
+    const summary = det.createEl('summary', { text: paneLabel(title) });
     if (badge) summary.createSpan({ cls: 'lmp-badge', text: badge });
     det.addEventListener('toggle', () => {
       this.plugin.ui.collapsed = { ...(this.plugin.ui.collapsed || {}), [title]: !det.open };

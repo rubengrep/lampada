@@ -804,13 +804,13 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
       b.disabled = true;
       try {
         await plugin.ask('downloadReferenceBible', (t) => b.isConnected && b.setText(t));
-        new Notice('Bibbia con riferimenti pronta');
+        new Notice('Rbi8 pronta');
         refresh();
       } catch (err) {
         b.disabled = false;
         if (err.cancelled) return b.setText('Scarica (26 MB, una volta sola)');
         b.setText('Riprova a scaricare');
-        new Notice(`Bibbia con riferimenti: ${err.message}`);
+        new Notice(`Rbi8: ${err.message}`);
       }
     });
     return;

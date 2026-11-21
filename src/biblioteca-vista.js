@@ -2,7 +2,7 @@ import { ItemView, Component, Modal, Notice, setIcon, debounce, Platform } from 
 import { LIB_VIEW_TYPE, findDocLabel, isoDate, issueLabel, mondayOf, weekLabel } from './biblioteca-dati.js';
 import { renderBibleDownload } from './bibbia-epub.js';
 import { EpubImportModal } from './biblioteca-epub.js';
-import { HIGHLIGHTS } from './costanti.js';
+import { HIGHLIGHTS, paneLabel } from './costanti.js';
 import { fileAt, fileMeta, fileSrc, linkDest, readFile, renderMd } from './file.js';
 import { SCRABB_TYPES } from './scrabb-dati.js';
 import { ScrabbNewModal, ScrabbPickModal, linkVerseToScrabb } from './scrabb-vista.js';
@@ -1476,7 +1476,7 @@ class LibraryView extends ItemView {
     // Note di JW Library
     const notes = (this.docNotes || []).filter((x) => x.pid === pid);
     if (notes.length) {
-      const sec = this.libSection(content, 'Note', notes.length);
+      const sec = this.libSection(content, paneLabel('Note'), notes.length);
       const list = sec.createDiv('lmp-notes');
       for (const x of notes) {
         await this.renderDocNoteCard(list, x);
@@ -1625,7 +1625,7 @@ class LibraryView extends ItemView {
     if (token !== this.libPaneToken) return;
     if (parsed && (parsed.blocks.length || noteFreeText(parsed.rest))) {
       shown++;
-      const sec = this.libSection(content, 'Note', parsed.blocks.length || 1);
+      const sec = this.libSection(content, paneLabel('Note'), parsed.blocks.length || 1);
       const list = sec.createDiv('lmp-notes');
       const card = (title, md, line) => {
         const c = list.createDiv('lmp-note-card lmp-doc-note-card');
@@ -1648,7 +1648,7 @@ class LibraryView extends ItemView {
       const s = details && details.sections.find((x) => x.title === title);
       if (!s) continue;
       shown++;
-      const sec = this.libSection(content, title === 'Approfondimenti' ? 'Studio' : title);
+      const sec = this.libSection(content, paneLabel(title));
       if (title !== 'Riferimenti') {
         await this.renderStudyMd(sec, s.body, src);
         if (token !== this.libPaneToken) return;
@@ -1672,7 +1672,7 @@ class LibraryView extends ItemView {
     // Bibbia con riferimenti (1987), come nella Bibbia: i riferimenti a margine portano un livello più in giù.
     if (book && ref.verse) {
       shown++;
-      const sec = this.libSection(content, 'Bibbia con riferimenti');
+      const sec = this.libSection(content, paneLabel('Bibbia con riferimenti'));
       renderRbi8Verse(this.plugin, sec, ref, {
         alive: () => token === this.libPaneToken && sec.isConnected,
         onRef: (link, to) => this.goDeep(to),

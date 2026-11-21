@@ -95,18 +95,22 @@ const FONT_CHOICES = [
 ];
 
 const SECTION_ORDER = ['Approfondimenti', 'Note in calce', 'Riferimenti', 'Media', 'Citato in'];
-// Sezioni del pannello del versetto (titolo → nome nelle impostazioni), nell'ordine predefinito; l'utente lo cambia (settings.paneOrder).
+// Sezioni del pannello del versetto (chiave → nome mostrato, uguale ovunque), nell'ordine predefinito; l'utente lo cambia
+// (settings.paneOrder). Le chiavi restano quelle vecchie: le usano paneOrder, ui.collapsed e ui.paneTabs.
 const PANE_SECTIONS = [
-  ['Note', 'Le tue note'],
-  ['Approfondimenti', 'Studio (approfondimenti)'],
+  ['Note', 'Note JW Library'],
+  ['Approfondimenti', 'Approfondimenti'],
   ['Note in calce', 'Note in calce'],
   ['Riferimenti', 'Riferimenti'],
-  ['Bibbia con riferimenti', 'Bibbia con riferimenti'],
+  ['Bibbia con riferimenti', 'Rbi8'],
   ['Nelle mie note', 'Nelle mie note'],
   ['Media', 'Media'],
   ['Citato in', 'Citato in'],
   ['SCRABB', 'SCRABB'],
 ];
+const PANE_LABELS = new Map(PANE_SECTIONS);
+/** Nome mostrato di una sezione del pannello (chiave di PANE_SECTIONS, o il titolo così com'è). */
+const paneLabel = (title) => PANE_LABELS.get(title) || title;
 /** Ordine delle sezioni del pannello: quello scelto (settings.paneOrder), le sezioni che mancano in fondo. */
 function paneOrder(settings) {
   const all = PANE_SECTIONS.map(([t]) => t);
@@ -114,4 +118,4 @@ function paneOrder(settings) {
   return [...saved, ...all.filter((t) => !saved.includes(t))];
 }
 
-export { VIEW_TYPE, INDEX_MIRROR, DATA_DIR, DEFAULT_SETTINGS, BOOK_ABBR, EXTRA_ALIASES, CATEGORIES, HIGHLIGHTS, FONT_CHOICES, SECTION_ORDER, PANE_SECTIONS, paneOrder };
+export { VIEW_TYPE, INDEX_MIRROR, DATA_DIR, DEFAULT_SETTINGS, BOOK_ABBR, EXTRA_ALIASES, CATEGORIES, HIGHLIGHTS, FONT_CHOICES, SECTION_ORDER, PANE_SECTIONS, paneOrder, paneLabel };

@@ -234,16 +234,18 @@ var FONT_CHOICES = [
 ];
 var SECTION_ORDER = ["Approfondimenti", "Note in calce", "Riferimenti", "Media", "Citato in"];
 var PANE_SECTIONS = [
-  ["Note", "Le tue note"],
-  ["Approfondimenti", "Studio (approfondimenti)"],
+  ["Note", "Note JW Library"],
+  ["Approfondimenti", "Approfondimenti"],
   ["Note in calce", "Note in calce"],
   ["Riferimenti", "Riferimenti"],
-  ["Bibbia con riferimenti", "Bibbia con riferimenti"],
+  ["Bibbia con riferimenti", "Rbi8"],
   ["Nelle mie note", "Nelle mie note"],
   ["Media", "Media"],
   ["Citato in", "Citato in"],
   ["SCRABB", "SCRABB"]
 ];
+var PANE_LABELS = new Map(PANE_SECTIONS);
+var paneLabel = (title) => PANE_LABELS.get(title) || title;
 function paneOrder(settings) {
   const all = PANE_SECTIONS.map(([t]) => t);
   const saved = (settings && settings.paneOrder || []).filter((t) => all.includes(t));
@@ -5247,13 +5249,13 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
       b.disabled = true;
       try {
         await plugin.ask("downloadReferenceBible", (t) => b.isConnected && b.setText(t));
-        new import_obsidian10.Notice("Bibbia con riferimenti pronta");
+        new import_obsidian10.Notice("Rbi8 pronta");
         refresh();
       } catch (err) {
         b.disabled = false;
         if (err.cancelled) return b.setText("Scarica (26 MB, una volta sola)");
         b.setText("Riprova a scaricare");
-        new import_obsidian10.Notice(`Bibbia con riferimenti: ${err.message}`);
+        new import_obsidian10.Notice(`Rbi8: ${err.message}`);
       }
     });
     return;
@@ -7136,15 +7138,14 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     const secs = [...content.querySelectorAll(":scope > .lmp-section")];
     this.paneEl.removeClass("lmp-tabbed");
     if (secs.length < 2) return;
-    const short = { Approfondimenti: "Studio", "Note in calce": "Note in calce", "Nelle mie note": "Mie note" };
     const nav = createDiv("lmp-pane-nav");
     content.before(nav);
     this.paneEl.addClass("lmp-tabbed");
     const tabs = secs.map((det) => {
       const summary = det.querySelector("summary");
-      const title = summary.firstChild ? summary.firstChild.textContent.trim() : "";
+      const title = det.dataset.title || "";
       const chip = nav.createEl("button", { cls: "lmp-pane-chip" });
-      chip.createSpan({ text: short[title] || title });
+      chip.createSpan({ text: paneLabel(title) });
       const n = chip.createSpan({ cls: "lmp-pane-chip-n" });
       const sync = () => n.setText(summary.querySelector(".lmp-badge")?.textContent || "");
       sync();
@@ -7466,7 +7467,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     else parent.appendChild(det);
     const collapsed = this.plugin.ui.collapsed || {};
     det.open = !collapsed[title];
-    const summary = det.createEl("summary", { text: title });
+    const summary = det.createEl("summary", { text: paneLabel(title) });
     if (badge) summary.createSpan({ cls: "lmp-badge", text: badge });
     det.addEventListener("toggle", () => {
       this.plugin.ui.collapsed = { ...this.plugin.ui.collapsed || {}, [title]: !det.open };
@@ -9344,7 +9345,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     if (this.paneAi && this.paneAi.doc === this.state.doc && this.paneAi.pid === pid) content.prepend(this.paneAi.box);
     const notes = (this.docNotes || []).filter((x) => x.pid === pid);
     if (notes.length) {
-      const sec = this.libSection(content, "Note", notes.length);
+      const sec = this.libSection(content, paneLabel("Note"), notes.length);
       const list = sec.createDiv("lmp-notes");
       for (const x of notes) {
         await this.renderDocNoteCard(list, x);
@@ -9483,7 +9484,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     if (token !== this.libPaneToken) return;
     if (parsed && (parsed.blocks.length || noteFreeText(parsed.rest))) {
       shown++;
-      const sec = this.libSection(content, "Note", parsed.blocks.length || 1);
+      const sec = this.libSection(content, paneLabel("Note"), parsed.blocks.length || 1);
       const list = sec.createDiv("lmp-notes");
       const card = (title, md, line) => {
         const c = list.createDiv("lmp-note-card lmp-doc-note-card");
@@ -9505,7 +9506,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
       const s = details && details.sections.find((x) => x.title === title);
       if (!s) continue;
       shown++;
-      const sec = this.libSection(content, title === "Approfondimenti" ? "Studio" : title);
+      const sec = this.libSection(content, paneLabel(title));
       if (title !== "Riferimenti") {
         await this.renderStudyMd(sec, s.body, src);
         if (token !== this.libPaneToken) return;
@@ -9525,7 +9526,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     }
     if (book && ref.verse) {
       shown++;
-      const sec = this.libSection(content, "Bibbia con riferimenti");
+      const sec = this.libSection(content, paneLabel("Bibbia con riferimenti"));
       renderRbi8Verse(this.plugin, sec, ref, {
         alive: () => token === this.libPaneToken && sec.isConnected,
         onRef: (link, to) => this.goDeep(to),
