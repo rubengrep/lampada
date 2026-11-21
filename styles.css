@@ -1205,6 +1205,8 @@
 .lmp-lib-cover-big { width: 96px; flex: 0 0 auto; }
 .lmp-lib-head h2 { margin: 0 0 4px; line-height: 1.2; }
 .lmp-lib-head-meta { color: var(--text-muted); font-size: 13px; }
+.lmp-lib-del { margin-left: auto; align-self: flex-start; color: var(--text-faint); }
+.lmp-lib-del:hover { color: var(--text-error); }
 .lmp-lib-doclist { display: flex; flex-direction: column; }
 .lmp-lib-docrow { padding: 10px 6px; border-bottom: 1px solid var(--background-modifier-border); cursor: pointer; }
 .lmp-lib-docrow:hover { background: var(--background-modifier-hover); }

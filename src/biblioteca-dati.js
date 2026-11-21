@@ -1,4 +1,4 @@
-import { DATA_DIR } from './costanti.js';
+import { DATA_DIR, INDEX_MIRROR } from './costanti.js';
 import { fileAt, folderFiles, readFile, scanHidden, subfolders } from './file.js';
 import { stripFrontmatter, verseCode } from './testo.js';
 
@@ -196,6 +196,64 @@ class LibraryData {
 
   get coversFolder() {
     return `${DATA_DIR}/covers`;
+  }
+
+  /**
+   * Toglie dal vault una pubblicazione, o un solo numero (issue): note, immagini, voci degli indici e di
+   * index/_sources.json (così si può scaricare di nuovo). La Bibbia in uso non si toglie. Poi ricarica tutto.
+   */
+  async remove(symbol, issue = '') {
+    const pub = this.bySym.get(symbol);
+    if (!pub) return;
+    if (symbol === this.bible.symbol) throw new Error('È la Bibbia che stai usando: scegline un’altra prima di toglierla.');
+    const a = this.app.vault.adapter;
+    const prefix = this.bible.prefix;
+    const docs = issue ? pub.issues?.find((i) => i.key === issue)?.docs || [] : pub.docs;
+    const ids = new Set(docs.map((d) => d.id));
+    const files = new Set(docs.map((d) => d.rel));
+    // Cartelle tutte di questa pubblicazione: un nome semplice, non usato da altre né dalla Bibbia in uso
+    const own = (f) => f && !/[\\/]|^\.|^_/.test(f) && f !== INDEX_MIRROR && f !== this.bible.folder && !this.pubs.some((q) => q !== pub && q.folder === f);
+    for (const f of await this.bible.indexFiles()) {
+      let idx;
+      try {
+        idx = JSON.parse(await a.read(f));
+      } catch (e) {
+        continue;
+      }
+      if (!idx?.docs || (idx.symbol || f.split('/').pop().replace(/\.json$/, '')) !== symbol) continue;
+      for (const id of ids) delete idx.docs[id];
+      if (issue && Object.keys(idx.docs).length) {
+        await a.write(f, JSON.stringify(idx));
+        continue;
+      }
+      for (const d of Object.values(idx.docs)) if (d?.rel) files.add(d.rel);
+      for (const b of Object.values(idx.books || {})) for (const r of [b.rel, b.versesFile]) if (r) files.add(r);
+      for (const v of Object.values(idx.verses || {})) if (v?.chapter) files.add(v.chapter);
+      const extra = idx.files || [];
+      for (const r of Array.isArray(extra) ? extra : Object.values(extra).flat()) if (typeof r === 'string') files.add(r);
+      await a.remove(f).catch(() => null);
+    }
+    const media = [...new Set([symbol, pub.folder])].map((m) => `${prefix}_media/${m}`);
+    if (!issue) {
+      for (const dir of [...new Set([pub.folder, symbol])].filter(own)) if (await a.exists(prefix + dir)) await a.rmdir(prefix + dir, true);
+      for (const dir of media) if (await a.exists(dir)) await a.rmdir(dir, true);
+      const cover = this.symCovers.get(symbol);
+      if (cover) await a.remove(cover.path).catch(() => null);
+    } else {
+      for (const dir of media) {
+        const list = (await a.exists(dir)) ? (await a.list(dir)).files : [];
+        for (const f of list) if (ids.has(f.split('/').pop().split('_')[0])) await a.remove(f).catch(() => null);
+      }
+    }
+    for (const r of files) if (await a.exists(prefix + r)) await a.remove(prefix + r).catch(() => null);
+    const sp = `${prefix}${INDEX_MIRROR}/_sources.json`;
+    if (await a.exists(sp)) {
+      const src = JSON.parse(await a.read(sp));
+      const low = symbol.toLowerCase();
+      for (const [k, r] of Object.entries(src)) if (String(r?.pub || '').toLowerCase() === low && (!issue || (r.issue && issue.startsWith(String(r.issue))))) delete src[k];
+      await a.write(sp, JSON.stringify(src, null, 2));
+    }
+    await this.plugin.refresh();
   }
 
   pubCover(p) {

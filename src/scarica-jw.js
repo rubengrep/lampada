@@ -6,8 +6,8 @@ const TERMS_URL = 'https://www.jw.org/it/condizioni-uso/';
 const CHUNK = 1e6;
 const mb = (n) => `${(n / 1e6).toFixed(1).replace('.', ',')} MB`;
 
-/** Sul telefono, sopra 40 MB, non si scarica tutto: si leggono solo le parti che servono (richieste Range). */
-const partial = (info) => Platform.isMobile && info.size > 40e6;
+/** Sul telefono, sopra 40 MB, non si scarica tutto: si leggono solo le parti che servono (richieste Range). Con `full` sì. */
+const partial = (info) => !info.full && Platform.isMobile && info.size > 40e6;
 /** Nome da mostrare: il titolo di jw.org può avere tag (<em>…</em>). */
 const nameOf = (i) => String(i.label || i.title || i.pub || '').replace(/<[^>]*>/g, '');
 
@@ -94,11 +94,13 @@ class JwDownloadModal extends Modal {
 
 /**
  * Chiede conferma e scarica da jw.org i file (infos: [{ url, size, title, pub }]); per ognuno chiama
- * each(info, ArrayBuffer | null, say) — null sul telefono sopra 40 MB: lì si leggono solo le parti con le richieste Range.
+ * each(info, ArrayBuffer | null, say) — null sul telefono sopra 40 MB: lì si leggono solo le parti con le richieste Range;
+ * con `full` (chi ha bisogno del file intero) arriva sempre il file.
  * Se l'utente annulla, l'errore ha `cancelled: true`. Con `auto` parte subito (già confermato, es. i file dopo il primo
  * di uno stesso lavoro): la finestra mostra lo stesso indirizzo e barra, poi si chiude.
  */
-function jwDownload(app, infos, each, { auto = false } = {}) {
+function jwDownload(app, infos, each, { auto = false, full = false } = {}) {
+  if (full) infos = infos.map((i) => ({ ...i, full }));
   return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }, auto).open());
 }
 

@@ -1,4 +1,4 @@
-import { ItemView, Component, Notice, setIcon, debounce, Platform } from 'obsidian';
+import { ItemView, Component, Modal, Notice, setIcon, debounce, Platform } from 'obsidian';
 import { LIB_VIEW_TYPE, findDocLabel, isoDate, issueLabel, mondayOf, weekLabel } from './biblioteca-dati.js';
 import { renderBibleDownload } from './bibbia-epub.js';
 import { EpubImportModal } from './biblioteca-epub.js';
@@ -641,7 +641,7 @@ class LibraryView extends ItemView {
 
   /* ---------------- pubblicazione ---------------- */
 
-  pubHeader(wrap, p, docs, subtitle) {
+  pubHeader(wrap, p, docs, subtitle, issue = '') {
     const head = wrap.createDiv({ cls: `lmp-lib-head cat-lib-${p.category}` });
     const cover = this.lib.coverOf(docs) || this.lib.symCovers.get(p.symbol);
     const art = head.createDiv('lmp-lib-cover lmp-lib-cover-big');
@@ -650,6 +650,13 @@ class LibraryView extends ItemView {
     const txt = head.createDiv();
     txt.createEl('h2', { text: p.title });
     txt.createDiv({ cls: 'lmp-lib-head-meta', text: subtitle });
+    const del = head.createEl('button', { cls: 'clickable-icon lmp-lib-del', attr: { 'aria-label': issue ? 'Togli questo numero' : 'Togli la pubblicazione' } });
+    setIcon(del, 'trash-2');
+    del.addEventListener('click', () => new RemovePubModal(this.app, issue ? `${p.title} · ${issueLabel(issue)}` : p.title, async () => {
+      await this.lib.remove(p.symbol, issue);
+      new Notice(`Tolto: ${issue ? issueLabel(issue) : p.title}`);
+      this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: 'pub', sym: p.symbol } : { mode: 'home' }, { push: false });
+    }).open());
   }
 
   renderPub() {
@@ -710,7 +717,7 @@ class LibraryView extends ItemView {
     const iss = p && p.issues && p.issues.find((i) => i.key === this.state.issue);
     if (!iss) return this.renderPub();
     const wrap = this.mainEl.createDiv('lmp-lib-page');
-    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} · ${iss.docs.length} articoli`);
+    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} · ${iss.docs.length} articoli`, iss.key);
     const list = wrap.createDiv('lmp-lib-doclist');
     for (const d of iss.docs) this.docRow(list, d);
   }
@@ -1979,3 +1986,36 @@ function renderWeekCard(plugin, parent, go) {
 }
 
 export { LibraryView, renderWeekCard };
+
+/** Conferma prima di togliere una pubblicazione (o un numero) dal vault. */
+class RemovePubModal extends Modal {
+  constructor(app, name, run) {
+    super(app);
+    Object.assign(this, { name, run });
+  }
+
+  onOpen() {
+    this.titleEl.setText('Togliere dalla biblioteca?');
+    const el = this.contentEl;
+    el.createEl('p', { text: `«${this.name}»: note e immagini vengono cancellate dal vault. Le tue note personali e le evidenziazioni restano. Potrai scaricarla di nuovo.` });
+    const status = el.createDiv({ cls: 'lmp-bible-dl-status', attr: { 'aria-live': 'polite' } });
+    const row = el.createDiv('modal-button-container');
+    row.createEl('button', { text: 'Annulla' }).addEventListener('click', () => this.close());
+    const ok = row.createEl('button', { cls: 'mod-warning', text: 'Togli' });
+    ok.addEventListener('click', async () => {
+      ok.disabled = true;
+      status.setText('Cancello…');
+      try {
+        await this.run();
+        this.close();
+      } catch (e) {
+        ok.disabled = false;
+        status.setText(e.message || String(e));
+      }
+    });
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}

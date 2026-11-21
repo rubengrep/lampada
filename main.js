@@ -814,6 +814,62 @@ var LibraryData = class {
   get coversFolder() {
     return `${DATA_DIR}/covers`;
   }
+  /**
+   * Toglie dal vault una pubblicazione, o un solo numero (issue): note, immagini, voci degli indici e di
+   * index/_sources.json (così si può scaricare di nuovo). La Bibbia in uso non si toglie. Poi ricarica tutto.
+   */
+  async remove(symbol, issue = "") {
+    const pub = this.bySym.get(symbol);
+    if (!pub) return;
+    if (symbol === this.bible.symbol) throw new Error("\xC8 la Bibbia che stai usando: scegline un\u2019altra prima di toglierla.");
+    const a = this.app.vault.adapter;
+    const prefix = this.bible.prefix;
+    const docs = issue ? pub.issues?.find((i) => i.key === issue)?.docs || [] : pub.docs;
+    const ids = new Set(docs.map((d) => d.id));
+    const files = new Set(docs.map((d) => d.rel));
+    const own = (f) => f && !/[\\/]|^\.|^_/.test(f) && f !== INDEX_MIRROR && f !== this.bible.folder && !this.pubs.some((q2) => q2 !== pub && q2.folder === f);
+    for (const f of await this.bible.indexFiles()) {
+      let idx;
+      try {
+        idx = JSON.parse(await a.read(f));
+      } catch (e) {
+        continue;
+      }
+      if (!idx?.docs || (idx.symbol || f.split("/").pop().replace(/\.json$/, "")) !== symbol) continue;
+      for (const id of ids) delete idx.docs[id];
+      if (issue && Object.keys(idx.docs).length) {
+        await a.write(f, JSON.stringify(idx));
+        continue;
+      }
+      for (const d of Object.values(idx.docs)) if (d?.rel) files.add(d.rel);
+      for (const b of Object.values(idx.books || {})) for (const r of [b.rel, b.versesFile]) if (r) files.add(r);
+      for (const v of Object.values(idx.verses || {})) if (v?.chapter) files.add(v.chapter);
+      const extra = idx.files || [];
+      for (const r of Array.isArray(extra) ? extra : Object.values(extra).flat()) if (typeof r === "string") files.add(r);
+      await a.remove(f).catch(() => null);
+    }
+    const media = [.../* @__PURE__ */ new Set([symbol, pub.folder])].map((m) => `${prefix}_media/${m}`);
+    if (!issue) {
+      for (const dir of [.../* @__PURE__ */ new Set([pub.folder, symbol])].filter(own)) if (await a.exists(prefix + dir)) await a.rmdir(prefix + dir, true);
+      for (const dir of media) if (await a.exists(dir)) await a.rmdir(dir, true);
+      const cover = this.symCovers.get(symbol);
+      if (cover) await a.remove(cover.path).catch(() => null);
+    } else {
+      for (const dir of media) {
+        const list = await a.exists(dir) ? (await a.list(dir)).files : [];
+        for (const f of list) if (ids.has(f.split("/").pop().split("_")[0])) await a.remove(f).catch(() => null);
+      }
+    }
+    for (const r of files) if (await a.exists(prefix + r)) await a.remove(prefix + r).catch(() => null);
+    const sp = `${prefix}${INDEX_MIRROR}/_sources.json`;
+    if (await a.exists(sp)) {
+      const src = JSON.parse(await a.read(sp));
+      const low = symbol.toLowerCase();
+      for (const [k, r] of Object.entries(src)) if (String(r?.pub || "").toLowerCase() === low && (!issue || r.issue && issue.startsWith(String(r.issue)))) delete src[k];
+      await a.write(sp, JSON.stringify(src, null, 2));
+    }
+    await this.plugin.refresh();
+  }
   pubCover(p) {
     return this.symCovers.get(p.symbol) || this.coverOf(p.issues ? p.issues[0].docs : p.docs);
   }
@@ -1454,7 +1510,7 @@ var import_obsidian3 = require("obsidian");
 var TERMS_URL = "https://www.jw.org/it/condizioni-uso/";
 var CHUNK = 1e6;
 var mb = (n) => `${(n / 1e6).toFixed(1).replace(".", ",")} MB`;
-var partial = (info) => import_obsidian3.Platform.isMobile && info.size > 4e7;
+var partial = (info) => !info.full && import_obsidian3.Platform.isMobile && info.size > 4e7;
 var nameOf = (i) => String(i.label || i.title || i.pub || "").replace(/<[^>]*>/g, "");
 async function fetchWithProgress(url, size, onBytes) {
   if (!size) return (await (0, import_obsidian3.requestUrl)({ url })).arrayBuffer;
@@ -1530,7 +1586,8 @@ var JwDownloadModal = class extends import_obsidian3.Modal {
     if (!this.busy && !this.finished) this.done.reject(Object.assign(new Error("Annullato."), { cancelled: true }));
   }
 };
-function jwDownload(app, infos, each, { auto = false } = {}) {
+function jwDownload(app, infos, each, { auto = false, full = false } = {}) {
+  if (full) infos = infos.map((i) => ({ ...i, full }));
   return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }, auto).open());
 }
 
@@ -8464,7 +8521,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     }
   }
   /* ---------------- pubblicazione ---------------- */
-  pubHeader(wrap, p, docs, subtitle) {
+  pubHeader(wrap, p, docs, subtitle, issue = "") {
     const head = wrap.createDiv({ cls: `lmp-lib-head cat-lib-${p.category}` });
     const cover = this.lib.coverOf(docs) || this.lib.symCovers.get(p.symbol);
     const art = head.createDiv("lmp-lib-cover lmp-lib-cover-big");
@@ -8473,6 +8530,13 @@ var LibraryView = class extends import_obsidian13.ItemView {
     const txt = head.createDiv();
     txt.createEl("h2", { text: p.title });
     txt.createDiv({ cls: "lmp-lib-head-meta", text: subtitle });
+    const del = head.createEl("button", { cls: "clickable-icon lmp-lib-del", attr: { "aria-label": issue ? "Togli questo numero" : "Togli la pubblicazione" } });
+    (0, import_obsidian13.setIcon)(del, "trash-2");
+    del.addEventListener("click", () => new RemovePubModal(this.app, issue ? `${p.title} \xB7 ${issueLabel(issue)}` : p.title, async () => {
+      await this.lib.remove(p.symbol, issue);
+      new import_obsidian13.Notice(`Tolto: ${issue ? issueLabel(issue) : p.title}`);
+      this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: "pub", sym: p.symbol } : { mode: "home" }, { push: false });
+    }).open());
   }
   renderPub() {
     const p = this.lib.bySym.get(this.state.sym);
@@ -8530,7 +8594,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     const iss = p && p.issues && p.issues.find((i) => i.key === this.state.issue);
     if (!iss) return this.renderPub();
     const wrap = this.mainEl.createDiv("lmp-lib-page");
-    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} \xB7 ${iss.docs.length} articoli`);
+    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} \xB7 ${iss.docs.length} articoli`, iss.key);
     const list = wrap.createDiv("lmp-lib-doclist");
     for (const d of iss.docs) this.docRow(list, d);
   }
@@ -9700,6 +9764,35 @@ function renderWeekCard(plugin, parent, go) {
     }
   });
 }
+var RemovePubModal = class extends import_obsidian13.Modal {
+  constructor(app, name, run) {
+    super(app);
+    Object.assign(this, { name, run });
+  }
+  onOpen() {
+    this.titleEl.setText("Togliere dalla biblioteca?");
+    const el = this.contentEl;
+    el.createEl("p", { text: `\xAB${this.name}\xBB: note e immagini vengono cancellate dal vault. Le tue note personali e le evidenziazioni restano. Potrai scaricarla di nuovo.` });
+    const status = el.createDiv({ cls: "lmp-bible-dl-status", attr: { "aria-live": "polite" } });
+    const row = el.createDiv("modal-button-container");
+    row.createEl("button", { text: "Annulla" }).addEventListener("click", () => this.close());
+    const ok = row.createEl("button", { cls: "mod-warning", text: "Togli" });
+    ok.addEventListener("click", async () => {
+      ok.disabled = true;
+      status.setText("Cancello\u2026");
+      try {
+        await this.run();
+        this.close();
+      } catch (e) {
+        ok.disabled = false;
+        status.setText(e.message || String(e));
+      }
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
 
 // src/chat-biblioteca.js
 var import_obsidian14 = require("obsidian");
@@ -13134,4 +13227,4 @@ ${md}
 
 // src/main.js
 var main_default = LampadaPlugin;
-var _test = { epubExtras, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
+var _test = { epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
