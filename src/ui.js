@@ -1,0 +1,181 @@
+import { Menu, Modal, Scope, setIcon, Platform } from 'obsidian';
+import { CITE_CATEGORIES, CITE_PERIODICALS } from './biblioteca-dati.js';
+import { renderMd } from './file.js';
+
+/**
+ * Telefono e tablet: scorrendo in giù le barre si chiudono, in su (o in cima) tornano.
+ * Si collega alle viste Bibbia, Biblioteca e SCRABB; scroller è l'elemento che scorre.
+ */
+function autoHideBars(view, scroller) {
+  if (!Platform.isMobile) return;
+  view.registerDomEvent(scroller, 'scroll', () => {
+    if (view.plugin.settings.autoHideBars === false) return setBarsHidden(view, false);
+    const top = scroller.scrollTop;
+    const delta = top - (view.lastScrollTop || 0);
+    view.lastScrollTop = top;
+    // In fondo iOS "rimbalza": quel piccolo ritorno in su non deve riaprire le barre.
+    if (Math.abs(delta) < 6 || top + scroller.clientHeight >= scroller.scrollHeight - 2) return;
+    setBarsHidden(view, delta > 0 && top > 80);
+  }, { passive: true });
+  view.registerEvent(view.app.workspace.on('active-leaf-change', (leaf) => leaf !== view.leaf && setBarsHidden(view, false)));
+}
+
+function setBarsHidden(view, hidden) {
+  if (hidden === !!view.barsHidden) return;
+  view.barsHidden = hidden;
+  view.containerEl.toggleClass('lmp-bars-hidden', hidden);
+  const tabs = view.containerEl.closest('.workspace-tabs');
+  if (tabs) tabs.toggleClass('lmp-bars-hidden', hidden);
+  // anche la barra in basso di Obsidian sul telefono
+  document.body.toggleClass('lmp-immersive', hidden);
+}
+
+/** Chiave di un segnalibro: versetto della Bibbia o paragrafo di una pubblicazione. */
+function bookmarkKey(b) {
+  return b.doc ? `d:${b.doc}:${b.par || 0}` : `${b.book}:${b.chapter}:${b.verse}`;
+}
+
+/** Le aree del plugin, nello stesso ordine ovunque (con la vista unica sono le sezioni del guscio). */
+const AREAS = [
+  ['home', 'sun', 'Oggi', (p) => p.openToday()],
+  ['bible', 'book-open', 'Bibbia', (p) => p.openReader()],
+  ['lib', 'library-big', 'Biblioteca', (p) => p.openLibrary()],
+  ['scrabb', 'waypoints', 'SCRABB', (p) => p.openScrabb()],
+  ['chat', 'messages-square', 'Chiedi', (p) => p.openLibraryChat()],
+];
+
+/**
+ * Tasti di una vista ([tasto, funzione]…). Da sola ha il suo Scope; dentro il guscio è il guscio a passarglieli
+ * quando la sezione si vede.
+ */
+function viewKeys(view, keys) {
+  view.keyHandlers = keys;
+  if (view.inShell) return;
+  view.scope = new Scope(view.app.scope);
+  for (const [k, fn] of keys) view.scope.register([], k, fn);
+}
+
+/** Pulsante della modalità app (nasconde l'interfaccia di Obsidian intorno al guscio). */
+function addAppToggle(parent, plugin, cls = 'lmp-tb-btn clickable-icon') {
+  const b = parent.createEl('button', { cls: `${cls} lmp-app-toggle`, attr: { 'aria-label': 'Modalità app (nasconde Obsidian)' } });
+  setIcon(b, plugin.ui.appMode ? 'minimize-2' : 'maximize-2');
+  b.toggleClass('is-active', !!plugin.ui.appMode);
+  b.addEventListener('click', () => plugin.toggleAppMode());
+  return b;
+}
+
+/** Selettore "Bibbia | Biblioteca | SCRABB" nelle barre: un'altra voce apre quella vista, quella attiva torna alla sua home. */
+function addViewSwitch(tb, plugin, current, goHome, shell) {
+  const sw = tb.createDiv({ cls: 'lmp-switch', attr: { role: 'group', 'aria-label': 'Bibbia, Biblioteca o SCRABB' } });
+  for (const [id, icon, text, open] of AREAS) {
+    const on = id === current;
+    const b = sw.createEl('button', { cls: `lmp-switch-btn${on ? ' is-active' : ''}`, attr: { 'aria-pressed': String(on), 'aria-label': text } });
+    setIcon(b.createSpan('lmp-switch-icon'), icon);
+    b.createSpan({ cls: 'lmp-switch-label', text });
+    b.addEventListener('click', on ? goHome : () => open(plugin));
+  }
+  // Con il guscio stretto lo stesso pulsante è nelle linguette in basso (il CSS nasconde questo).
+  if (shell) addAppToggle(tb, plugin);
+}
+
+/** Sul telefono (barra nascosta): una sola azione "Vai a…" con lo stesso elenco del selettore. */
+function addGoToAction(view, current, goHome) {
+  view.addAction('compass', 'Vai a…', (evt) => {
+    const menu = new Menu();
+    for (const [id, icon, text, open] of AREAS) {
+      menu.addItem((it) => it.setTitle(id === current ? `${text} · inizio` : text).setIcon(icon).setChecked(id === current)
+        .onClick(id === current ? goHome : () => open(view.plugin)));
+    }
+    menu.showAtMouseEvent(evt);
+  });
+}
+
+/** Finestra "Segnalibri e recenti": segnalibro dove sei, poi gli elenchi. */
+class PlacesModal extends Modal {
+  constructor(plugin, here) {
+    super(plugin.app);
+    this.plugin = plugin;
+    this.here = here;
+  }
+
+  onOpen() {
+    this.titleEl.setText('Segnalibri e recenti');
+    if (this.here) {
+      const has = this.plugin.findBookmark(this.here.place);
+      const b = this.contentEl.createEl('button', { cls: has ? 'lmp-place-here' : 'lmp-place-here mod-cta', text: `${has ? 'Rimuovi il segnalibro' : 'Aggiungi segnalibro'}: ${this.here.label}` });
+      setIcon(b.createSpan({ cls: 'lmp-place-here-icon', prepend: true }), has ? 'bookmark-minus' : 'bookmark-plus');
+      b.addEventListener('click', () => {
+        this.plugin.toggleBookmark(this.here.place);
+        this.close();
+      });
+    }
+    this.plugin.renderPlaces(this.contentEl.createDiv(), () => this.close());
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
+/** "Citato in": le pubblicazioni che citano il versetto, raggruppate per tipo (Bibbia e biblioteca). */
+async function renderCitedIn(plugin, el, md, sourcePath, comp) {
+  const app = plugin.app;
+  const pubs = await plugin.bible.docPublications();
+  const cats = plugin.bible.docCats || new Map();
+  const dates = plugin.bible.docDates || new Map();
+  const groups = new Map();
+  for (const line of md.split('\n')) {
+    if (!/^\s*-\s/.test(line)) continue;
+    const m = /\[\[([^\]|#]+)/.exec(line);
+    const file = m ? m[1].trim() : '';
+    const cat = cats.get(file) || 'altre';
+    if (!groups.has(cat)) groups.set(cat, []);
+    const dt = dates.get(file);
+    groups.get(cat).push({ line, file, pub: dt ? dt.label : pubs.get(file) || '', key: dt ? dt.key : '' });
+  }
+  if (!groups.size) {
+    await renderMd(app, md, el.createDiv('lmp-md'), sourcePath, comp);
+    return;
+  }
+  const order = CITE_CATEGORIES.map(([id]) => id);
+  const keys = [...groups.keys()].sort((a, b) => (order.indexOf(a) + 1 || 99) - (order.indexOf(b) + 1 || 99));
+  const labels = new Map(CITE_CATEGORIES);
+  const open = plugin.ui.citeOpen || {};
+  const SHOW = 10;
+  for (const cat of keys) {
+    const items = groups.get(cat);
+    if (CITE_PERIODICALS.has(cat)) items.sort((a, b) => b.key.localeCompare(a.key) || b.file.localeCompare(a.file));
+    const det = el.createEl('details', { cls: 'lmp-cite-cat' });
+    det.open = keys.length === 1 || !!open[cat];
+    const sum = det.createEl('summary');
+    sum.createSpan({ cls: 'lmp-cite-cat-name', text: labels.get(cat) || cat });
+    sum.createSpan({ cls: 'lmp-cite-cat-n', text: String(items.length) });
+    const body = det.createDiv('lmp-md lmp-cite-pub-list');
+    let rendered = false;
+    const render = async () => {
+      if (rendered) return;
+      rendered = true;
+      await renderMd(app, items.map((x) => x.line).join('\n'), body, sourcePath, comp);
+      const lis = [...body.querySelectorAll(':scope > ul > li')];
+      // Da quale pubblicazione viene (se nel gruppo ce n'è più d'una): "Torre di Guardia · 1° marzo 2010", "Gesù: la via…"
+      const many = new Set(items.map((x) => x.pub)).size > 1;
+      if (many) lis.forEach((li, i) => items[i] && items[i].pub && li.prepend(createDiv({ cls: 'lmp-cite-src', text: items[i].pub })));
+      if (lis.length > SHOW + 3) {
+        lis.slice(SHOW).forEach((li) => li.hide());
+        const b = body.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: `Mostra tutti (${lis.length})` });
+        b.addEventListener('click', () => {
+          lis.forEach((li) => li.show());
+          b.remove();
+        });
+      }
+    };
+    if (det.open) await render();
+    det.addEventListener('toggle', () => {
+      if (det.open) render();
+      plugin.ui.citeOpen = { ...(plugin.ui.citeOpen || {}), [cat]: det.open };
+      plugin.requestSave();
+    });
+  }
+}
+
+export { AREAS, addAppToggle, viewKeys, renderCitedIn, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };

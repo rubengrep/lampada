@@ -1,0 +1,10 @@
+{
+  "name": "lampada",
+  "private": true,
+  "description": "Plugin Obsidian Lampada. Il codice è in src/, main.js è generato.",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "test": "node test/tutti.js",
+    "release": "node scripts/release.js"
+  }
+}

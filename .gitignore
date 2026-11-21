@@ -1,0 +1,7 @@
+# Dati personali generati da Obsidian e dal plugin
+data.json
+index-cache-*.json
+.DS_Store
+stato-*.json
+*.sync-conflict-*
+node_modules/

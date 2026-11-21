@@ -1,0 +1,80 @@
+# Lampada — guida rapida per lo sviluppo
+
+Plugin Obsidian (JS puro, moduli ES in `src/`). `main.js` è generato: **non modificarlo mai a mano**.
+Build, prove e copia sul telefono: skill `lampada-build` (oppure `npm run build`).
+Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-formati`.
+
+## Dove sta cosa
+| Modulo | Contenuto |
+|---|---|
+| `guscio.js` | vista unica `LampadaView` (`lampada-app`): monta Bibbia, Biblioteca, SCRABB e Chiedi come sezioni (`view.inShell`), cronologia unica (`push`/`goBack`, `{ area, snap }`), linguette in basso quando è stretto. Con `settings.appShell` tutte le aperture (`openReader`, `openLibraryDoc`…) passano da `plugin.shellGo` |
+| `oggi.js` | sezione Oggi (`TodayView`, `lampada-oggi`): data, "Cerca o chiedi", settimana (`renderWeekCard` da `biblioteca-vista.js`), Riprendi, segnalibri e recenti. È la sezione iniziale del guscio |
+| `ricerca.js` | indice delle parole per Chiedi (radici italiane, pezzi in `Indici/ricerca/`, BM25). Pubblicazioni divise con `paragraphsOf` (^pN), note delle cartelle in più con `notePars` (blocchi tra righe vuote, pid = riga). Senza Obsidian: si prova in Node |
+| `chat-biblioteca.js` | Chiedi alla biblioteca: `LibrarySearch` (indice nel vault; chiave = nome del file per le pubblicazioni, percorso con "/" per le note di `settings.chatFolders`), `askLibrary` (AI con gli strumenti `cerca` e `versetto`), vista chat |
+| `plugin.js` | classe del plugin: comandi (`addCommand`), `refresh()` (rilegge le pubblicazioni dopo un import), salvataggi, dati utente, campi risposta (`answerBox`, `docAnswerFields`), `readJson`, API per estensioni (`registerProvider`, `has`, `ask`) |
+| `bibbia-dati.js` | Bibbia: libri (con `idx.lang` diverso da `I`: abbreviazioni dell'indice e niente alias italiani), `findBook`, `parseReference`, `scanLine`, `indexFiles()` (indici delle pubblicazioni), `prefix` (= `.lampada/markdown/`) |
+| `bibbia-epub.js` | Bibbia dall'EPUB del sito (simbolo `nwt`, lingue `BIBLE_LANGS`, `settings.bibleLang`): `epubInfo(lang, pub, issue)` e `bibleEpubInfo` (API GETPUBMEDIALINKS, nessuna pagina HTML; `decode`, `slugify`, `jwLink`, `q`, `mb` in comune con `biblioteca-epub.js`), `convertBibleEpub` (EPUB → capitoli .md, `<libro>.versi.json` con le "Note in calce", `index/nwt.json` con `lang`, `abbr`, `chapterName`; legge solo le voci dello zip che servono), `downloadBible`, pannello `renderBibleDownload` (Bibbia, Biblioteca, Oggi quando `load()` lancia un errore con `noBible`) e comando *Scarica la Bibbia* (`BibleDownloadModal`) |
+| `biblioteca-epub.js` | pubblicazioni dagli EPUB del sito (comandi *Importa un EPUB…* e *Cerca nuovi numeri*, pulsante "Importa…" della biblioteca, `EpubImportModal`): `parseSymbol` (`w26.01` → `{ pub, issue }`), `epubInfo` (in `bibbia-epub.js`, API GETPUBMEDIALINKS, 404 = non c'è), `convertPubEpub` (xhtml col docId → note come quelle esportate: `^pN` = `data-pid`, domande `p.qu` col `data-rel-pid` che segue, versetti `#citationN` risolti con `parseReference`, rimandi `-extracted.xhtml#pcitationN` → `[[file]]` se il titolo è nella biblioteca, immagini usate in `_media/<simbolo>/`), `saveEpub` (indice con `source: "epub"`; un indice di un'altra fonte non si tocca: stessi documenti → saltati, numeri nuovi → `<simbolo>.epub.json`), poi `epubExtras`. `newIssues`: periodici con un numero nell'ultimo anno, passo = distanza minima tra gli ultimi numeri. Sul telefono sopra 40 MB legge solo le voci che servono con richieste Range (`unzipEntries` accetta `{ size, read }`) |
+| `bibbia-vista.js` | lettore della Bibbia (vista più grande, ~2700 righe) |
+| `bibbia-modali.js` | ricerca globale "Cerca o chiedi" (`SearchModal`: anche paragrafi dall'indice di Chiedi e "chiedi alla biblioteca" per le domande), vai a, versetti di una nota |
+| `biblioteca-dati.js` | `LibraryData`: carica gli indici → `pubs`, `bySym`, `byDocId`; numeri dei periodici dalla cartella `…/AAAAMM(GG)/`; `parseMeetingHtml(html, epub)` (programma dell'adunanza; con `epub = { bible, files }` legge l'HTML dell'EPUB: versetti da `#citationN`, rimandi `{ t, ex }` col testo dei file `-extracted.xhtml`) |
+| `epub-extra.js` | `epubExtras(plugin, { symbol, issue, files })`, chiamata alla fine di ogni importazione di EPUB: campi risposta → `answer-fields.json`, `img alt` → `image-alts.json`, per `mwb` il programma → `meetings.json` con `pubs['mwb\|AAAAMM'] = { t, src: 'epub' }`. Non sovrascrive mai i dati che ci sono; se il numero viene da un'altra fonte (`pubs` numerico o `src` diverso) riempie solo le settimane che mancano. Niente rete |
+| `biblioteca-vista.js` | vista biblioteca: home a categorie (`renderHome` → `mode: 'cat'`, `renderCat`), settimana, documento, `data-pid`, campi risposta, lampadina AI (`docAiCtx`, `docAiFocus`) |
+| `studio.js` | AI (OpenRouter `aiChat`, `suggestComments`, `COMMENT_SYSTEM`, `verseAiCtx` per i versetti), fonti (`SourceList`), `renderRbi8Verse` (Bibbia con riferimenti, usata da Bibbia e Biblioteca), studio di una parola. Prompt caching: le prime `ctx.shared` fonti (articolo o capitolo) vanno in una parte con `cache_control` 1h; devono restare identiche tra le domande |
+| `jwl-formati.js` / `jwl-importa.js` / `jwl-esporta.js` | backup `.jwlibrary` (`unzipEntries`: ArrayBuffer o `{ size, read(inizio, fine) }`, legge solo le voci chieste, `buildJwlPlan`, `JwlImporter`, `JwlExporter`) |
+| `lettura.js` | impaginazione (pagine, aspetto del testo) |
+| `scrabb-*.js` | schede di studio SCRABB |
+| `indice-note.js` | indice dei riferimenti biblici nelle note personali |
+| `testo.js` | utility: `norm`, `nameKey`, `verseCode`, `jwLibraryUrl`, `codesFromJwUrl`, `refFromCodes`, `stripFrontmatter` |
+| `costanti.js` | `DEFAULT_SETTINGS`, `EXTRA_ALIASES` (abbreviazioni dei libri), `INDEX_MIRROR` (= `index`, cartella degli indici) |
+| `ui.js` | componenti condivisi (segnalibri, barre, "Citato in") |
+| `main.js` (src) | punto di ingresso + `_test`: le funzioni usate da `test/` vanno esportate qui |
+
+## Cartelle (dal 2026-11-20)
+- Pubblicazioni: `.lampada/markdown/` (nascosta: Obsidian non la indicizza). Per leggerle usare `src/file.js` (`fileAt`, `readFile`, `linkDest`, `fileSrc`, `renderMd`…), **non** `vault.getAbstractFileByPath`/`cachedRead`/`metadataCache`, che non vedono le cartelle col punto.
+- Dati ricavati: `.lampada/data/` (`DATA_DIR`, nomi in inglese), spostati da soli all'avvio (`moveDerivedData`). Note e dati dell'utente: `Note Bibbia/`.
+
+## Regole
+- Commenti, testi dell'interfaccia e messaggi di commit in italiano; testi brevi e semplici.
+- Telefono e computer usano la stessa cartella `.obsidian/` (Syncthing porta il plugin sul telefono).
+- Sul telefono: niente download grandi, campi di testo a 16px (iOS ingrandisce sotto), `touch-action` già gestito.
+- Nessun dato personale nel repo; commit con l'email noreply di GitHub.
+- Prove in `test/*.test.js` (Node, con `test/obsidian-finto.js` al posto di `obsidian`, senza DOM; per l'HTML c'è `test/dom-finto.js`, un `DOMParser` minimo).
+- Gli indici in `.lampada/markdown/index/<simbolo>.json` li scrive l'importatore: il plugin modifica solo quelli che ha scritto lui dagli EPUB (`source: "epub"`; per un periodico di un'altra fonte i numeri nuovi vanno in `<simbolo>.epub.json`). I documenti scaricati (da un'estensione) vanno in `<simbolo>.wol.json`.
+- Nessun nome di marchio in README e manifest; "JW Library" solo dove serve per la compatibilità (backup `.jwlibrary`, "Apri in JW Library").
+- Nomi interni senza "jw": classi CSS con prefisso `lmp-`, viste ed eventi `lampada-…`/`lampada:…`. Fanno eccezione i moduli del formato `.jwlibrary` (`jwl-formati.js`…).
+
+## Pubblicare un aggiornamento
+Gli utenti ricevono gli aggiornamenti dalle release di GitHub (`rubengrep/lampada`, pubblico). Per ogni modifica da distribuire:
+1. alza `version` in `manifest.json` e aggiungila a `versions.json` (versione → `minAppVersion`);
+2. `npm run build` (prove ✓), commit;
+3. `gh auth switch -u rubengrep`, `npm run release -- "Cosa cambia"` (tag = versione, senza "v", e release con main.js, manifest.json, styles.css), poi di nuovo l’account di prima.
+
+## API per estensioni
+Un altro plugin può dare a Lampada dati e azioni che Lampada non ha. Lampada funziona anche senza nessun fornitore.
+- `plugin.registerProvider(p)` aggiunge un fornitore (oggetto con alcuni degli hook sotto) e restituisce la funzione che lo toglie.
+- `plugin.has(nome)`: c'è almeno un fornitore con quell'hook. `plugin.ask(nome, ...args)`: primo risultato non null dei fornitori, null se nessuno; gli errori salgono al chiamante.
+- Alla fine di `onload` Lampada lancia `app.workspace.trigger('lampada:ready', plugin)`: l'estensione si registra lì (anche quando Lampada si ricarica) e, se Lampada è già attivo, subito.
+- Tutti facoltativi. Dati nel vault prima, poi `ask`:
+
+| Hook | Dove | Ritorna |
+|---|---|---|
+| `answerFields(d)` | `docAnswerFields(d)`, se `answer-fields.json` non ha `docs[d.id]` | campi come in `docs[id]`, o null |
+| `imageAlts(d, files, url)` | `imageAlts(d, files, url)`, se `image-alts.json` non ha tutti i file | `{ file: testo }`, o null |
+| `meetingWeek(k)` | `meetingWeek(k, cachedOnly)`, se `!cachedOnly` e `meetings.json` non ha la settimana, o l'ha presa dall'EPUB (`pubs['mwb|AAAAMM'].src === 'epub'`: l'EPUB resta di riserva) | `{ id, items }` o null |
+| `downloadReferenceBible(progress)` | `renderRbi8Verse`: pulsante "Scarica" solo se c'è; senza dati e senza fornitore la sezione non compare | Promise (finita = dati in `rbi8Dir`) |
+| `downloadCovers(progress)` | comando `library-covers` e pulsante copertine, solo se c'è | numero di copertine aggiunte |
+| `linkAction(url)` | ricerca della biblioteca, quando il testo è un URL | `{ text, run }` → pulsante; null = niente |
+| `libraryActions()` | barra degli strumenti della biblioteca | `[{ text, run }]` → un pulsante ciascuno |
+
+Il fornitore usa dall'istanza: `answerFieldsPath`, `imageAltsPath`, `meetingsPath`, `rbi8Dir`, `readJson`, `bible`, `library`, `refresh()`, `openLibraryAt`, `settings`, `saveSettings()`, `writeBinary(path, data)` (scrive anche nelle cartelle nascoste e Lampada vede subito il file), `app`. Non cambiarli.
+
+## Vista unica (guscio)
+- Una sezione non ha una scheda sua: `this.leaf` è quella del guscio, l'intestazione di Obsidian è nascosta, i tasti si danno con `viewKeys(this, [[tasto, fn]…])` (non `this.scope`), la cronologia con `pushHistory()` / `canGoBack()` / `restore(snap)`.
+- Cercare le viste aperte con `plugin.viewsOf(tipo, area)`, non solo `getLeavesOfType` (le sezioni nel guscio non sono foglie).
+- Modalità app: classe `lmp-app` sul body solo mentre il guscio è la scheda attiva (`plugin.applyAppMode`).
+
+## Trappole già incontrate
+- `Setting` di Obsidian ha `then()`: restituirlo da una funzione async blocca tutto (ciclo infinito).
+- L'altezza delle textarea calcolata una volta sola è sbagliata sul telefono: ricalcolarla quando cambia la larghezza (`ResizeObserver`).
+- `\s` in JS comprende lo spazio non separabile (` `): le note esportate lo conservano, quindi non unirlo con `\s+` nel testo.
