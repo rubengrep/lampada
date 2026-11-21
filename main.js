@@ -11065,6 +11065,10 @@ function parseJwlBlocks(text) {
   }
   return out;
 }
+function sameNoteTitle(blockTitle, dbTitle) {
+  const old = (dbTitle || "").replace(/\s+/g, " ").trim();
+  return blockTitle === old.slice(0, 160).trim() || blockTitle === "Nota" && !old;
+}
 var JwlExporter = class {
   constructor(plugin) {
     this.plugin = plugin;
@@ -11183,8 +11187,7 @@ var JwlExporter = class {
         for (const blk of parseJwlBlocks(text)) {
           const row = one("SELECT NoteId AS id, Title AS title, Content AS content FROM Note WHERE Guid = ?", [blk.guid]);
           if (row) {
-            const oldTitle = (row.title || "").replace(/\s+/g, " ").trim();
-            const sameTitle = blk.title === oldTitle.slice(0, 160) || blk.title === "Nota" && !oldTitle;
+            const sameTitle = sameNoteTitle(blk.title, row.title);
             const sameContent = blk.content === (row.content || "").replace(/\r\n/g, "\n").trim();
             if (sameTitle && sameContent) continue;
             exec("UPDATE Note SET Title = ?, Content = ?, LastModified = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE NoteId = ?", [
@@ -13281,4 +13284,4 @@ ${md}
 
 // src/main.js
 var main_default = LampadaPlugin;
-var _test = { epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
+var _test = { epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };

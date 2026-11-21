@@ -4,7 +4,19 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 const { carica } = require('./obsidian-finto');
-const { unzipEntries, zipFiles, buildJwlPlan, JwlImporter } = carica(process.argv[2])._test;
+const { unzipEntries, zipFiles, buildJwlPlan, JwlImporter, jwlNoteBlock, parseJwlBlocks, sameNoteTitle } = carica(process.argv[2])._test;
+
+// Titolo lungo: all'importazione si taglia a 160 caratteri; se il taglio finisce con uno spazio, all'esportazione
+// il titolo intero del backup deve restare (prima veniva sostituito da quello tagliato).
+{
+  const long = 'Così Giuseppe fece stabilire suo padre e i suoi fratelli in Egitto e diede loro una proprietà nella parte migliore del paese, nel paese di Ràmses, proprio come il faraone aveva comandato.  12 E Giuseppe continuò';
+  const md = jwlNoteBlock({ title: long, content: 'x', tags: [], guid: 'ABCDEF12-3456' });
+  const [blk] = parseJwlBlocks(md);
+  assert.ok(blk.title.endsWith('proprio come'), blk.title);
+  assert.ok(sameNoteTitle(blk.title, long));
+  assert.ok(sameNoteTitle('Nota', ''));
+  assert.ok(!sameNoteTitle('Altro titolo', long));
+}
 
 (async () => {
   // zip → unzip restituisce gli stessi file

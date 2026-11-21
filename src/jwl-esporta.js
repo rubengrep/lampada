@@ -120,6 +120,15 @@ function parseJwlBlocks(text) {
   return out;
 }
 
+/**
+ * Il titolo nella nota (### …, tagliato a 160 caratteri all'importazione, poi letto senza spazi in fondo) è quello del
+ * backup? Se sì il backup tiene il titolo intero: senza il trim, un taglio che finisce con uno spazio lo accorciava.
+ */
+function sameNoteTitle(blockTitle, dbTitle) {
+  const old = (dbTitle || '').replace(/\s+/g, ' ').trim();
+  return blockTitle === old.slice(0, 160).trim() || (blockTitle === 'Nota' && !old);
+}
+
 class JwlExporter {
   constructor(plugin) {
     this.plugin = plugin;
@@ -247,8 +256,7 @@ class JwlExporter {
         for (const blk of parseJwlBlocks(text)) {
           const row = one('SELECT NoteId AS id, Title AS title, Content AS content FROM Note WHERE Guid = ?', [blk.guid]);
           if (row) {
-            const oldTitle = (row.title || '').replace(/\s+/g, ' ').trim();
-            const sameTitle = blk.title === oldTitle.slice(0, 160) || (blk.title === 'Nota' && !oldTitle);
+            const sameTitle = sameNoteTitle(blk.title, row.title);
             const sameContent = blk.content === (row.content || '').replace(/\r\n/g, '\n').trim();
             if (sameTitle && sameContent) continue;
             exec("UPDATE Note SET Title = ?, Content = ?, LastModified = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE NoteId = ?", [
@@ -373,4 +381,4 @@ class JwlExportModal extends Modal {
   }
 }
 
-export { JWL_COLOR_INDEX, CRC_TABLE, crc32, zipFiles, sha256Hex, jwlStamp, parseJwlBlocks, JwlExporter, JwlExportModal };
+export { JWL_COLOR_INDEX, CRC_TABLE, crc32, zipFiles, sha256Hex, jwlStamp, parseJwlBlocks, sameNoteTitle, JwlExporter, JwlExportModal };
