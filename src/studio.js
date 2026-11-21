@@ -808,6 +808,7 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
         refresh();
       } catch (err) {
         b.disabled = false;
+        if (err.cancelled) return b.setText('Scarica (26 MB, una volta sola)');
         b.setText('Riprova a scaricare');
         new Notice(`Bibbia con riferimenti: ${err.message}`);
       }

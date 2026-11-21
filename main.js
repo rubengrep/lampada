@@ -1455,6 +1455,7 @@ var TERMS_URL = "https://www.jw.org/it/condizioni-uso/";
 var CHUNK = 1e6;
 var mb = (n) => `${(n / 1e6).toFixed(1).replace(".", ",")} MB`;
 var partial = (info) => import_obsidian3.Platform.isMobile && info.size > 4e7;
+var nameOf = (i) => String(i.label || i.title || i.pub || "").replace(/<[^>]*>/g, "");
 async function fetchWithProgress(url, size, onBytes) {
   if (!size) return (await (0, import_obsidian3.requestUrl)({ url })).arrayBuffer;
   const out = new Uint8Array(size);
@@ -1468,9 +1469,9 @@ async function fetchWithProgress(url, size, onBytes) {
   return out.buffer;
 }
 var JwDownloadModal = class extends import_obsidian3.Modal {
-  constructor(app, infos, each, done) {
+  constructor(app, infos, each, done, auto) {
     super(app);
-    Object.assign(this, { infos, each, done, busy: false, finished: false });
+    Object.assign(this, { infos, each, done, auto, busy: false, finished: false });
   }
   onOpen() {
     const el = this.contentEl;
@@ -1478,7 +1479,7 @@ var JwDownloadModal = class extends import_obsidian3.Modal {
     const total = this.infos.reduce((s, i) => s + (i.size || 0), 0);
     for (const i of this.infos) {
       const f = el.createDiv("lmp-jw-file");
-      f.createDiv({ cls: "lmp-jw-name", text: `${i.label || i.title || i.pub}${i.size ? ` \xB7 ${mb(i.size)}` : ""}` });
+      f.createDiv({ cls: "lmp-jw-name", text: `${nameOf(i)}${i.size ? ` \xB7 ${mb(i.size)}` : ""}` });
       f.createEl("code", { cls: "lmp-jw-url", text: i.url });
     }
     const terms2 = el.createEl("p", { cls: "lmp-jw-terms", text: "Il file arriva direttamente da jw.org. Scaricandolo accetti le " });
@@ -1492,6 +1493,7 @@ var JwDownloadModal = class extends import_obsidian3.Modal {
     this.cancelBtn.addEventListener("click", () => this.close());
     this.okBtn = row.createEl("button", { cls: "mod-cta", text: total ? `Scarica (${mb(total)})` : "Scarica" });
     this.okBtn.addEventListener("click", () => this.start(total));
+    if (this.auto) this.start(total);
   }
   async start(total) {
     this.busy = true;
@@ -1502,12 +1504,12 @@ var JwDownloadModal = class extends import_obsidian3.Modal {
     try {
       for (const i of this.infos) {
         let buf = null;
-        if (partial(i)) say(`${i.label || i.title || i.pub}: leggo solo le parti che servono\u2026`);
+        if (partial(i)) say(`${nameOf(i)}: leggo solo le parti che servono\u2026`);
         else {
-          say(`Scarico ${i.label || i.title || i.pub}\u2026`);
+          say(`Scarico ${nameOf(i)}\u2026`);
           buf = await fetchWithProgress(i.url, i.size, (n) => {
             this.bar.value = before + n;
-            say(`Scarico ${i.label || i.title || i.pub}: ${mb(before + n)}${total ? ` di ${mb(total)}` : ""}`);
+            say(`Scarico ${nameOf(i)}: ${mb(before + n)}${total ? ` di ${mb(total)}` : ""}`);
           });
         }
         before += i.size || 0;
@@ -1528,8 +1530,8 @@ var JwDownloadModal = class extends import_obsidian3.Modal {
     if (!this.busy && !this.finished) this.done.reject(Object.assign(new Error("Annullato."), { cancelled: true }));
   }
 };
-function jwDownload(app, infos, each) {
-  return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }).open());
+function jwDownload(app, infos, each, { auto = false } = {}) {
+  return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }, auto).open());
 }
 
 // src/jwl-formati.js
@@ -5164,6 +5166,7 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
         refresh();
       } catch (err) {
         b.disabled = false;
+        if (err.cancelled) return b.setText("Scarica (26 MB, una volta sola)");
         b.setText("Riprova a scaricare");
         new import_obsidian10.Notice(`Bibbia con riferimenti: ${err.message}`);
       }

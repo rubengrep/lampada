@@ -22,7 +22,7 @@ Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-format
 | `biblioteca-vista.js` | vista biblioteca: home a categorie (`renderHome` → `mode: 'cat'`, `renderCat`), settimana, documento, `data-pid`, campi risposta, lampadina AI (`docAiCtx`, `docAiFocus`) |
 | `studio.js` | AI (OpenRouter `aiChat`, `suggestComments`, `COMMENT_SYSTEM`, `verseAiCtx` per i versetti), fonti (`SourceList`), `renderRbi8Verse` (Bibbia con riferimenti, usata da Bibbia e Biblioteca), studio di una parola. Prompt caching: le prime `ctx.shared` fonti (articolo o capitolo) vanno in una parte con `cache_control` 1h; devono restare identiche tra le domande |
 | `jwl-formati.js` / `jwl-importa.js` / `jwl-esporta.js` | backup `.jwlibrary` (`unzipEntries`: ArrayBuffer o `{ size, read(inizio, fine) }`, legge solo le voci chieste, `buildJwlPlan`, `JwlImporter`, `JwlExporter`) |
-| `scarica-jw.js` | `jwDownload(app, infos, each)`: finestra "Scarica da jw.org" (indirizzo di ogni file, condizioni d'uso, conferma, barra con richieste Range da 1 MB). Ogni download da jw.org passa da qui |
+| `scarica-jw.js` | `jwDownload(app, infos, each, { auto })`: finestra "Scarica da jw.org" (indirizzo di ogni file, condizioni d'uso, conferma, barra con richieste Range da 1 MB; `auto` = già confermato, parte da sola). Ogni download da jw.org passa da qui; lo usano anche le estensioni |
 | `lettura.js` | impaginazione (pagine, aspetto del testo) |
 | `scrabb-*.js` | schede di studio SCRABB |
 | `indice-note.js` | indice dei riferimenti biblici nelle note personali |

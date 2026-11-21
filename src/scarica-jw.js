@@ -8,6 +8,8 @@ const mb = (n) => `${(n / 1e6).toFixed(1).replace('.', ',')} MB`;
 
 /** Sul telefono, sopra 40 MB, non si scarica tutto: si leggono solo le parti che servono (richieste Range). */
 const partial = (info) => Platform.isMobile && info.size > 40e6;
+/** Nome da mostrare: il titolo di jw.org può avere tag (<em>…</em>). */
+const nameOf = (i) => String(i.label || i.title || i.pub || '').replace(/<[^>]*>/g, '');
 
 /** Scarica a pezzi (il sito risponde 206), così la barra avanza davvero. Se il sito manda tutto in una volta, va bene lo stesso. */
 async function fetchWithProgress(url, size, onBytes) {
@@ -24,9 +26,9 @@ async function fetchWithProgress(url, size, onBytes) {
 }
 
 class JwDownloadModal extends Modal {
-  constructor(app, infos, each, done) {
+  constructor(app, infos, each, done, auto) {
     super(app);
-    Object.assign(this, { infos, each, done, busy: false, finished: false });
+    Object.assign(this, { infos, each, done, auto, busy: false, finished: false });
   }
 
   onOpen() {
@@ -35,7 +37,7 @@ class JwDownloadModal extends Modal {
     const total = this.infos.reduce((s, i) => s + (i.size || 0), 0);
     for (const i of this.infos) {
       const f = el.createDiv('lmp-jw-file');
-      f.createDiv({ cls: 'lmp-jw-name', text: `${i.label || i.title || i.pub}${i.size ? ` · ${mb(i.size)}` : ''}` });
+      f.createDiv({ cls: 'lmp-jw-name', text: `${nameOf(i)}${i.size ? ` · ${mb(i.size)}` : ''}` });
       f.createEl('code', { cls: 'lmp-jw-url', text: i.url });
     }
     const terms = el.createEl('p', { cls: 'lmp-jw-terms', text: 'Il file arriva direttamente da jw.org. Scaricandolo accetti le ' });
@@ -49,6 +51,7 @@ class JwDownloadModal extends Modal {
     this.cancelBtn.addEventListener('click', () => this.close());
     this.okBtn = row.createEl('button', { cls: 'mod-cta', text: total ? `Scarica (${mb(total)})` : 'Scarica' });
     this.okBtn.addEventListener('click', () => this.start(total));
+    if (this.auto) this.start(total);
   }
 
   async start(total) {
@@ -60,12 +63,12 @@ class JwDownloadModal extends Modal {
     try {
       for (const i of this.infos) {
         let buf = null;
-        if (partial(i)) say(`${i.label || i.title || i.pub}: leggo solo le parti che servono…`);
+        if (partial(i)) say(`${nameOf(i)}: leggo solo le parti che servono…`);
         else {
-          say(`Scarico ${i.label || i.title || i.pub}…`);
+          say(`Scarico ${nameOf(i)}…`);
           buf = await fetchWithProgress(i.url, i.size, (n) => {
             this.bar.value = before + n;
-            say(`Scarico ${i.label || i.title || i.pub}: ${mb(before + n)}${total ? ` di ${mb(total)}` : ''}`);
+            say(`Scarico ${nameOf(i)}: ${mb(before + n)}${total ? ` di ${mb(total)}` : ''}`);
           });
         }
         before += i.size || 0;
@@ -92,10 +95,11 @@ class JwDownloadModal extends Modal {
 /**
  * Chiede conferma e scarica da jw.org i file (infos: [{ url, size, title, pub }]); per ognuno chiama
  * each(info, ArrayBuffer | null, say) — null sul telefono sopra 40 MB: lì si leggono solo le parti con le richieste Range.
- * Se l'utente annulla, l'errore ha `cancelled: true`.
+ * Se l'utente annulla, l'errore ha `cancelled: true`. Con `auto` parte subito (già confermato, es. i file dopo il primo
+ * di uno stesso lavoro): la finestra mostra lo stesso indirizzo e barra, poi si chiude.
  */
-function jwDownload(app, infos, each) {
-  return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }).open());
+function jwDownload(app, infos, each, { auto = false } = {}) {
+  return new Promise((resolve, reject) => new JwDownloadModal(app, infos, each, { resolve, reject }, auto).open());
 }
 
 export { TERMS_URL, jwDownload, partial };
