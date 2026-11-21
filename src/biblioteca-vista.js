@@ -650,6 +650,7 @@ class LibraryView extends ItemView {
     const txt = head.createDiv();
     txt.createEl('h2', { text: p.title });
     txt.createDiv({ cls: 'lmp-lib-head-meta', text: subtitle });
+    if (!(p.issues && !issue) && this.plugin.has('pubSource')) this.pubSource(txt.createDiv('lmp-lib-head-src'), p, issue, docs);
     const del = head.createEl('button', { cls: 'clickable-icon lmp-lib-del', attr: { 'aria-label': issue ? 'Togli questo numero' : 'Togli la pubblicazione' } });
     setIcon(del, 'trash-2');
     del.addEventListener('click', () => new RemovePubModal(this.app, issue ? `${p.title} · ${issueLabel(issue)}` : p.title, async () => {
@@ -657,6 +658,25 @@ class LibraryView extends ItemView {
       new Notice(`Tolto: ${issue ? issueLabel(issue) : p.title}`);
       this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: 'pub', sym: p.symbol } : { mode: 'home' }, { push: false });
     }).open());
+  }
+
+  /** Da dove arriva la pubblicazione (o il numero), dai fornitori: { text, action?: { label, run } }. */
+  async pubSource(el, p, issue, docs) {
+    const r = await this.plugin.ask('pubSource', p, issue, docs).catch(() => null);
+    if (!r) return el.remove();
+    el.createSpan({ text: r.text });
+    if (!r.action) return;
+    const b = el.createEl('button', { cls: 'mod-cta', text: r.action.label });
+    b.addEventListener('click', async () => {
+      b.disabled = true;
+      try {
+        if (await r.action.run()) this.navigate({ ...this.state }, { push: false });
+      } catch (e) {
+        if (!e.cancelled) new Notice(`${r.action.label}: ${e.message || e}`);
+      } finally {
+        b.disabled = false;
+      }
+    });
   }
 
   renderPub() {

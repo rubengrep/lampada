@@ -762,7 +762,7 @@ var LibraryData = class {
       }
       if (!idx || !idx.docs) continue;
       const symbol = idx.symbol || name.replace(/\.json$/, "");
-      const docs = Object.entries(idx.docs).filter(([, d]) => d && d.rel && d.title).map(([id, d]) => ({ id: String(id), file: d.file, rel: d.rel, title: d.title }));
+      const docs = Object.entries(idx.docs).filter(([, d]) => d && d.rel && d.title).map(([id, d]) => ({ id: String(id), file: d.file, rel: d.rel, title: d.title, ...idx.source === "epub" && { epub: true } }));
       const same = pubs.find((p) => p.symbol === symbol);
       if (same) {
         const fromWol = name.endsWith(".wol.json");
@@ -8530,6 +8530,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     const txt = head.createDiv();
     txt.createEl("h2", { text: p.title });
     txt.createDiv({ cls: "lmp-lib-head-meta", text: subtitle });
+    if (!(p.issues && !issue) && this.plugin.has("pubSource")) this.pubSource(txt.createDiv("lmp-lib-head-src"), p, issue, docs);
     const del = head.createEl("button", { cls: "clickable-icon lmp-lib-del", attr: { "aria-label": issue ? "Togli questo numero" : "Togli la pubblicazione" } });
     (0, import_obsidian13.setIcon)(del, "trash-2");
     del.addEventListener("click", () => new RemovePubModal(this.app, issue ? `${p.title} \xB7 ${issueLabel(issue)}` : p.title, async () => {
@@ -8537,6 +8538,24 @@ var LibraryView = class extends import_obsidian13.ItemView {
       new import_obsidian13.Notice(`Tolto: ${issue ? issueLabel(issue) : p.title}`);
       this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: "pub", sym: p.symbol } : { mode: "home" }, { push: false });
     }).open());
+  }
+  /** Da dove arriva la pubblicazione (o il numero), dai fornitori: { text, action?: { label, run } }. */
+  async pubSource(el, p, issue, docs) {
+    const r = await this.plugin.ask("pubSource", p, issue, docs).catch(() => null);
+    if (!r) return el.remove();
+    el.createSpan({ text: r.text });
+    if (!r.action) return;
+    const b = el.createEl("button", { cls: "mod-cta", text: r.action.label });
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        if (await r.action.run()) this.navigate({ ...this.state }, { push: false });
+      } catch (e) {
+        if (!e.cancelled) new import_obsidian13.Notice(`${r.action.label}: ${e.message || e}`);
+      } finally {
+        b.disabled = false;
+      }
+    });
   }
   renderPub() {
     const p = this.lib.bySym.get(this.state.sym);

@@ -138,7 +138,7 @@ class LibraryData {
       const symbol = idx.symbol || name.replace(/\.json$/, '');
       const docs = Object.entries(idx.docs)
         .filter(([, d]) => d && d.rel && d.title)
-        .map(([id, d]) => ({ id: String(id), file: d.file, rel: d.rel, title: d.title }));
+        .map(([id, d]) => ({ id: String(id), file: d.file, rel: d.rel, title: d.title, ...(idx.source === 'epub' && { epub: true }) }));
       // Indici con lo stesso simbolo (w.json dell'esportatore e w.wol.json dei documenti scaricati): una sola
       // pubblicazione; se un documento è in tutti e due vale quello dell'esportatore.
       const same = pubs.find((p) => p.symbol === symbol);
