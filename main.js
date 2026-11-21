@@ -11913,6 +11913,25 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     });
     this.setupLinkHandling();
     this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.scrabb.ensure(), import_obsidian21.Platform.isMobile ? 9e3 : 3500));
+    const emptyTabs = () => {
+      for (const leaf of this.app.workspace.getLeavesOfType("empty")) {
+        const list = leaf.view.containerEl.querySelector(".empty-state-action-list");
+        if (!list || list.querySelector(".lmp-empty-open")) continue;
+        const b = createDiv({ cls: "text-icon-button tappable mod-pill empty-state-action lmp-empty-open", attr: { role: "button", tabindex: "0", "aria-label": "Apri Lampada" } });
+        (0, import_obsidian21.setIcon)(b.createSpan("text-button-icon"), "lamp");
+        b.createSpan({ cls: "text-button-label", text: "Apri Lampada" });
+        const open = async () => {
+          await this.openApp();
+          if (leaf.view.getViewType() === "empty") leaf.detach();
+        };
+        b.addEventListener("click", open);
+        b.addEventListener("keydown", (e) => e.key === "Enter" && open());
+        list.insertBefore(b, list.querySelector(".mod-close"));
+      }
+    };
+    this.app.workspace.onLayoutReady(emptyTabs);
+    this.registerEvent(this.app.workspace.on("layout-change", emptyTabs));
+    this.register(() => document.querySelectorAll(".lmp-empty-open").forEach((e) => e.remove()));
     this.app.workspace.onLayoutReady(async () => {
       await this.migrateToShell().catch((e) => console.warn("[lampada] passaggio alla vista unica", e));
       this.applyAppMode();

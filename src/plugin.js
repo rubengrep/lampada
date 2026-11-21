@@ -263,6 +263,26 @@ class LampadaPlugin extends Plugin {
     this.setupLinkHandling();
     // Le schede SCRABB si indicizzano dopo la Bibbia (servono i versetti), anche se la vista non è aperta.
     this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.scrabb.ensure(), Platform.isMobile ? 9000 : 3500));
+    // Scheda vuota di Obsidian: "Apri Lampada" accanto a Nuova nota, Nuova Base…
+    const emptyTabs = () => {
+      for (const leaf of this.app.workspace.getLeavesOfType('empty')) {
+        const list = leaf.view.containerEl.querySelector('.empty-state-action-list');
+        if (!list || list.querySelector('.lmp-empty-open')) continue;
+        const b = createDiv({ cls: 'text-icon-button tappable mod-pill empty-state-action lmp-empty-open', attr: { role: 'button', tabindex: '0', 'aria-label': 'Apri Lampada' } });
+        setIcon(b.createSpan('text-button-icon'), 'lamp');
+        b.createSpan({ cls: 'text-button-label', text: 'Apri Lampada' });
+        const open = async () => {
+          await this.openApp();
+          if (leaf.view.getViewType() === 'empty') leaf.detach(); // Lampada era già aperta in un'altra scheda
+        };
+        b.addEventListener('click', open);
+        b.addEventListener('keydown', (e) => e.key === 'Enter' && open());
+        list.insertBefore(b, list.querySelector('.mod-close'));
+      }
+    };
+    this.app.workspace.onLayoutReady(emptyTabs);
+    this.registerEvent(this.app.workspace.on('layout-change', emptyTabs));
+    this.register(() => document.querySelectorAll('.lmp-empty-open').forEach((e) => e.remove()));
     this.app.workspace.onLayoutReady(async () => {
       await this.migrateToShell().catch((e) => console.warn('[lampada] passaggio alla vista unica', e));
       this.applyAppMode();
