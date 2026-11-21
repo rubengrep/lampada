@@ -10,7 +10,7 @@ import { linkVerseToScrabb } from './scrabb-vista.js';
 import { categoryOf, codesFromJwUrl, parseRefLinks, compressVerses, extractBlock, jwTokenText, newGuid, norm, noteFreeText, parseNoteFile, refFromCodes, splitJwTokens, stripFrontmatter, verseCode } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { GOSPELS, ParallelModal, aiMenu, highlightParts, parallelsInChapter, renderRbi8Verse, showAiSuggestions, verseAiCtx, wordStudy } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
+import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
 /* ------------------------------------------------------------------ */
 /* Vista lettore                                                       */
@@ -2485,36 +2485,20 @@ class BibleView extends ItemView {
     }
     const d = lib.byFile.get(file.basename);
     if (!d) return false;
-    const parOf = (s) => +((/#\^p(\d+)$/.exec(s || '') || [])[1] || 0);
-    let pars = [parOf(linktext)].filter(Boolean);
-    if (!pars.length && a.closest('li')) {
-      pars = [...a.closest('li').querySelectorAll('a.internal-link')].map((x) => parOf(x.dataset.href || x.getAttribute('href'))).filter(Boolean);
-    }
+    const pars = citedPars(a, linktext);
     if (!pars.length) return false;
     const token = (this.citePopToken = (this.citePopToken || 0) + 1);
-    const MAX = 5;
-    const texts = await Promise.all(pars.slice(0, MAX).map((p) => lib.paragraphText(d, p).catch(() => '')));
-    if (token !== this.citePopToken) return true;
     const open = (par) => {
       this.hidePopover();
       if (this.wantSplit()) this.openInSplit({ doc: d, par });
       else this.plugin.openLibraryDoc(d, par);
     };
+    const tmp = createDiv();
+    await fillCitePreview(tmp, this.plugin, d, pars, open);
+    if (token !== this.citePopToken) return true;
     const pop = this.popoverEl;
     pop.empty();
-    pop.createDiv({ cls: 'lmp-pop-title', text: d.pub.title });
-    pop.createDiv({ cls: 'lmp-cite-pop-doc', text: d.title });
-    pars.slice(0, MAX).forEach((p, i) => {
-      const b = pop.createDiv({ cls: 'lmp-cite-pop-par', attr: { role: 'button', tabindex: '0', 'aria-label': `Apri al paragrafo ${p}` } });
-      b.createSpan({ cls: 'lmp-cite-pop-n', text: `¶${p} ` });
-      b.appendText(texts[i] || 'Testo del paragrafo non trovato.');
-      b.addEventListener('click', () => open(p));
-      b.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), open(p)));
-    });
-    if (pars.length > MAX) pop.createDiv({ cls: 'lmp-cite-pop-more', text: `e altri ${pars.length - MAX} paragrafi` });
-    const bar = pop.createDiv('lmp-cite-pop-actions');
-    const btn = bar.createEl('button', { cls: 'mod-cta', text: 'Apri la pubblicazione' });
-    btn.addEventListener('click', () => open(pars[0]));
+    pop.append(...tmp.childNodes);
     this.positionPopover(a, 440);
     return true;
   }

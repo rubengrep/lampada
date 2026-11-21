@@ -9,7 +9,7 @@ import { ScrabbNewModal, ScrabbPickModal, linkVerseToScrabb } from './scrabb-vis
 import { codesFromJwUrl, norm, noteFreeText, parseCode, parseNoteFile, parseRefLinks, refFromCodes, splitJwTokens, stripFrontmatter } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { SourceList, addScriptureSources, aiMenu, renderAskBox, renderRbi8Verse, showAiSuggestions, verseAiCtx } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
+import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
 const blockText = (b) => b.innerText.replace(/\s+/g, ' ').trim();
 /** Domanda stampata: "4. …", "5, 6. …". */
@@ -1724,13 +1724,15 @@ class LibraryView extends ItemView {
       else if (a.hasClass('internal-link')) {
         const f = bible.resolveLink(href, src);
         r = (f && bible.refFromFile(f)) || bible.refFromLinkpath(href.split('#')[0]);
-        // pubblicazione della biblioteca ("Citato in"): si apre qui, al paragrafo citato
+        // pubblicazione della biblioteca ("Citato in"): anteprima dei paragrafi, poi si apre qui (⌘/Ctrl-clic: subito)
         const doc = !r && f && this.lib.byFile && this.lib.byFile.get(f.basename);
         if (doc) {
           evt.preventDefault();
           evt.stopPropagation();
-          const par = +((/#\^p(\d+)/.exec(href) || [])[1] || 0);
-          this.navigate({ mode: 'doc', sym: doc.pub.symbol, doc: doc.id, par: par || undefined });
+          const go = (par) => this.navigate({ mode: 'doc', sym: doc.pub.symbol, doc: doc.id, par: par || undefined });
+          const pars = citedPars(a, href);
+          if (pars.length && !(evt.metaKey || evt.ctrlKey)) new CitePreviewModal(this.plugin, doc, pars, go).open();
+          else go(pars[0]);
           return;
         }
       }

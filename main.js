@@ -3453,6 +3453,45 @@ function renderNoteCites(plugin, sec, cites, openAt) {
     });
   }
 }
+function citedPars(a, linktext) {
+  const parOf = (s) => +((/#\^p(\d+)$/.exec(s || "") || [])[1] || 0);
+  const one = parOf(linktext);
+  if (one) return [one];
+  const li = a.closest("li");
+  return li ? [...li.querySelectorAll("a.internal-link")].map((x) => parOf(x.dataset.href || x.getAttribute("href"))).filter(Boolean) : [];
+}
+async function fillCitePreview(el, plugin, d, pars, open) {
+  const MAX = 5;
+  const texts = await Promise.all(pars.slice(0, MAX).map((p) => plugin.library.paragraphText(d, p).catch(() => "")));
+  el.createDiv({ cls: "lmp-pop-title", text: d.pub.title });
+  el.createDiv({ cls: "lmp-cite-pop-doc", text: d.title });
+  pars.slice(0, MAX).forEach((p, i) => {
+    const b = el.createDiv({ cls: "lmp-cite-pop-par", attr: { role: "button", tabindex: "0", "aria-label": `Apri al paragrafo ${p}` } });
+    b.createSpan({ cls: "lmp-cite-pop-n", text: `\xB6${p} ` });
+    b.appendText((texts[i] || "Testo del paragrafo non trovato.").replace(/`/g, ""));
+    b.addEventListener("click", () => open(p));
+    b.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), open(p)));
+  });
+  if (pars.length > MAX) el.createDiv({ cls: "lmp-cite-pop-more", text: `e altri ${pars.length - MAX} paragrafi` });
+  const bar = el.createDiv("lmp-cite-pop-actions");
+  bar.createEl("button", { cls: "mod-cta", text: "Apri la pubblicazione" }).addEventListener("click", () => open(pars[0]));
+}
+var CitePreviewModal = class extends import_obsidian8.Modal {
+  constructor(plugin, d, pars, open) {
+    super(plugin.app);
+    Object.assign(this, { plugin, d, pars, go: open });
+  }
+  onOpen() {
+    this.modalEl.addClass("lmp-cite-modal");
+    fillCitePreview(this.contentEl, this.plugin, this.d, this.pars, (p) => {
+      this.close();
+      this.go(p);
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
 
 // src/scrabb-vista.js
 var ScrabbSuggest = class extends import_obsidian9.EditorSuggest {
@@ -7867,36 +7906,20 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     }
     const d = lib.byFile.get(file.basename);
     if (!d) return false;
-    const parOf = (s) => +((/#\^p(\d+)$/.exec(s || "") || [])[1] || 0);
-    let pars = [parOf(linktext)].filter(Boolean);
-    if (!pars.length && a.closest("li")) {
-      pars = [...a.closest("li").querySelectorAll("a.internal-link")].map((x) => parOf(x.dataset.href || x.getAttribute("href"))).filter(Boolean);
-    }
+    const pars = citedPars(a, linktext);
     if (!pars.length) return false;
     const token = this.citePopToken = (this.citePopToken || 0) + 1;
-    const MAX = 5;
-    const texts = await Promise.all(pars.slice(0, MAX).map((p) => lib.paragraphText(d, p).catch(() => "")));
-    if (token !== this.citePopToken) return true;
     const open = (par) => {
       this.hidePopover();
       if (this.wantSplit()) this.openInSplit({ doc: d, par });
       else this.plugin.openLibraryDoc(d, par);
     };
+    const tmp = createDiv();
+    await fillCitePreview(tmp, this.plugin, d, pars, open);
+    if (token !== this.citePopToken) return true;
     const pop = this.popoverEl;
     pop.empty();
-    pop.createDiv({ cls: "lmp-pop-title", text: d.pub.title });
-    pop.createDiv({ cls: "lmp-cite-pop-doc", text: d.title });
-    pars.slice(0, MAX).forEach((p, i) => {
-      const b = pop.createDiv({ cls: "lmp-cite-pop-par", attr: { role: "button", tabindex: "0", "aria-label": `Apri al paragrafo ${p}` } });
-      b.createSpan({ cls: "lmp-cite-pop-n", text: `\xB6${p} ` });
-      b.appendText(texts[i] || "Testo del paragrafo non trovato.");
-      b.addEventListener("click", () => open(p));
-      b.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), open(p)));
-    });
-    if (pars.length > MAX) pop.createDiv({ cls: "lmp-cite-pop-more", text: `e altri ${pars.length - MAX} paragrafi` });
-    const bar = pop.createDiv("lmp-cite-pop-actions");
-    const btn = bar.createEl("button", { cls: "mod-cta", text: "Apri la pubblicazione" });
-    btn.addEventListener("click", () => open(pars[0]));
+    pop.append(...tmp.childNodes);
     this.positionPopover(a, 440);
     return true;
   }
@@ -9572,8 +9595,10 @@ var LibraryView = class extends import_obsidian13.ItemView {
         if (doc) {
           evt.preventDefault();
           evt.stopPropagation();
-          const par = +((/#\^p(\d+)/.exec(href) || [])[1] || 0);
-          this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id, par: par || void 0 });
+          const go = (par) => this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id, par: par || void 0 });
+          const pars = citedPars(a, href);
+          if (pars.length && !(evt.metaKey || evt.ctrlKey)) new CitePreviewModal(this.plugin, doc, pars, go).open();
+          else go(pars[0]);
           return;
         }
       }

@@ -218,4 +218,52 @@ function renderNoteCites(plugin, sec, cites, openAt) {
   }
 }
 
-export { AREAS, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
+/** Paragrafi citati da un link (#^pN); senza ¶ nel link, tutti quelli della stessa riga dell'elenco. */
+function citedPars(a, linktext) {
+  const parOf = (s) => +((/#\^p(\d+)$/.exec(s || '') || [])[1] || 0);
+  const one = parOf(linktext);
+  if (one) return [one];
+  const li = a.closest('li');
+  return li ? [...li.querySelectorAll('a.internal-link')].map((x) => parOf(x.dataset.href || x.getAttribute('href'))).filter(Boolean) : [];
+}
+
+/**
+ * Anteprima di una pubblicazione citata: titolo, i paragrafi (al massimo 5; toccane uno per aprirlo lì) e
+ * "Apri la pubblicazione". Scrive in el; open(par). Popup della Bibbia e finestra della Biblioteca.
+ */
+async function fillCitePreview(el, plugin, d, pars, open) {
+  const MAX = 5;
+  const texts = await Promise.all(pars.slice(0, MAX).map((p) => plugin.library.paragraphText(d, p).catch(() => '')));
+  el.createDiv({ cls: 'lmp-pop-title', text: d.pub.title });
+  el.createDiv({ cls: 'lmp-cite-pop-doc', text: d.title });
+  pars.slice(0, MAX).forEach((p, i) => {
+    const b = el.createDiv({ cls: 'lmp-cite-pop-par', attr: { role: 'button', tabindex: '0', 'aria-label': `Apri al paragrafo ${p}` } });
+    b.createSpan({ cls: 'lmp-cite-pop-n', text: `¶${p} ` });
+    b.appendText((texts[i] || 'Testo del paragrafo non trovato.').replace(/`/g, '')); // i minuti dei video sono `00:14`
+    b.addEventListener('click', () => open(p));
+    b.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), open(p)));
+  });
+  if (pars.length > MAX) el.createDiv({ cls: 'lmp-cite-pop-more', text: `e altri ${pars.length - MAX} paragrafi` });
+  const bar = el.createDiv('lmp-cite-pop-actions');
+  bar.createEl('button', { cls: 'mod-cta', text: 'Apri la pubblicazione' }).addEventListener('click', () => open(pars[0]));
+}
+
+/** La stessa anteprima in una finestra (Biblioteca, dove non c'è il popup della Bibbia). */
+class CitePreviewModal extends Modal {
+  constructor(plugin, d, pars, open) {
+    super(plugin.app);
+    Object.assign(this, { plugin, d, pars, go: open });
+  }
+  onOpen() {
+    this.modalEl.addClass('lmp-cite-modal');
+    fillCitePreview(this.contentEl, this.plugin, this.d, this.pars, (p) => {
+      this.close();
+      this.go(p);
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
+export { AREAS, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
