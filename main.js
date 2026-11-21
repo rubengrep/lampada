@@ -3422,6 +3422,37 @@ async function renderCitedIn(plugin, el, md, sourcePath, comp) {
     });
   }
 }
+function renderNoteCites(plugin, sec, cites, openAt) {
+  const byPath2 = /* @__PURE__ */ new Map();
+  for (const e of cites) {
+    if (!byPath2.has(e.path)) byPath2.set(e.path, []);
+    if (!byPath2.get(e.path).some((x) => x.line === e.line)) byPath2.get(e.path).push(e);
+  }
+  const files = [...byPath2.keys()].map((p) => plugin.bible.getFile(p)).filter(Boolean).sort((a, b) => b.stat.mtime - a.stat.mtime);
+  const more = [];
+  files.forEach((file, i) => {
+    const box = sec.createDiv("lmp-cite");
+    if (i >= 3) {
+      box.hide();
+      more.push(box);
+    }
+    const head = box.createDiv("lmp-cite-head");
+    (0, import_obsidian8.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
+    head.createSpan({ cls: "lmp-cite-name", text: file.basename });
+    const folder = file.parent && file.parent.path !== "/" ? file.parent.path : "";
+    if (folder) head.createSpan({ cls: "lmp-cite-folder", text: folder.split("/").pop() });
+    const list = byPath2.get(file.path);
+    head.addEventListener("click", (evt) => openAt(file, list[0].line, evt));
+    for (const e of list.slice(0, 6)) box.createDiv({ cls: "lmp-cite-snippet", text: e.snippet || "\u2026" }).addEventListener("click", (evt) => openAt(file, e.line, evt));
+  });
+  if (more.length) {
+    const b = sec.createEl("button", { cls: "lmp-small-btn lmp-show-more", text: `Mostra tutte (${files.length})` });
+    b.addEventListener("click", () => {
+      more.forEach((x) => x.show());
+      b.remove();
+    });
+  }
+}
 
 // src/scrabb-vista.js
 var ScrabbSuggest = class extends import_obsidian9.EditorSuggest {
@@ -7213,47 +7244,8 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     linkVerseToScrabb(this.plugin, this.bible.refLabel({ book: book.num, chapter: c, verse: v }), () => this.renderPane());
   }
   renderCitations(content, cites) {
-    const byPath2 = /* @__PURE__ */ new Map();
-    for (const e of cites) {
-      if (!byPath2.has(e.path)) byPath2.set(e.path, []);
-      if (!byPath2.get(e.path).some((x) => x.line === e.line)) byPath2.get(e.path).push(e);
-    }
-    const sec = this.section(content, "Nelle mie note", String(byPath2.size));
-    const paths = [...byPath2.keys()].sort((a, b) => {
-      const fa = this.bible.getFile(a);
-      const fb = this.bible.getFile(b);
-      return (fb ? fb.stat.mtime : 0) - (fa ? fa.stat.mtime : 0);
-    });
-    const LIMIT = 3;
-    let shown = 0;
-    const more = [];
-    for (const path of paths) {
-      const file = this.bible.getFile(path);
-      if (!file) continue;
-      const box = sec.createDiv("lmp-cite");
-      if (++shown > LIMIT) {
-        box.hide();
-        more.push(box);
-      }
-      const head = box.createDiv("lmp-cite-head");
-      (0, import_obsidian12.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
-      head.createSpan({ cls: "lmp-cite-name", text: file.basename });
-      const folder = file.parent && file.parent.path !== "/" ? file.parent.path : "";
-      if (folder) head.createSpan({ cls: "lmp-cite-folder", text: folder.split("/").pop() });
-      const openAt = (line, evt) => this.wantSplit() ? this.openInSplit({ file, line }) : this.plugin.openNoteAt(file, line, evt);
-      head.addEventListener("click", (evt) => openAt(byPath2.get(path)[0].line, evt));
-      for (const e of byPath2.get(path).slice(0, 6)) {
-        const sn = box.createDiv({ cls: "lmp-cite-snippet", text: e.snippet || "\u2026" });
-        sn.addEventListener("click", (evt) => openAt(e.line, evt));
-      }
-    }
-    if (more.length) {
-      const b = sec.createEl("button", { cls: "lmp-small-btn lmp-show-more", text: `Mostra tutte (${shown})` });
-      b.addEventListener("click", () => {
-        more.forEach((x) => x.show());
-        b.remove();
-      });
-    }
+    const sec = this.section(content, "Nelle mie note", String(new Set(cites.map((e) => e.path)).size));
+    renderNoteCites(this.plugin, sec, cites, (file, line, evt) => this.wantSplit() ? this.openInSplit({ file, line }) : this.plugin.openNoteAt(file, line, evt));
   }
   /** Note del versetto come in JW Library: riquadri con titolo, testo ed etichette; aggiunta e modifica nel pannello. */
   async renderNotesSection(content, ctx, comp) {
@@ -9539,23 +9531,11 @@ var LibraryView = class extends import_obsidian13.ItemView {
       }).catch((e) => console.warn("[lampada] Bibbia con riferimenti", e));
     }
     if (book && ref.verse) {
-      const byPath2 = /* @__PURE__ */ new Map();
-      for (const e of this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse)) {
-        if (noteFile && e.path === noteFile.path) continue;
-        if (!byPath2.has(e.path)) byPath2.set(e.path, e.line);
-      }
-      if (byPath2.size) {
+      const cites = this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse).filter((e) => !noteFile || e.path !== noteFile.path);
+      if (cites.length) {
         shown++;
-        const sec = this.libSection(content, "Nelle mie note", byPath2.size);
-        for (const [path, line] of byPath2) {
-          const f = bible.getFile(path);
-          if (!f) continue;
-          const row = sec.createDiv("lmp-cite");
-          const head = row.createDiv("lmp-cite-head");
-          (0, import_obsidian13.setIcon)(head.createSpan("lmp-cite-icon"), "file-text");
-          head.createSpan({ cls: "lmp-cite-name", text: f.basename });
-          head.addEventListener("click", (evt) => this.plugin.openNoteAt(f, line, evt));
-        }
+        const sec = this.libSection(content, "Nelle mie note", new Set(cites.map((e) => e.path)).size);
+        renderNoteCites(this.plugin, sec, cites, (file, line, evt) => this.plugin.openNoteAt(file, line, evt));
       }
     }
     const cited = details && details.sections.find((x) => x.title === "Citato in");

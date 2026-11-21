@@ -9,7 +9,7 @@ import { ScrabbNewModal, ScrabbPickModal, linkVerseToScrabb } from './scrabb-vis
 import { codesFromJwUrl, norm, noteFreeText, parseCode, parseNoteFile, parseRefLinks, refFromCodes, splitJwTokens, stripFrontmatter } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { SourceList, addScriptureSources, aiMenu, renderAskBox, renderRbi8Verse, showAiSuggestions, verseAiCtx } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, renderCitedIn, setBarsHidden, viewKeys } from './ui.js';
+import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
 const blockText = (b) => b.innerText.replace(/\s+/g, ' ').trim();
 /** Domanda stampata: "4. …", "5, 6. …". */
@@ -1682,23 +1682,11 @@ class LibraryView extends ItemView {
 
     // Dove ne hai scritto nelle tue note
     if (book && ref.verse) {
-      const byPath = new Map();
-      for (const e of this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse)) {
-        if (noteFile && e.path === noteFile.path) continue;
-        if (!byPath.has(e.path)) byPath.set(e.path, e.line);
-      }
-      if (byPath.size) {
+      const cites = this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse).filter((e) => !noteFile || e.path !== noteFile.path);
+      if (cites.length) {
         shown++;
-        const sec = this.libSection(content, 'Nelle mie note', byPath.size);
-        for (const [path, line] of byPath) {
-          const f = bible.getFile(path);
-          if (!f) continue;
-          const row = sec.createDiv('lmp-cite');
-          const head = row.createDiv('lmp-cite-head');
-          setIcon(head.createSpan('lmp-cite-icon'), 'file-text');
-          head.createSpan({ cls: 'lmp-cite-name', text: f.basename });
-          head.addEventListener('click', (evt) => this.plugin.openNoteAt(f, line, evt));
-        }
+        const sec = this.libSection(content, 'Nelle mie note', new Set(cites.map((e) => e.path)).size);
+        renderNoteCites(this.plugin, sec, cites, (file, line, evt) => this.plugin.openNoteAt(file, line, evt));
       }
     }
 

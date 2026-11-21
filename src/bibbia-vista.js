@@ -10,7 +10,7 @@ import { linkVerseToScrabb } from './scrabb-vista.js';
 import { categoryOf, codesFromJwUrl, parseRefLinks, compressVerses, extractBlock, jwTokenText, newGuid, norm, noteFreeText, parseNoteFile, refFromCodes, splitJwTokens, stripFrontmatter, verseCode } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { GOSPELS, ParallelModal, aiMenu, highlightParts, parallelsInChapter, renderRbi8Verse, showAiSuggestions, verseAiCtx, wordStudy } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, renderCitedIn, setBarsHidden, viewKeys } from './ui.js';
+import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
 /* ------------------------------------------------------------------ */
 /* Vista lettore                                                       */
@@ -1820,47 +1820,8 @@ class BibleView extends ItemView {
   }
 
   renderCitations(content, cites) {
-    const byPath = new Map();
-    for (const e of cites) {
-      if (!byPath.has(e.path)) byPath.set(e.path, []);
-      if (!byPath.get(e.path).some((x) => x.line === e.line)) byPath.get(e.path).push(e);
-    }
-    const sec = this.section(content, 'Nelle mie note', String(byPath.size));
-    const paths = [...byPath.keys()].sort((a, b) => {
-      const fa = this.bible.getFile(a);
-      const fb = this.bible.getFile(b);
-      return (fb ? fb.stat.mtime : 0) - (fa ? fa.stat.mtime : 0);
-    });
-    const LIMIT = 3;
-    let shown = 0;
-    const more = [];
-    for (const path of paths) {
-      const file = this.bible.getFile(path);
-      if (!file) continue;
-      const box = sec.createDiv('lmp-cite');
-      if (++shown > LIMIT) {
-        box.hide();
-        more.push(box);
-      }
-      const head = box.createDiv('lmp-cite-head');
-      setIcon(head.createSpan('lmp-cite-icon'), 'file-text');
-      head.createSpan({ cls: 'lmp-cite-name', text: file.basename });
-      const folder = file.parent && file.parent.path !== '/' ? file.parent.path : '';
-      if (folder) head.createSpan({ cls: 'lmp-cite-folder', text: folder.split('/').pop() });
-      const openAt = (line, evt) => (this.wantSplit() ? this.openInSplit({ file, line }) : this.plugin.openNoteAt(file, line, evt));
-      head.addEventListener('click', (evt) => openAt(byPath.get(path)[0].line, evt));
-      for (const e of byPath.get(path).slice(0, 6)) {
-        const sn = box.createDiv({ cls: 'lmp-cite-snippet', text: e.snippet || '…' });
-        sn.addEventListener('click', (evt) => openAt(e.line, evt));
-      }
-    }
-    if (more.length) {
-      const b = sec.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: `Mostra tutte (${shown})` });
-      b.addEventListener('click', () => {
-        more.forEach((x) => x.show());
-        b.remove();
-      });
-    }
+    const sec = this.section(content, 'Nelle mie note', String(new Set(cites.map((e) => e.path)).size));
+    renderNoteCites(this.plugin, sec, cites, (file, line, evt) => (this.wantSplit() ? this.openInSplit({ file, line }) : this.plugin.openNoteAt(file, line, evt)));
   }
 
   /** Note del versetto come in JW Library: riquadri con titolo, testo ed etichette; aggiunta e modifica nel pannello. */

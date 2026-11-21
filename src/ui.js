@@ -182,4 +182,40 @@ async function renderCitedIn(plugin, el, md, sourcePath, comp) {
   }
 }
 
-export { AREAS, addAppToggle, viewKeys, renderCitedIn, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
+/**
+ * "Nelle mie note": una riga per nota (le più recenti prima, 3 e poi "Mostra tutte") con le righe che citano il versetto.
+ * cites = voci di noteIndex.lookup ({ path, line, snippet }); openAt(file, line, evt). Usata da Bibbia e Biblioteca.
+ */
+function renderNoteCites(plugin, sec, cites, openAt) {
+  const byPath = new Map();
+  for (const e of cites) {
+    if (!byPath.has(e.path)) byPath.set(e.path, []);
+    if (!byPath.get(e.path).some((x) => x.line === e.line)) byPath.get(e.path).push(e);
+  }
+  const files = [...byPath.keys()].map((p) => plugin.bible.getFile(p)).filter(Boolean).sort((a, b) => b.stat.mtime - a.stat.mtime);
+  const more = [];
+  files.forEach((file, i) => {
+    const box = sec.createDiv('lmp-cite');
+    if (i >= 3) {
+      box.hide();
+      more.push(box);
+    }
+    const head = box.createDiv('lmp-cite-head');
+    setIcon(head.createSpan('lmp-cite-icon'), 'file-text');
+    head.createSpan({ cls: 'lmp-cite-name', text: file.basename });
+    const folder = file.parent && file.parent.path !== '/' ? file.parent.path : '';
+    if (folder) head.createSpan({ cls: 'lmp-cite-folder', text: folder.split('/').pop() });
+    const list = byPath.get(file.path);
+    head.addEventListener('click', (evt) => openAt(file, list[0].line, evt));
+    for (const e of list.slice(0, 6)) box.createDiv({ cls: 'lmp-cite-snippet', text: e.snippet || '…' }).addEventListener('click', (evt) => openAt(file, e.line, evt));
+  });
+  if (more.length) {
+    const b = sec.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: `Mostra tutte (${files.length})` });
+    b.addEventListener('click', () => {
+      more.forEach((x) => x.show());
+      b.remove();
+    });
+  }
+}
+
+export { AREAS, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
