@@ -1104,18 +1104,24 @@ var BibleData = class {
       } catch (e) {
       }
       const next = {};
+      const others = [];
       const files = (await this.indexFiles()).filter((f) => f.split("/").pop() !== `${this.symbol}.json`);
       await Promise.all(
         files.map(async (f) => {
           const name = f.split("/").pop();
           const st = await this.app.vault.adapter.stat(f);
           const sig = st ? `${st.mtime}:${st.size}` : "";
-          let folder = known[name] && known[name][0] === sig ? known[name][1] : null;
-          if (!folder) folder = JSON.parse(await this.app.vault.adapter.read(f)).folder || name.replace(/\.json$/, "");
-          next[name] = [sig, folder];
-          pubs.add(folder);
+          let entry = known[name] && known[name][0] === sig && known[name].length === 3 ? known[name] : null;
+          if (!entry) {
+            const idx2 = JSON.parse(await this.app.vault.adapter.read(f));
+            entry = [sig, idx2.folder || name.replace(/\.json$/, ""), Object.keys(idx2.books || {}).length ? idx2.title || name.replace(/\.json$/, "") : null];
+          }
+          next[name] = entry;
+          pubs.add(entry[1]);
+          if (entry[2] && /^[^.]+\.json$/.test(name)) others.push({ symbol: name.replace(/\.json$/, ""), title: entry[2] });
         })
       );
+      this.others = others;
       try {
         window.localStorage.setItem(lsKey, JSON.stringify(next));
       } catch (e) {
@@ -1124,6 +1130,7 @@ var BibleData = class {
     }
     this.pubFolders = [...pubs].map((n) => `${this.prefix}${n}/`);
     this.title = idx.title || this.symbol;
+    this.bibles = [{ symbol: this.symbol, title: this.title }, ...this.others || []].sort((a, b) => a.title.localeCompare(b.title, "it"));
     this.italian = !idx.lang || idx.lang === "I";
     this.books = Object.entries(idx.books).map(([num, b]) => ({
       num: +num,
@@ -5792,6 +5799,11 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     const s = this.plugin.settings;
     menu.addItem((i) => i.setTitle("Vai a riferimento\u2026").setIcon("locate").onClick(() => this.openGoto()));
     menu.addItem((i) => i.setTitle("Libri della Bibbia").setIcon("library").onClick(() => this.navigate({ mode: "books" })));
+    if ((this.bible.bibles || []).length > 1) {
+      menu.addSeparator();
+      for (const b of this.bible.bibles) menu.addItem((i) => i.setTitle(b.title).setIcon("book").setChecked(b.symbol === this.bible.symbol).onClick(() => this.plugin.setBible(b.symbol)));
+      menu.addSeparator();
+    }
     menu.addItem((i) => i.setTitle("Etichette").setIcon("tags").onClick(() => this.navigate({ mode: "tags" })));
     menu.addSeparator();
     menu.addItem((i) => i.setTitle("Aspetto del testo\u2026").setIcon("type").onClick(() => new ReadingModal(this.plugin).open()));
@@ -6094,11 +6106,21 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     });
   }
   /* ---------------- home: libri ---------------- */
+  /** Selettore della Bibbia in uso, se nel vault ce n'è più di una completa. */
+  biblePicker(parent) {
+    const list = this.bible.bibles || [];
+    if (list.length < 2) return;
+    const sel = parent.createDiv("lmp-bible-pick").createEl("select", { cls: "dropdown", attr: { "aria-label": "Bibbia" } });
+    for (const b of list) sel.createEl("option", { text: b.title, value: b.symbol });
+    sel.value = this.bible.symbol;
+    sel.addEventListener("change", () => this.plugin.setBible(sel.value));
+  }
   renderBooks() {
     const main = this.mainEl;
     main.empty();
     main.scrollTop = 0;
     const wrap = main.createDiv("lmp-home");
+    this.biblePicker(wrap);
     const quick = wrap.createDiv("lmp-quick");
     const card = quick.createDiv("lmp-continue");
     card.hide();
@@ -12376,6 +12398,14 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
   }
   views() {
     return this.viewsOf(VIEW_TYPE, "bible").filter((v) => v instanceof BibleView);
+  }
+  /** Cambia la Bibbia in uso (simbolo di un indice con i libri) e ricarica: le viste restano sullo stesso capitolo. */
+  async setBible(symbol) {
+    if (symbol === this.bible.symbol) return;
+    this.settings.symbol = symbol;
+    await this.saveAll(false);
+    for (const v of this.views()) v.chapterData = null;
+    await this.refresh();
   }
   async settingsChanged(sourceChanged, rebuildIndex) {
     await this.saveAll(false);

@@ -270,6 +270,11 @@ class BibleView extends ItemView {
     const s = this.plugin.settings;
     menu.addItem((i) => i.setTitle('Vai a riferimento…').setIcon('locate').onClick(() => this.openGoto()));
     menu.addItem((i) => i.setTitle('Libri della Bibbia').setIcon('library').onClick(() => this.navigate({ mode: 'books' })));
+    if ((this.bible.bibles || []).length > 1) {
+      menu.addSeparator();
+      for (const b of this.bible.bibles) menu.addItem((i) => i.setTitle(b.title).setIcon('book').setChecked(b.symbol === this.bible.symbol).onClick(() => this.plugin.setBible(b.symbol)));
+      menu.addSeparator();
+    }
     menu.addItem((i) => i.setTitle('Etichette').setIcon('tags').onClick(() => this.navigate({ mode: 'tags' })));
     menu.addSeparator();
     menu.addItem((i) => i.setTitle('Aspetto del testo…').setIcon('type').onClick(() => new ReadingModal(this.plugin).open()));
@@ -618,11 +623,22 @@ class BibleView extends ItemView {
 
   /* ---------------- home: libri ---------------- */
 
+  /** Selettore della Bibbia in uso, se nel vault ce n'è più di una completa. */
+  biblePicker(parent) {
+    const list = this.bible.bibles || [];
+    if (list.length < 2) return;
+    const sel = parent.createDiv('lmp-bible-pick').createEl('select', { cls: 'dropdown', attr: { 'aria-label': 'Bibbia' } });
+    for (const b of list) sel.createEl('option', { text: b.title, value: b.symbol });
+    sel.value = this.bible.symbol;
+    sel.addEventListener('change', () => this.plugin.setBible(sel.value));
+  }
+
   renderBooks() {
     const main = this.mainEl;
     main.empty();
     main.scrollTop = 0;
     const wrap = main.createDiv('lmp-home');
+    this.biblePicker(wrap);
 
     const quick = wrap.createDiv('lmp-quick');
     // L'ultima lettura, anche se fatta su un altro dispositivo.

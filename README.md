@@ -195,18 +195,99 @@ Uno spazio per costruire, nel tempo, la tua conoscenza della Bibbia: **principi,
 
 ---
 
-## Iniziare
+## Come si installa
 
-1. **Installa Obsidian** ([obsidian.md](https://obsidian.md)) e crea un vault, cioè una cartella per le tue note.
-2. **Installa Lampada**:
-   - con [BRAT](https://github.com/TfTHacker/obsidian42-brat): *Add beta plugin* e incolla l'indirizzo di questo repository;
-   - oppure a mano: scarica `main.js`, `manifest.json` e `styles.css` dall'ultima [release](../../releases) e copiali in `.obsidian/plugins/lampada/` dentro il vault.
-3. Attiva Lampada in *Impostazioni → Plugin della community*.
-4. **Scarica la Bibbia**: al primo avvio Lampada chiede solo la lingua (italiano o inglese) e scarica l'EPUB della Bibbia dal pulsante "Scarica" del sito (circa 15 MB), poi lo converte nel suo formato. Se la Bibbia manca, la scarica anche il comando *Scarica la Bibbia*.
-5. **Importa le pubblicazioni**: nella Biblioteca, *Importa…* (o il comando *Importa un EPUB…*). Scegli un file EPUB dal dispositivo, oppure scrivi il simbolo come nelle citazioni (`w26.01`, `mwb26.01`, `g25.3`, `lff`) e Lampada lo scarica. "Nuovi numeri" (anche il comando *Cerca nuovi numeri*) cerca i numeri successivi dei periodici che hai già, finché il sito risponde che non sono ancora usciti. Una pubblicazione importata di nuovo si aggiorna, senza doppioni; una già presente da una fonte più completa resta com'è.
-6. Apri Lampada dall'icona della lampada nella barra laterale.
+Servono una decina di minuti. I passaggi sono gli stessi su computer (Windows, Mac, Linux), telefono e tablet (Android, iPhone, iPad). Dove i nomi dei menu cambiano, Obsidian è in italiano. Se il tuo è in inglese, il nome inglese è tra parentesi.
 
-Lampada non dipende da altri plugin.
+### 1. Installa Obsidian
+
+1. Scarica Obsidian, gratuito:
+   - **computer**: da [obsidian.md/download](https://obsidian.md/download);
+   - **Android**: dal Google Play Store;
+   - **iPhone e iPad**: dall'App Store.
+2. Aprilo e scegli **Crea nuovo vault** (*Create new vault*). Un vault è solo una cartella in cui Obsidian tiene le tue note: dagli un nome, per esempio `Studio`, e scegli dove salvarlo.
+   - Sul telefono, se vuoi usare lo stesso vault anche sul computer, leggi prima [Sincronizzare telefono e computer](#sincronizzare-telefono-e-computer): su iPhone, per esempio, il vault va creato direttamente in iCloud.
+3. Se hai già un vault con le tue note, puoi usare quello: Lampada non tocca le note che ci sono.
+
+### 2. Attiva i plugin della community
+
+Obsidian, appena installato, blocca i plugin creati da altri.
+
+1. Apri le **Impostazioni** (*Settings*): l'ingranaggio in basso a sinistra sul computer; sul telefono tocca ☰ (o scorri da sinistra), poi l'ingranaggio.
+2. Vai in **Plugin della community** (*Community plugins*).
+3. Tocca **Attiva i plugin della community** (*Turn on community plugins*). Così disattivi la modalità con restrizioni.
+
+### 3. Installa BRAT
+
+[BRAT](https://github.com/TfTHacker/obsidian42-brat) è un plugin della community che installa i plugin direttamente da GitHub e li tiene aggiornati. Lampada si installa con BRAT.
+
+1. Sempre in **Impostazioni → Plugin della community**, tocca **Sfoglia** (*Browse*).
+2. Cerca `BRAT`, apri **BRAT** (di TfTHacker) e tocca **Installa** (*Install*).
+3. Al termine tocca **Attiva** (*Enable*).
+
+### 4. Aggiungi Lampada con BRAT
+
+1. Torna nelle **Impostazioni**: nella colonna di sinistra, in fondo, c'è ora **BRAT**. Aprilo.
+2. Tocca **Add beta plugin**.
+3. Nel campo del repository incolla:
+   ```
+   https://github.com/rubengrep/lampada
+   ```
+   (va bene anche solo `rubengrep/lampada`).
+4. Lascia la versione su **Latest version** e lascia spuntato **Enable after installing the plugin**.
+5. Tocca **Add plugin**. Dopo qualche secondo compare un avviso: Lampada è installato.
+6. Controlla in **Impostazioni → Plugin della community**: nell'elenco dei plugin installati **Lampada** deve essere attivo (interruttore acceso). Se non lo è, accendilo.
+
+**Aggiornamenti.** BRAT controlla le nuove versioni di Lampada a ogni avvio di Obsidian, se nelle sue impostazioni è attivo *Auto-update plugins at startup*. Puoi anche aggiornare a mano: nelle impostazioni di BRAT, *Check for updates to all beta plugins and update* (o il comando *BRAT: Check for updates…*).
+
+<details>
+<summary><b>Senza BRAT: installazione a mano</b></summary>
+
+1. Apri l'ultima [release](../../releases) e scarica i tre file `main.js`, `manifest.json` e `styles.css`.
+2. Nella cartella del vault crea la cartella `.obsidian/plugins/lampada/` e copiaci dentro i tre file. La cartella `.obsidian` è nascosta: sul Mac la mostri con ⌘ Maiusc . nel Finder, su Windows con *Visualizza → Elementi nascosti*.
+3. Chiudi e riapri Obsidian, poi attiva **Lampada** in **Impostazioni → Plugin della community**.
+
+Con questo metodo gli aggiornamenti non arrivano da soli: per ogni nuova versione ripeti i passaggi 1 e 2.
+</details>
+
+### 5. Primo avvio: scarica la Bibbia
+
+1. Apri Lampada dall'icona della **lampada** nella barra di sinistra. Sul telefono la barra si apre con ☰; in alternativa apri il riquadro dei comandi e cerca *Lampada*.
+2. Si apre la pagina **Oggi**. In cima c'è il riquadro per scaricare la Bibbia: scegli la lingua (italiano o inglese) e tocca il pulsante con il peso del file (circa 15 MB).
+3. Una finestra mostra il nome e l'indirizzo esatto del file su jw.org e il rimando alle condizioni d'uso: conferma e attendi la barra di avanzamento. Lampada converte l'EPUB nel suo formato e apre Genesi 1.
+
+Se più avanti la Bibbia manca, la riscarichi con il comando *Scarica la Bibbia*.
+
+### 6. Importa le pubblicazioni
+
+1. Apri la **Biblioteca** (dalla linguetta in basso sul telefono, o dal comando *Apri la biblioteca*) e tocca **Importa…** (o usa il comando *Importa un EPUB…*).
+2. Hai due modi:
+   - **un file EPUB che hai già** sul dispositivo: sceglilo e Lampada lo importa;
+   - **il simbolo della pubblicazione**, come nelle citazioni: per esempio `w26.01` (La Torre di Guardia di gennaio 2026), `mwb26.01` (Guida per l'adunanza), `g25.3` (Svegliatevi!), `lff`. Lampada mostra il file da scaricare e chiede conferma, come per la Bibbia.
+3. Per i periodici, **Nuovi numeri** nella Biblioteca (o il comando *Cerca nuovi numeri*) cerca i numeri successivi di quelli che hai già, finché il sito risponde che non sono ancora usciti.
+
+Una pubblicazione importata di nuovo si aggiorna, senza doppioni.
+
+### 7. Sistema le impostazioni (facoltativo)
+
+In **Impostazioni → Lampada**:
+
+- **Cartella delle tue note e dei tuoi dati** (di base `Note Bibbia`): qui finiscono le note sui versetti e, nella sottocartella `JW Library/`, evidenziazioni, segnalibri, risposte e posizione di lettura.
+- **Vista unica** e **Modalità app**: Lampada si comporta come un'app a sé, con le linguette in basso, e nasconde le barre di Obsidian mentre la usi.
+- **Importa backup JW Library**: se vuoi portare in Obsidian le note, le evidenziazioni e i segnalibri di JW Library, prima crea un backup dalle impostazioni di JW Library, poi scegli qui il file `.jwlibrary`.
+- **Chiave OpenRouter**: solo se vuoi l'assistente AI di *Chiedi*. Senza chiave tutto il resto funziona lo stesso.
+
+Carattere, dimensione, tema e lettura a pagine si regolano dal pannello **Aa** del lettore, e restano diversi su ogni dispositivo.
+
+Lampada non dipende da altri plugin: BRAT serve solo per installarlo e aggiornarlo.
+
+### Se qualcosa non va
+
+- **Lampada non compare nell'elenco dei plugin**: chiudi del tutto Obsidian e riaprilo, poi controlla di nuovo in *Plugin della community*.
+- **BRAT dice che non trova il repository**: controlla di aver incollato l'indirizzo esatto, senza spazi in fondo.
+- **Il download della Bibbia o di una pubblicazione non parte**: serve la connessione a internet solo per quel momento; riprova con *Scarica la Bibbia* o *Importa…*.
+- **Ho aggiunto o tolto file in `.lampada/` a mano**: usa il comando *Ricarica le pubblicazioni*.
+- Per tutto il resto apri una [segnalazione](../../issues).
 
 ### Sincronizzare telefono e computer
 

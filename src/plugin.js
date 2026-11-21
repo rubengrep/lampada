@@ -874,6 +874,15 @@ class LampadaPlugin extends Plugin {
     return this.viewsOf(VIEW_TYPE, 'bible').filter((v) => v instanceof BibleView);
   }
 
+  /** Cambia la Bibbia in uso (simbolo di un indice con i libri) e ricarica: le viste restano sullo stesso capitolo. */
+  async setBible(symbol) {
+    if (symbol === this.bible.symbol) return;
+    this.settings.symbol = symbol;
+    await this.saveAll(false);
+    for (const v of this.views()) v.chapterData = null; // altrimenti resta il testo della Bibbia di prima
+    await this.refresh();
+  }
+
   async settingsChanged(sourceChanged, rebuildIndex) {
     await this.saveAll(false);
     if (sourceChanged) this.bible.reset();

@@ -119,18 +119,25 @@ class BibleData {
         /* memoria locale non disponibile: si rileggono gli indici */
       }
       const next = {};
+      const others = [];
       const files = (await this.indexFiles()).filter((f) => f.split('/').pop() !== `${this.symbol}.json`);
       await Promise.all(
         files.map(async (f) => {
           const name = f.split('/').pop();
           const st = await this.app.vault.adapter.stat(f);
           const sig = st ? `${st.mtime}:${st.size}` : '';
-          let folder = known[name] && known[name][0] === sig ? known[name][1] : null;
-          if (!folder) folder = JSON.parse(await this.app.vault.adapter.read(f)).folder || name.replace(/\.json$/, '');
-          next[name] = [sig, folder];
-          pubs.add(folder);
+          // [firma, cartella, titolo se è una Bibbia completa (con i libri)]
+          let entry = known[name] && known[name][0] === sig && known[name].length === 3 ? known[name] : null;
+          if (!entry) {
+            const idx = JSON.parse(await this.app.vault.adapter.read(f));
+            entry = [sig, idx.folder || name.replace(/\.json$/, ''), Object.keys(idx.books || {}).length ? idx.title || name.replace(/\.json$/, '') : null];
+          }
+          next[name] = entry;
+          pubs.add(entry[1]);
+          if (entry[2] && /^[^.]+\.json$/.test(name)) others.push({ symbol: name.replace(/\.json$/, ''), title: entry[2] });
         })
       );
+      this.others = others;
       try {
         window.localStorage.setItem(lsKey, JSON.stringify(next));
       } catch (e) {
@@ -142,6 +149,8 @@ class BibleData {
     this.pubFolders = [...pubs].map((n) => `${this.prefix}${n}/`);
 
     this.title = idx.title || this.symbol;
+    // Bibbie complete nel vault (per il selettore): quella in uso e le altre con i libri
+    this.bibles = [{ symbol: this.symbol, title: this.title }, ...(this.others || [])].sort((a, b) => a.title.localeCompare(b.title, 'it'));
     // Bibbia in un'altra lingua (dall'EPUB): abbreviazioni dell'EPUB e niente alias italiani.
     this.italian = !idx.lang || idx.lang === 'I';
     this.books = Object.entries(idx.books)
