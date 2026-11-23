@@ -1938,7 +1938,7 @@ button.lmp-ai-src:hover { color: var(--text-accent); border-color: var(--interac
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  padding: 3px 16px calc(4px + env(safe-area-inset-bottom, 0px));
+  padding: 3px 16px calc(4px + var(--safe-area-inset-bottom, 0px));
   font: 11px/1.5 var(--font-interface);
   color: var(--text-faint);
   background: var(--background-primary);
@@ -2048,7 +2048,7 @@ body.lmp-app .workspace-split.mod-right-split,
 body.lmp-app .workspace-split.mod-root .workspace-tab-header-container,
 body.lmp-app .mobile-navbar,
 body.lmp-app .workspace-leaf-content[data-type='lampada-app'] > .view-header { display: none !important; }
-body.lmp-app .lmp-tabbar { padding-bottom: calc(2px + env(safe-area-inset-bottom)); }
+body.lmp-app .lmp-tabbar { padding-bottom: calc(2px + var(--safe-area-inset-bottom, 0px)); }
 /* Mac senza cornice: la barra di Lampada fa da barra del titolo (si trascina la finestra, spazio per i semafori) */
 body.lmp-app .lmp-area .lmp-toolbar { -webkit-app-region: drag; }
 body.lmp-app .lmp-area .lmp-toolbar > * { -webkit-app-region: no-drag; }
@@ -2065,7 +2065,8 @@ body.lmp-app.mod-macos.is-hidden-frameless:not(.is-fullscreen) .lmp-area .lmp-to
 /* Su mobile Obsidian sposta in giù view-content per la sua intestazione, che qui è nascosta (guscio e sezioni) */
 .workspace-leaf-content[data-type='lampada-app'] > .view-content.lmp-shell,
 .lmp-area > .view-content { margin-top: 0 !important; }
-.is-mobile .workspace-leaf-content[data-type='lampada-app'] > .view-content.lmp-shell { padding-top: env(safe-area-inset-top) !important; }
+/* solo sul telefono: sul tablet Obsidian lascia già lo spazio della barra di stato sopra le linguette */
+.is-phone .workspace-leaf-content[data-type='lampada-app'] > .view-content.lmp-shell { padding-top: var(--safe-area-inset-top, 0px) !important; }
 
 /* ---------- Biblioteca: catalogo per categorie ---------- */
 .lmp-lib-cats { display: flex; flex-direction: column; margin-top: 12px; border: 1px solid var(--background-modifier-border); border-radius: 10px; background: var(--background-secondary); overflow: hidden; }
@@ -2155,3 +2156,17 @@ button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-mo
 .lmp-lib-doc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .lmp-lib-doc-top .lmp-lib-crumbs { flex: 1; min-width: 0; margin-bottom: 0; }
 .lmp-lib-head .lmp-lang-btn { align-self: flex-start; }
+/* novità dopo un aggiornamento (novita.js) */
+.lmp-news h2 { font-size: var(--font-ui-medium); margin: 1.2em 0 0.4em; }
+.lmp-news h2:first-child { margin-top: 0; }
+.lmp-news ul { padding-left: 1.2em; }
+.lmp-news li { margin-bottom: 0.4em; }
+
+/* Tablet (iPad, iPhone pieghevole aperto) con Lampada unica scheda: la riga delle linguette di Obsidian conterrebbe solo
+   quella scheda e i pulsanti delle barre laterali. Si nasconde, e i pulsanti vanno nella barra di Lampada (ui.js). */
+.lmp-sb-btn { display: none !important; }
+.lmp-sb-btn.mod-right { order: 99; }
+.is-tablet:not(.lmp-app) .mod-root .workspace-tabs:has(.lmp-shell):not(:has(.workspace-tab-header ~ .workspace-tab-header)) > .workspace-tab-header-container { display: none; }
+.is-tablet:not(.lmp-app) .mod-root .workspace-tabs:has(.lmp-shell):not(:has(.workspace-tab-header ~ .workspace-tab-header)) .lmp-sb-btn { display: flex !important; }
+/* barra stretta: la destra (struttura, collegamenti) resta nel menu di Obsidian, c'è posto solo per la sinistra */
+@container (max-width: 600px) { .lmp-toolbar .lmp-sb-btn.mod-right { display: none !important; } }

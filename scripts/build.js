@@ -7,7 +7,7 @@ const root = path.join(__dirname, '..');
 const run = (cmd, args) => execFileSync(cmd, args, { cwd: root, stdio: 'inherit' });
 
 run('npx', ['--yes', 'esbuild@0.28.2', 'src/main.js', '--bundle', '--format=cjs', '--platform=browser', '--target=es2020',
-  '--external:obsidian', '--loader:.txt=text', '--loader:.wasm=base64', '--log-level=warning', '--outfile=main.js',
+  '--external:obsidian', '--loader:.txt=text', '--loader:.md=text', '--loader:.wasm=base64', '--log-level=warning', '--outfile=main.js',
   '--banner:js=/* File generato da src/ con "npm run build": non modificarlo a mano. */']);
 run('node', ['test/tutti.js']);
 

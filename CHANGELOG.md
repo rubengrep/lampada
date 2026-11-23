@@ -1,5 +1,10 @@
 # Novità
 
+## 0.19.0 — 2026-11-23
+
+- Dopo un aggiornamento si apre una finestra con le novità. Tutte le novità anche da Impostazioni → Novità o dal comando «Novità di Lampada».
+- iPad e iPhone pieghevole aperto: con Lampada unica scheda, la riga delle linguette di Obsidian sparisce e i pulsanti delle barre laterali passano nella barra di Lampada. Tolta anche la fascia vuota tra le linguette e la barra di Lampada: più spazio per il testo.
+
 ## 0.18.0 — 2026-11-23
 
 - Lampada in italiano e in inglese: segue la lingua di Obsidian, si cambia in Impostazioni → Lingua.

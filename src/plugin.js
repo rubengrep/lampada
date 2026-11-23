@@ -26,6 +26,8 @@ import { SCRABB_ALL_LISTS, SCRABB_TEACHINGS, SCRABB_TYPES, SCRABB_VIEW_TYPE, Scr
 import { ScrabbNewModal, ScrabbPickModal, ScrabbSuggest, ScrabbView } from './scrabb-vista.js';
 import { categoryOf, cleanSnippet, codesFromJwUrl, formatNoteBlock, jwLibraryUrl, newGuid, parseCode, parseNoteFile, refFromCodes, sleep, stripFrontmatter, verseCode } from './testo.js';
 import { PlacesModal, bookmarkKey } from './ui.js';
+import { NewsModal, newsAfterUpdate, newsBetween } from './novita.js';
+import CHANGELOG from '../CHANGELOG.md';
 
 /* ------------------------------------------------------------------ */
 /* Plugin                                                              */
@@ -66,6 +68,7 @@ class LampadaPlugin extends Plugin {
       callback: () => this.refresh().then(() => new Notice(t('Pubblicazioni ricaricate')), (e) => new Notice(t('Ricarica non riuscita: {err}', { err: e.message }))),
     });
     this.addCommand({ id: 'download-bible', name: t('Scarica la Bibbia'), callback: () => new BibleDownloadModal(this).open() });
+    this.addCommand({ id: 'news', name: t('Novità di Lampada'), callback: () => this.showNews() });
     this.addCommand({ id: 'import-epub', name: t('Importa un EPUB…'), callback: () => new EpubImportModal(this).open() });
     this.addCommand({ id: 'new-issues', name: t('Cerca nuovi numeri'), callback: () => runNewIssues(this) });
     this.addCommand({ id: 'open-app', name: t('Apri Lampada (Bibbia, Biblioteca, SCRABB, Chiedi)'), callback: () => this.openApp() });
@@ -285,6 +288,10 @@ class LampadaPlugin extends Plugin {
       }
     };
     this.app.workspace.onLayoutReady(emptyTabs);
+    // Dopo un aggiornamento: le novità (CHANGELOG.md), una volta per versione.
+    this.app.workspace.onLayoutReady(() =>
+      window.setTimeout(() => newsAfterUpdate(this, CHANGELOG, t('Novità di Lampada'), this.settings, () => this.saveAll(false), this.firstRun).catch(() => null), 1500)
+    );
     this.registerEvent(this.app.workspace.on('layout-change', emptyTabs));
     this.register(() => document.querySelectorAll('.lmp-empty-open').forEach((e) => e.remove()));
     this.app.workspace.onLayoutReady(async () => {
@@ -521,6 +528,7 @@ class LampadaPlugin extends Plugin {
 
   async loadAll() {
     const d = (await this.loadData()) || {};
+    this.firstRun = !d.settings; // prima installazione: niente finestra delle novità
     this.settings = Object.assign({}, DEFAULT_SETTINGS, d.settings || {});
     // Aspetto della lettura: ogni dispositivo ha il suo (data.json si sincronizza, questo no).
     Object.assign(this.settings, this.app.loadLocalStorage?.(DEVICE_KEY) || this.app.loadLocalStorage?.('jw-' + DEVICE_KEY) || {});
@@ -1604,6 +1612,11 @@ class LampadaPlugin extends Plugin {
     };
     section(t('Segnalibri'), [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true, 'bookmarks');
     section(t('Aperti di recente'), this.ui.recent || [], false, 'recent');
+  }
+
+  /** Tutte le novità (CHANGELOG.md). */
+  showNews() {
+    new NewsModal(this.app, t('Novità di Lampada'), newsBetween(CHANGELOG)).open();
   }
 
   notePath(book, chapter, verse) {

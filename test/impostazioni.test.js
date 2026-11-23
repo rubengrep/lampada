@@ -4,6 +4,7 @@ const { carica, finto } = require('./obsidian-finto');
 const { BibleSettingTab } = carica(process.argv[2])._test;
 
 const plugin = {
+  manifest: { version: '0.0.0' },
   settings: { fontSize: 19, lineHeight: 1.7, fontFamily: 'literata', suggestTrigger: '@', notesFolder: 'N' },
   ui: {}, marks: [], bookmarks: [], jwlBase: null, rbi8Dir: 'N/JW Library/Bibbia con riferimenti',
   noteIndex: { byFile: new Map(), byCode: new Map() },

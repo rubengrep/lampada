@@ -64,6 +64,11 @@ class BibleSettingTab extends PluginSettingTab {
         })
       );
 
+    new Setting(containerEl)
+      .setName(t('Novità'))
+      .setDesc(t('Versione installata: {v}', { v: this.plugin.manifest.version }))
+      .addButton((b) => b.setButtonText(t('Mostra')).onClick(() => this.plugin.showNews()));
+
     /* ---------- App ---------- */
     new Setting(containerEl).setName(t('Lampada come app')).setHeading();
     toggle(t('Vista unica'), t('Bibbia, Biblioteca, SCRABB e Chiedi in una sola scheda, con un solo Indietro. Le icone nella barra di sinistra cambiano al prossimo avvio.'), () => s.appShell !== false, async (v) => {

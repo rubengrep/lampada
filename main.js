@@ -36,7 +36,7 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 
 // src/plugin.js
-var import_obsidian21 = require("obsidian");
+var import_obsidian22 = require("obsidian");
 
 // src/bibbia-dati.js
 var import_obsidian2 = require("obsidian");
@@ -823,7 +823,13 @@ var en_default = {
   "Video": "Videos",
   "Viola": "Purple",
   "Vista unica": "Single view",
-  "Volantini e inviti": "Tracts and invitations"
+  "Volantini e inviti": "Tracts and invitations",
+  "Mostra": "Show",
+  "Novit\xE0": "What's new",
+  "Novit\xE0 di Lampada": "What's new in Lampada",
+  "Versione installata: {v}": "Installed version: {v}",
+  "Barra laterale destra": "Right sidebar",
+  "Barra laterale sinistra": "Left sidebar"
 };
 
 // src/lingua.js
@@ -4379,6 +4385,19 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
     b.addEventListener("click", on ? goHome : () => open(plugin));
   }
   if (shell) addAppToggle(tb, plugin);
+  if (shell) {
+    const ws = plugin.app.workspace;
+    for (const [side, icon, label, split] of [
+      ["left", "sidebar-left", "Barra laterale sinistra", () => ws.leftSplit],
+      ["right", "sidebar-right", "Barra laterale destra", () => ws.rightSplit]
+    ]) {
+      const b = createEl("button", { cls: `lmp-tb-btn clickable-icon lmp-sb-btn mod-${side}`, attr: { "aria-label": t(label) } });
+      (0, import_obsidian8.setIcon)(b, icon);
+      b.addEventListener("click", () => split().toggle());
+      if (side === "left") tb.prepend(b);
+      else tb.appendChild(b);
+    }
+  }
 }
 function addGoToAction(view, current, goHome) {
   view.addAction("compass", t("Vai a\u2026"), (evt) => {
@@ -12601,6 +12620,7 @@ var BibleSettingTab = class extends import_obsidian19.PluginSettingTab {
         this.display();
       })
     );
+    new import_obsidian19.Setting(containerEl).setName(t("Novit\xE0")).setDesc(t("Versione installata: {v}", { v: this.plugin.manifest.version })).addButton((b) => b.setButtonText(t("Mostra")).onClick(() => this.plugin.showNews()));
     new import_obsidian19.Setting(containerEl).setName(t("Lampada come app")).setHeading();
     toggle(t("Vista unica"), t("Bibbia, Biblioteca, SCRABB e Chiedi in una sola scheda, con un solo Indietro. Le icone nella barra di sinistra cambiano al prossimo avvio."), () => s.appShell !== false, async (v) => {
       s.appShell = v;
@@ -12939,10 +12959,59 @@ var NoteIndex = class {
   }
 };
 
+// src/novita.js
+var import_obsidian21 = require("obsidian");
+function cmpVersion(a, b) {
+  const x = a.split(".").map(Number);
+  const y = b.split(".").map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0);
+  return 0;
+}
+function newsBetween(md, from, to) {
+  return md.split(/^(?=## )/m).filter((s) => {
+    const m = /^## (\d+(?:\.\d+)*)/.exec(s);
+    if (!m) return false;
+    if (to && cmpVersion(m[1], to) > 0) return false;
+    if (from) return cmpVersion(m[1], from) > 0;
+    return !to || cmpVersion(m[1], to) === 0;
+  }).join("").trim();
+}
+var NewsModal = class extends import_obsidian21.Modal {
+  constructor(app, title, md) {
+    super(app);
+    this.title = title;
+    this.md = md;
+  }
+  onOpen() {
+    this.titleEl.setText(this.title);
+    this.contentEl.addClass("lmp-news");
+    this.comp = new import_obsidian21.Component();
+    this.comp.load();
+    import_obsidian21.MarkdownRenderer.render(this.app, this.md, this.contentEl, "", this.comp);
+  }
+  onClose() {
+    if (this.comp) this.comp.unload();
+    this.contentEl.empty();
+  }
+};
+async function newsAfterUpdate(plugin, md, title, settings, save, isNew) {
+  const cur2 = plugin.manifest.version;
+  const seen = settings.seenVersion;
+  if (seen === cur2) return;
+  settings.seenVersion = cur2;
+  await save();
+  if (!seen && isNew) return;
+  const news = newsBetween(md, seen, cur2);
+  if (news) new NewsModal(plugin.app, title, news).open();
+}
+
+// CHANGELOG.md
+var CHANGELOG_default = "# Novit\xE0\n\n## 0.19.0 \u2014 2026-11-23\n\n- Dopo un aggiornamento si apre una finestra con le novit\xE0. Tutte le novit\xE0 anche da Impostazioni \u2192 Novit\xE0 o dal comando \xABNovit\xE0 di Lampada\xBB.\n- iPad e iPhone pieghevole aperto: con Lampada unica scheda, la riga delle linguette di Obsidian sparisce e i pulsanti delle barre laterali passano nella barra di Lampada. Tolta anche la fascia vuota tra le linguette e la barra di Lampada: pi\xF9 spazio per il testo.\n\n## 0.18.0 \u2014 2026-11-23\n\n- Lampada in italiano e in inglese: segue la lingua di Obsidian, si cambia in Impostazioni \u2192 Lingua.\n- Pubblicazioni in pi\xF9 lingue: ogni lingua ha la sua biblioteca. Il pulsante \xABIT\xBB (pagina dei libri, Biblioteca, intestazione di una pubblicazione, accanto al titolo di un articolo) passa a un'altra lingua restando sulla stessa pagina, o scarica la pubblicazione in quella lingua.\n- Le note di JW Library sui versetti e sui paragrafi si vedono in tutte le lingue, come in JW Library. Le evidenziazioni restano nella loro lingua.\n- Backup di JW Library: le evidenziazioni di pi\xF9 lingue entrano ed escono ognuna nella sua; le risposte valgono in tutte le lingue.\n- Chi aveva gi\xE0 scaricato la Bibbia in un'altra lingua la ritrova dov'era.\n- Telefono: quando le barre si chiudono o si riaprono scorrendo, il testo resta fermo sotto il dito (prima per un attimo saltava).\n- iPhone: la barra dei colori non resta pi\xF9 sotto il menu Copia/Condividi.\n- Tablet e telefono: toccando i libri della Bibbia non si apre pi\xF9 la barra laterale di Obsidian.\n\n## 0.17.1 \u2014 2026-11-21\n\n- Tablet e telefono: toccando il selettore Bibbia/Biblioteca in alto (o le linguette in basso) non si apre pi\xF9 la barra laterale di Obsidian\n\n## 0.17.0 \u2014 2026-11-21\n\n- \xABCitato in\xBB nella Biblioteca: toccando una pubblicazione o un video si apre un'anteprima con i paragrafi; da l\xEC si entra nel punto giusto\n\n## 0.16.1 \u2014 2026-11-21\n\n- Biblioteca: in \xABNelle mie note\xBB si vedono le righe delle note che citano il versetto, come nella Bibbia\n\n## 0.16.0 \u2014 2026-11-21\n\n- Nella scheda vuota di Obsidian c'\xE8 \xABApri Lampada\xBB, accanto a Nuova nota e Nuova Base\n\n## 0.15.3 \u2014 2026-11-21\n\n- Lettore sul telefono: barra in alto pi\xF9 libera (segnalibri, recenti, racconti paralleli e aspetto del testo nel menu \u22EF), si legge dove sei\n\n## 0.15.2 \u2014 2026-11-21\n\n- Pannello del versetto: le pillole delle sezioni stanno su una riga e scorrono di lato\n\n## 0.15.1 \u2014 2026-11-21\n\n- Pannello del versetto: nomi pi\xF9 chiari e uguali ovunque (Note JW Library, Approfondimenti, Rbi8, Nelle mie note)\n\n## 0.15.0 \u2014 2026-11-21\n\n- Impostazioni \u2192 Pannello del versetto: scegli l'ordine delle sezioni (le tue note, studio, note in calce, riferimenti, Bibbia con riferimenti, nelle mie note, media, citato in, SCRABB). Le schede in alto seguono lo stesso ordine.\n\n## 0.14.1 \u2014 2026-11-21\n\n- Backup JW Library: i titoli lunghi delle note non vengono pi\xF9 accorciati quando il taglio a 160 caratteri cade su uno spazio.\n\n## 0.14.0 \u2014 2026-11-21\n\n- Segnalibri e recenti separati: nella barra c'\xE8 un'icona Recenti (orologio) accanto ai Segnalibri; nelle home un Tutti per ogni riga.\n\n## 0.13.1 \u2014 2026-11-21\n\n- Biblioteca, pannello del paragrafo: su tablet e telefono le azioni (Collega a SCRABB, Copia, JW Library, Spunti) vanno a capo e sono tutte raggiungibili.\n\n## 0.13.0 \u2014 2026-11-21\n\n- Bibbia: se nel vault ci sono pi\xF9 Bibbie complete, si sceglie quale usare dalla pagina dei libri o dal menu \u22EF del lettore. Si resta sullo stesso capitolo.\n\n## 0.12.0 \u2014 2026-11-21\n\n- Biblioteca: nell'intestazione di una pubblicazione le estensioni possono dire da dove arriva e offrire un pulsante.\n\n## 0.11.0 \u2014 2026-11-21\n\n- Biblioteca: pulsante cestino per togliere una pubblicazione o un solo numero (note, immagini, indici). La Bibbia in uso non si toglie.\n\n## 0.10.0 \u2014 2026-11-21\n\n- Importazione EPUB: titoli senza tag HTML, simbolo scritto come sul sito (T-31), i volantini e le altre pubblicazioni nuove vanno nella loro categoria quando \xE8 nota. Le estensioni possono scaricare una pubblicazione in EPUB (anche sul telefono).\n\n## 0.9.0 \u2014 2026-11-21\n\n- Nel programma della settimana le estensioni possono aggiungere un'icona accanto ai link (per esempio la trascrizione di un video).\n\n## 0.8.0 \u2014 2026-11-21\n\n- Le estensioni possono aggiungere pagine dentro la Biblioteca (una riga nella home, con il tasto indietro della biblioteca).\n\n## 0.7.2 \u2014 2026-11-21\n\n- La finestra \xABScarica da jw.org\xBB mostra i titoli puliti; \xABAnnulla\xBB sulla Bibbia con riferimenti non d\xE0 pi\xF9 errore; le estensioni possono usare la stessa finestra.\n\n## 0.7.1 \u2014 2026-11-21\n\n- Prima di ogni download da jw.org: finestra con l'indirizzo esatto del file, le condizioni d'uso del sito e la barra di avanzamento.\n\n## 0.7.0 \u2014 2026-11-21\n\n- Importa le pubblicazioni dagli EPUB (da file, per simbolo, nuovi numeri), con programma delle adunanze, campi risposta e testi delle immagini. Al primo avvio si scarica la Bibbia scegliendo la lingua. L'indice delle parole di Chiedi si crea anche dal telefono.\n\n";
+
 // src/plugin.js
 var DEVICE_KEY = "lampada-lettura";
 var DEVICE_SETTINGS = ["fontFamily", "fontSize", "lineHeight", "margins", "justify", "pageMode", "readingTheme"];
-var LampadaPlugin = class extends import_obsidian21.Plugin {
+var LampadaPlugin = class extends import_obsidian22.Plugin {
   async onload() {
     this.providers = [];
     await this.loadAll();
@@ -12950,7 +13019,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     await this.moveDerivedData();
     this.bible = new BibleData(this);
     this.lastMarkdownView = null;
-    const save = (0, import_obsidian21.debounce)(() => this.saveAll(false), 800, true);
+    const save = (0, import_obsidian22.debounce)(() => this.saveAll(false), 800, true);
     this.requestSave = (userData) => {
       if (userData) this.userDataDirty = true;
       save();
@@ -12968,9 +13037,10 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     this.addCommand({
       id: "refresh",
       name: t("Ricarica le pubblicazioni"),
-      callback: () => this.refresh().then(() => new import_obsidian21.Notice(t("Pubblicazioni ricaricate")), (e) => new import_obsidian21.Notice(t("Ricarica non riuscita: {err}", { err: e.message })))
+      callback: () => this.refresh().then(() => new import_obsidian22.Notice(t("Pubblicazioni ricaricate")), (e) => new import_obsidian22.Notice(t("Ricarica non riuscita: {err}", { err: e.message })))
     });
     this.addCommand({ id: "download-bible", name: t("Scarica la Bibbia"), callback: () => new BibleDownloadModal(this).open() });
+    this.addCommand({ id: "news", name: t("Novit\xE0 di Lampada"), callback: () => this.showNews() });
     this.addCommand({ id: "import-epub", name: t("Importa un EPUB\u2026"), callback: () => new EpubImportModal(this).open() });
     this.addCommand({ id: "new-issues", name: t("Cerca nuovi numeri"), callback: () => runNewIssues(this) });
     this.addCommand({ id: "open-app", name: t("Apri Lampada (Bibbia, Biblioteca, SCRABB, Chiedi)"), callback: () => this.openApp() });
@@ -13003,8 +13073,8 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
         if (!this.has("downloadCovers")) return false;
         if (!checking)
           this.ask("downloadCovers").then(
-            (got) => new import_obsidian21.Notice(got ? t("{n} copertine aggiunte", { n: got }) : t("Nessuna nuova copertina trovata")),
-            (e) => new import_obsidian21.Notice(t("Copertine non scaricate: {err}", { err: e.message }))
+            (got) => new import_obsidian22.Notice(got ? t("{n} copertine aggiunte", { n: got }) : t("Nessuna nuova copertina trovata")),
+            (e) => new import_obsidian22.Notice(t("Copertine non scaricate: {err}", { err: e.message }))
           );
         return true;
       }
@@ -13145,7 +13215,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
         const hits = this.bible.scanLine(editor.getLine(cur2.line), true);
         const hit = hits.find((h) => cur2.ch >= h.start && cur2.ch <= h.end) || hits[0];
         if (hit) this.openReader(hit.ref);
-        else new import_obsidian21.Notice(t("Nessun riferimento biblico in questa riga."));
+        else new import_obsidian22.Notice(t("Nessun riferimento biblico in questa riga."));
       }
     });
     this.addCommand({ id: "import-jwlibrary", name: t("Importa backup JW Library\u2026"), callback: () => new JwlImportModal(this).open() });
@@ -13161,13 +13231,13 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
       }
     });
     this.setupLinkHandling();
-    this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.scrabb.ensure(), import_obsidian21.Platform.isMobile ? 9e3 : 3500));
+    this.app.workspace.onLayoutReady(() => window.setTimeout(() => this.scrabb.ensure(), import_obsidian22.Platform.isMobile ? 9e3 : 3500));
     const emptyTabs = () => {
       for (const leaf of this.app.workspace.getLeavesOfType("empty")) {
         const list = leaf.view.containerEl.querySelector(".empty-state-action-list");
         if (!list || list.querySelector(".lmp-empty-open")) continue;
         const b = createDiv({ cls: "text-icon-button tappable mod-pill empty-state-action lmp-empty-open", attr: { role: "button", tabindex: "0", "aria-label": t("Apri Lampada") } });
-        (0, import_obsidian21.setIcon)(b.createSpan("text-button-icon"), "lamp");
+        (0, import_obsidian22.setIcon)(b.createSpan("text-button-icon"), "lamp");
         b.createSpan({ cls: "text-button-label", text: t("Apri Lampada") });
         const open = async () => {
           await this.openApp();
@@ -13179,6 +13249,9 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
       }
     };
     this.app.workspace.onLayoutReady(emptyTabs);
+    this.app.workspace.onLayoutReady(
+      () => window.setTimeout(() => newsAfterUpdate(this, CHANGELOG_default, t("Novit\xE0 di Lampada"), this.settings, () => this.saveAll(false), this.firstRun).catch(() => null), 1500)
+    );
     this.registerEvent(this.app.workspace.on("layout-change", emptyTabs));
     this.register(() => document.querySelectorAll(".lmp-empty-open").forEach((e) => e.remove()));
     this.app.workspace.onLayoutReady(async () => {
@@ -13196,7 +13269,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
           if (f.path === this.userDataPath) this.onUserDataChanged();
         })
       );
-      await sleep(import_obsidian21.Platform.isMobile ? 8e3 : 3e3);
+      await sleep(import_obsidian22.Platform.isMobile ? 8e3 : 3e3);
       try {
         await this.bible.ensureLoaded();
       } catch (e) {
@@ -13219,12 +13292,12 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     });
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
-        if (leaf && leaf.view instanceof import_obsidian21.MarkdownView) this.lastMarkdownView = leaf.view;
+        if (leaf && leaf.view instanceof import_obsidian22.MarkdownView) this.lastMarkdownView = leaf.view;
       })
     );
     this.registerEvent(
       this.app.workspace.on("file-menu", (menu, file) => {
-        if (!(file instanceof import_obsidian21.TFile) || !file.path.startsWith(this.bible.bibleFolder + "/")) return;
+        if (!(file instanceof import_obsidian22.TFile) || !file.path.startsWith(this.bible.bibleFolder + "/")) return;
         menu.addItem(
           (item) => item.setTitle(t("Apri nel lettore Bibbia")).setIcon("book-open").onClick(async () => {
             await this.bible.ensureLoaded();
@@ -13377,7 +13450,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     document.querySelectorAll(".lmp-app-toggle").forEach((b) => {
       b.toggleClass("is-active", !!this.ui.appMode);
       const icon = b.querySelector(".lmp-tab-icon") || b;
-      (0, import_obsidian21.setIcon)(icon, this.ui.appMode ? "minimize-2" : "maximize-2");
+      (0, import_obsidian22.setIcon)(icon, this.ui.appMode ? "minimize-2" : "maximize-2");
     });
   }
   onunload() {
@@ -13386,6 +13459,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
   }
   async loadAll() {
     const d = await this.loadData() || {};
+    this.firstRun = !d.settings;
     this.settings = Object.assign({}, DEFAULT_SETTINGS, d.settings || {});
     Object.assign(this.settings, this.app.loadLocalStorage?.(DEVICE_KEY) || this.app.loadLocalStorage?.("jw-" + DEVICE_KEY) || {});
     setLang(this.settings.uiLang);
@@ -13417,7 +13491,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     const l = pubLang(s);
     if (l !== "I") {
       const a = this.app.vault.adapter;
-      const root = s.rootFolder && s.rootFolder !== "/" ? `${(0, import_obsidian21.normalizePath)(s.rootFolder)}/` : "";
+      const root = s.rootFolder && s.rootFolder !== "/" ? `${(0, import_obsidian22.normalizePath)(s.rootFolder)}/` : "";
       for (const p of [INDEX_MIRROR, "Indici"].flatMap((d) => ["nwtsty", "nwt"].map((sym) => `${root}${d}/${sym}.json`))) {
         const idx = await a.exists(p) && await this.readJson(p);
         if (!idx) continue;
@@ -13438,8 +13512,8 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     const a = this.app.vault.adapter;
     if (!await a.exists(DATA_DIR)) await a.mkdir(DATA_DIR);
     await this.ensureDataDir();
-    const notes = (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library`);
-    const idx = (0, import_obsidian21.normalizePath)(`${this.settings.rootFolder}/Indici`);
+    const notes = (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/JW Library`);
+    const idx = (0, import_obsidian22.normalizePath)(`${this.settings.rootFolder}/Indici`);
     const moves = [
       [`${notes}/campi-risposta.json`, `${DATA_DIR}/answer-fields.json`],
       [`${notes}/immagini.json`, `${DATA_DIR}/image-alts.json`],
@@ -13447,7 +13521,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
       [`${notes}/Bibbia con riferimenti`, `${DATA_DIR}/reference-bible`],
       [`${idx}/copertine`, `${DATA_DIR}/covers`],
       [`${idx}/ricerca`, `${DATA_DIR}/search`],
-      [idx, (0, import_obsidian21.normalizePath)(`${this.settings.rootFolder}/${INDEX_MIRROR}`)],
+      [idx, (0, import_obsidian22.normalizePath)(`${this.settings.rootFolder}/${INDEX_MIRROR}`)],
       // Se un dispositivo non aggiornato riscrive il nome vecchio, mergeConflictCopies lo unisce.
       [`${notes}/evidenziazioni.json`, this.userDataPath],
       [`${notes}/posizione.json`, this.positionPath]
@@ -13458,10 +13532,10 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     }
   }
   get userDataPath() {
-    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library/highlights.json`);
+    return (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/JW Library/highlights.json`);
   }
   get localUserDataPath() {
-    return `${this.manifest.dir}/stato-${import_obsidian21.Platform.isMobile ? "mobile" : "desktop"}.json`;
+    return `${this.manifest.dir}/stato-${import_obsidian22.Platform.isMobile ? "mobile" : "desktop"}.json`;
   }
   async readJson(path) {
     try {
@@ -13855,7 +13929,7 @@ var LampadaPlugin = class extends import_obsidian21.Plugin {
     if (!this.settings.openAfterCite) return;
     const noteLeaf = this.app.workspace.getMostRecentLeaf();
     await this.openReader(ref);
-    if (import_obsidian21.Platform.isPhone || !noteLeaf) return;
+    if (import_obsidian22.Platform.isPhone || !noteLeaf) return;
     this.app.workspace.setActiveLeaf(noteLeaf, { focus: true });
     editor.focus();
   }
@@ -14027,7 +14101,7 @@ Fonte: ${source}`;
    */
   updateScrabbAction(leaf) {
     const view = leaf && leaf.view;
-    if (!(view instanceof import_obsidian21.MarkdownView)) return;
+    if (!(view instanceof import_obsidian22.MarkdownView)) return;
     const path = view.file && view.file.path;
     const isCard = !!(path && this.scrabb && this.scrabb.ready && this.scrabb.get(path));
     if (isCard && !view.lmpScrabbAction) {
@@ -14042,7 +14116,7 @@ Fonte: ${source}`;
     const ws = this.app.workspace;
     let leaf = ws.getLeavesOfType(CHAT_VIEW_TYPE)[0];
     if (!leaf) {
-      leaf = import_obsidian21.Platform.isMobile ? ws.getLeaf("tab") : ws.getRightLeaf(false);
+      leaf = import_obsidian22.Platform.isMobile ? ws.getLeaf("tab") : ws.getRightLeaf(false);
       await leaf.setViewState({ type: CHAT_VIEW_TYPE, active: true });
     }
     await ws.revealLeaf(leaf);
@@ -14077,10 +14151,10 @@ Fonte: ${source}`;
   }
   /** Ultimo backup di JW Library importato (base per l'esportazione). Calcolato: jwlBase.path può avere una cartella vecchia. */
   get jwlBasePath() {
-    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library/backup-base.jwlibrary`);
+    return (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/JW Library/backup-base.jwlibrary`);
   }
   get positionPath() {
-    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library/position.json`);
+    return (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/JW Library/position.json`);
   }
   /**
    * Dove si è arrivati a leggere (Bibbia e ogni documento), condiviso tra dispositivi: vince la lettura più recente.
@@ -14122,7 +14196,7 @@ Fonte: ${source}`;
       const par = /\^p(\d+)/.exec(subpath || "");
       if (d) return this.openLibraryDoc(d, par ? +par[1] : void 0);
       if (file.extension !== "md") return window.open(fileSrc(this.app, file));
-      return new import_obsidian21.Notice(t("Questo file si apre solo dentro Lampada"));
+      return new import_obsidian22.Notice(t("Questo file si apre solo dentro Lampada"));
     }
     const leaf = this.app.workspace.getLeaf(mode === "split" ? "split" : "tab");
     await leaf.openFile(file, subpath ? { eState: { subpath } } : void 0);
@@ -14158,7 +14232,7 @@ Fonte: ${source}`;
   /** Tutte le note (blocchi JW Library) nella cartella delle note, con le loro etichette. */
   async collectTaggedNotes() {
     await this.loadTagNames();
-    const folder = (0, import_obsidian21.normalizePath)(this.settings.notesFolder);
+    const folder = (0, import_obsidian22.normalizePath)(this.settings.notesFolder);
     const out = [];
     for (const f of this.app.vault.getMarkdownFiles()) {
       if (!f.path.startsWith(`${folder}/`)) continue;
@@ -14293,7 +14367,7 @@ Fonte: ${source}`;
       this.bmTomb[bookmarkKey(place)] = Date.now();
     } else this.bookmarks.push({ ...place, created: Date.now(), t: Date.now() });
     this.requestSave(true);
-    new import_obsidian21.Notice(existing ? t("Segnalibro rimosso") : t("Segnalibro aggiunto"));
+    new import_obsidian22.Notice(existing ? t("Segnalibro rimosso") : t("Segnalibro aggiunto"));
   }
   /** Aperti di recente (capitoli della Bibbia e documenti), su questo dispositivo. */
   addRecent(place) {
@@ -14330,7 +14404,7 @@ Fonte: ${source}`;
       const row = el.createDiv("lmp-strip");
       for (const [, x] of items) {
         const chip = row.createEl("button", { cls: "lmp-chip", attr: { "aria-label": `${x.title} \xB7 ${x.sub}` } });
-        (0, import_obsidian21.setIcon)(chip.createSpan("lmp-chip-icon"), x.icon);
+        (0, import_obsidian22.setIcon)(chip.createSpan("lmp-chip-icon"), x.icon);
         chip.createSpan({ cls: "lmp-chip-text", text: x.title });
         chip.addEventListener("click", () => x.open());
       }
@@ -14344,7 +14418,7 @@ Fonte: ${source}`;
       const box = el.createDiv("lmp-places");
       for (const [p, x] of items) {
         const row = box.createDiv("lmp-place");
-        (0, import_obsidian21.setIcon)(row.createSpan("lmp-place-icon"), x.icon);
+        (0, import_obsidian22.setIcon)(row.createSpan("lmp-place-icon"), x.icon);
         const txt = row.createDiv("lmp-place-text");
         txt.createDiv({ cls: "lmp-place-title", text: x.title });
         txt.createDiv({ cls: "lmp-place-sub", text: x.sub });
@@ -14354,7 +14428,7 @@ Fonte: ${source}`;
         });
         if (!removable) continue;
         const del = row.createEl("button", { cls: "clickable-icon lmp-place-remove", attr: { "aria-label": t("Rimuovi segnalibro") } });
-        (0, import_obsidian21.setIcon)(del, "x");
+        (0, import_obsidian22.setIcon)(del, "x");
         del.addEventListener("click", (evt) => {
           evt.stopPropagation();
           this.toggleBookmark(p);
@@ -14365,8 +14439,12 @@ Fonte: ${source}`;
     section(t("Segnalibri"), [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true, "bookmarks");
     section(t("Aperti di recente"), this.ui.recent || [], false, "recent");
   }
+  /** Tutte le novità (CHANGELOG.md). */
+  showNews() {
+    new NewsModal(this.app, t("Novit\xE0 di Lampada"), newsBetween(CHANGELOG_default)).open();
+  }
   notePath(book, chapter, verse) {
-    return (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/${book.title} ${chapter}-${verse}.md`);
+    return (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/${book.title} ${chapter}-${verse}.md`);
   }
   /**
    * File delle note di un versetto: col nome nella lingua della Bibbia aperta, altrimenti per codice ("codice" nelle
@@ -14379,7 +14457,7 @@ Fonte: ${source}`;
   /** codice del versetto → file delle note (cartella delle note). Si ricostruisce quando quei file cambiano. */
   verseNotesByCode() {
     if (!this.verseNoteIdx) {
-      const folder = this.settings.notesFolder ? `${(0, import_obsidian21.normalizePath)(this.settings.notesFolder)}/` : "";
+      const folder = this.settings.notesFolder ? `${(0, import_obsidian22.normalizePath)(this.settings.notesFolder)}/` : "";
       const map = /* @__PURE__ */ new Map();
       for (const f of this.app.vault.getMarkdownFiles()) {
         if (!f.path.startsWith(folder)) continue;
@@ -14394,7 +14472,7 @@ Fonte: ${source}`;
     const path = this.notePath(book, chapter, verse);
     let file = this.verseNoteFile(book, chapter, verse);
     if (!file) {
-      const folder = (0, import_obsidian21.normalizePath)(this.settings.notesFolder);
+      const folder = (0, import_obsidian22.normalizePath)(this.settings.notesFolder);
       if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
       const label = `${book.title} ${chapter}:${verse}`;
       const content = [
@@ -14435,7 +14513,7 @@ ${md}
       this.app.workspace.setActiveLeaf(existing, { focus: true });
       return;
     }
-    const leaf = this.readerInMainArea() && !import_obsidian21.Platform.isPhone ? this.app.workspace.getLeaf("split", "vertical") : this.mainAreaLeaf();
+    const leaf = this.readerInMainArea() && !import_obsidian22.Platform.isPhone ? this.app.workspace.getLeaf("split", "vertical") : this.mainAreaLeaf();
     await leaf.openFile(file, { active: true });
   }
   readerInMainArea() {
@@ -14459,7 +14537,7 @@ ${md}
    */
   async pubNotesFor(doc) {
     if (!this.pubNoteIndex) {
-      const folder = (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
+      const folder = (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
       const map = /* @__PURE__ */ new Map();
       for (const f of this.app.vault.getMarkdownFiles()) {
         if (!f.path.startsWith(folder)) continue;
@@ -14476,7 +14554,7 @@ ${md}
     return this.pubNoteIndex.get(String(doc)) || [];
   }
   onPubNoteFileChange(f) {
-    const folder = (0, import_obsidian21.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
+    const folder = (0, import_obsidian22.normalizePath)(`${this.settings.notesFolder}/JW Library`) + "/";
     if (!f || !f.path.startsWith(folder) || !this.pubNoteIndex) return;
     this.pubNoteIndex = null;
     window.clearTimeout(this.pubNoteTimer);
@@ -14532,11 +14610,11 @@ ${md}
       return line;
     });
     if (!count) {
-      new import_obsidian21.Notice(t("Nessun riferimento da convertire."));
+      new import_obsidian22.Notice(t("Nessun riferimento da convertire."));
       return;
     }
     editor.replaceRange(out.join("\n"), from, to);
-    new import_obsidian21.Notice(count === 1 ? t("1 riferimento convertito in link") : t("{n} riferimenti convertiti in link", { n: count }));
+    new import_obsidian22.Notice(count === 1 ? t("1 riferimento convertito in link") : t("{n} riferimenti convertiti in link", { n: count }));
   }
   async showNoteRefs(file) {
     await this.bible.ensureLoaded();
@@ -14688,14 +14766,14 @@ ${md}
     const view = this.lastMarkdownView;
     const stillOpen = view && this.app.workspace.getLeavesOfType("markdown").some((l) => l.view === view);
     if (!stillOpen || !view.editor) {
-      new import_obsidian21.Notice(t("Apri prima una nota in cui inserire il versetto."));
+      new import_obsidian22.Notice(t("Apri prima una nota in cui inserire il versetto."));
       return;
     }
     view.editor.replaceSelection(this.fillTemplate(info));
-    new import_obsidian21.Notice(t("Inserito in {nota}", { nota: view.file ? view.file.basename : t("nota") }));
+    new import_obsidian22.Notice(t("Inserito in {nota}", { nota: view.file ? view.file.basename : t("nota") }));
   }
 };
 
 // src/main.js
 var main_default = LampadaPlugin;
-var _test = { langOfMeps, mepsOf, lingua: lingua_exports, dataDir, langRoot, epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
+var _test = { newsBetween, cmpVersion, langOfMeps, mepsOf, lingua: lingua_exports, dataDir, langRoot, epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };

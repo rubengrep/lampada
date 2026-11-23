@@ -766,4 +766,10 @@ export default {
   "Viola": "Purple",
   "Vista unica": "Single view",
   "Volantini e inviti": "Tracts and invitations",
+  "Mostra": "Show",
+  "Novità": "What's new",
+  "Novità di Lampada": "What's new in Lampada",
+  "Versione installata: {v}": "Installed version: {v}",
+  "Barra laterale destra": "Right sidebar",
+  "Barra laterale sinistra": "Left sidebar",
 };

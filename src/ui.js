@@ -97,6 +97,21 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
   }
   // Con il guscio stretto lo stesso pulsante è nelle linguette in basso (il CSS nasconde questo).
   if (shell) addAppToggle(tb, plugin);
+  // Tablet con Lampada unica scheda: la riga delle linguette di Obsidian si nasconde (styles.css) e i suoi due pulsanti
+  // delle barre laterali stanno qui, ai due capi della barra. Altrimenti il CSS li tiene nascosti.
+  if (shell) {
+    const ws = plugin.app.workspace;
+    for (const [side, icon, label, split] of [
+      ['left', 'sidebar-left', 'Barra laterale sinistra', () => ws.leftSplit],
+      ['right', 'sidebar-right', 'Barra laterale destra', () => ws.rightSplit],
+    ]) {
+      const b = createEl('button', { cls: `lmp-tb-btn clickable-icon lmp-sb-btn mod-${side}`, attr: { 'aria-label': t(label) } });
+      setIcon(b, icon);
+      b.addEventListener('click', () => split().toggle());
+      if (side === 'left') tb.prepend(b);
+      else tb.appendChild(b);
+    }
+  }
 }
 
 /** Sul telefono (barra nascosta): una sola azione "Vai a…" con lo stesso elenco del selettore. */

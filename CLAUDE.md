@@ -28,6 +28,7 @@ Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-format
 | `indice-note.js` | indice dei riferimenti biblici nelle note personali |
 | `testo.js` | utility: `norm`, `nameKey`, `verseCode`, `jwLibraryUrl`, `codesFromJwUrl`, `refFromCodes`, `stripFrontmatter` |
 | `lingua.js` + `lingue/en.js` | multilingua: `t('testo italiano', { valori })` → traduzione (chiave = l'italiano; manca → italiano), `lang()` per date/numeri/ordinamenti, `contentLang(settings)` = lingua dei contenuti da `bibleLang` (I, E…). `settings.uiLang` ('auto' = lingua di Obsidian; senza dizionario → inglese), evento `lampada:language` quando cambia. Nuova lingua: copia `lingue/en.js` e aggiungila a `DICTS`/`UI_LANGS`. Le estensioni: `addStrings(lingua, dict)` |
+| `novita.js` | novità dopo un aggiornamento: `CHANGELOG.md` incluso nel bundle come testo (loader `.md` di esbuild), `newsAfterUpdate` (una volta per versione, `settings.seenVersion`; niente alla prima installazione), `NewsModal`, comando e Impostazioni → Novità. Un'estensione lo usa col suo `CHANGELOG.md`: ognuno mostra solo le sue novità |
 | `costanti.js` | `DEFAULT_SETTINGS`, `EXTRA_ALIASES` (abbreviazioni dei libri), `INDEX_MIRROR` (= `index`, cartella degli indici) |
 | `ui.js` | componenti condivisi (segnalibri, barre, "Citato in", "Nelle mie note" `renderNoteCites`, anteprima di una pubblicazione citata `fillCitePreview`: popup nella Bibbia, `CitePreviewModal` nella Biblioteca) |
 | `main.js` (src) | punto di ingresso + `_test`: le funzioni usate da `test/` vanno esportate qui |
