@@ -2246,3 +2246,50 @@ button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-mo
 .is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view) * { scrollbar-width: none; }
 .is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view) ::-webkit-scrollbar,
 .is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view)::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+/* ---------- Immagine a tutto schermo (openImageViewer in ui.js) ---------- */
+:is(.lmp-md, .lmp-lib-doc-body, .scrabb-md) img:not(a img) { cursor: zoom-in; }
+.lmp-imgview {
+  position: fixed; inset: 0; z-index: var(--layer-modal, 50); display: flex; align-items: center; justify-content: center;
+  background: rgba(0, 0, 0, 0.92); touch-action: none; overflow: hidden; user-select: none; -webkit-user-select: none;
+  animation: lmp-imgview-in 0.15s ease-out;
+}
+.lmp-imgview img {
+  max-width: 100%; max-height: 100%; object-fit: contain; transform-origin: center; will-change: transform;
+  cursor: zoom-in; -webkit-touch-callout: none;
+}
+.lmp-imgview.is-zoomed img { cursor: grab; }
+.lmp-imgview-close {
+  position: absolute; top: calc(var(--safe-area-inset-top, 0px) + 10px); right: calc(var(--safe-area-inset-right, 0px) + 10px);
+  width: 44px; height: 44px; border-radius: 50%; color: #fff !important; background: rgba(0, 0, 0, 0.55) !important;
+}
+.lmp-imgview-cap {
+  position: absolute; left: 16px; right: 16px; bottom: calc(var(--safe-area-inset-bottom, 0px) + 12px);
+  color: rgba(255, 255, 255, 0.85); font-size: var(--font-ui-small); text-align: center; pointer-events: none;
+  max-height: 30%; overflow: hidden;
+}
+.lmp-imgview.is-zoomed .lmp-imgview-cap { display: none; }
+@keyframes lmp-imgview-in { from { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .lmp-imgview { animation: none; } }
+
+/* ---------- Schema del libro e del capitolo (renderOutline in bibbia-vista.js) ---------- */
+.lmp-outline { display: flex; flex-direction: column; }
+.lmp-outline-item {
+  display: block; cursor: pointer;
+  padding: 7px 8px 7px calc(8px + var(--depth, 0) * 16px); border-radius: 6px;
+  font-size: inherit; line-height: 1.35; color: var(--text-normal);
+}
+.lmp-outline-item.is-top { font-weight: 600; }
+.lmp-outline-item:hover { background: var(--background-modifier-hover); }
+.lmp-outline-item:focus-visible { outline: 2px solid var(--interactive-accent); outline-offset: -2px; }
+.lmp-outline-item.is-chapter {
+  margin-top: 10px; font-size: var(--font-ui-smaller); font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.lmp-outline-item.is-chapter:first-child { margin-top: 0; }
+.lmp-outline-item.is-current { box-shadow: inset 3px 0 0 var(--interactive-accent); border-radius: 0 6px 6px 0; }
+.lmp-outline-scope { display: flex; flex: 0 0 auto; gap: 2px; padding: 2px; border-radius: 8px; background: var(--background-modifier-hover); }
+.lmp-outline-scope button { box-shadow: none; background: transparent; height: 28px; padding: 0 10px; font-size: var(--font-ui-smaller); }
+.lmp-outline-scope button.is-active { background: var(--background-primary); color: var(--text-normal); font-weight: 600; box-shadow: var(--shadow-s); }
+.lmp-book-outline { margin-top: 22px; font-size: 14px; }
+.lmp-book-outline > summary { cursor: pointer; font-weight: 600; padding: 8px 0; color: var(--text-normal); }

@@ -562,8 +562,7 @@ class LibraryView extends ItemView {
     if (!f && !it.alt && !it.cap) return;
     const fig = el.createEl('figure', { cls: 'lmp-week-figure' });
     if (f) {
-      const img = fig.createEl('img', { attr: { src: fileSrc(this.app, f), alt: it.alt || '', loading: 'lazy' } });
-      img.addEventListener('click', () => this.plugin.openFileRaw(f, 'tab'));
+      fig.createEl('img', { attr: { src: fileSrc(this.app, f), alt: it.alt || '', loading: 'lazy' } });
     }
     if (it.cap) fig.createEl('figcaption', { cls: 'lmp-img-caption', text: it.cap });
     if (it.alt && it.alt !== it.cap) fig.createDiv({ cls: 'lmp-img-alt', text: it.alt });

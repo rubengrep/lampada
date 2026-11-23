@@ -25,7 +25,7 @@ import { JwlImportModal, JwlImporter } from './jwl-importa.js';
 import { SCRABB_ALL_LISTS, SCRABB_TEACHINGS, SCRABB_TYPES, SCRABB_VIEW_TYPE, ScrabbIndex, scrabbBody, scrabbFold, scrabbListOf } from './scrabb-dati.js';
 import { ScrabbNewModal, ScrabbPickModal, ScrabbSuggest, ScrabbView } from './scrabb-vista.js';
 import { categoryOf, cleanSnippet, codesFromJwUrl, formatNoteBlock, jwLibraryUrl, newGuid, parseCode, parseNoteFile, refFromCodes, sleep, stripFrontmatter, verseCode } from './testo.js';
-import { PlacesModal, bookmarkKey } from './ui.js';
+import { PlacesModal, bookmarkKey, openImageViewer, zoomableImage } from './ui.js';
 import { NewsModal, newsAfterUpdate, newsBetween } from './novita.js';
 import CHANGELOG from '../CHANGELOG.md';
 
@@ -1832,6 +1832,14 @@ class LampadaPlugin extends Plugin {
     for (const type of ['mousedown', 'mouseup', 'click']) {
       this.registerDomEvent(document, type, (evt) => this.onDocPointer(evt), { capture: true });
     }
+    // Immagini nei contenuti di Lampada: a tutto schermo con lo zoom, invece di aprire il file in una scheda.
+    this.registerDomEvent(document, 'click', (evt) => {
+      const img = zoomableImage(evt.target);
+      if (!img) return;
+      evt.preventDefault();
+      evt.stopPropagation();
+      openImageViewer(this.app, img.currentSrc || img.src, img.alt);
+    }, { capture: true });
     this.registerDomEvent(document, 'mouseover', (evt) => this.onDocHover(evt));
     this.registerDomEvent(document, 'mouseout', (evt) => this.onDocHoverOut(evt));
     this.hoverEl = document.body.createDiv('lmp-hover-card');

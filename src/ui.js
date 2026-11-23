@@ -369,4 +369,104 @@ function pubLangButton(plugin, parent, onClick) {
   return b;
 }
 
-export { AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, hasSelection, paneResizer, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
+/** Immagini dei contenuti di Lampada (studio, documenti, programma, schede): un tocco le apre a tutto schermo. */
+const ZOOMABLE = '.lmp-figure, .lmp-week-figure, .lmp-md, .lmp-lib-doc-body, .scrabb-md';
+function zoomableImage(target) {
+  const img = target instanceof HTMLImageElement ? target : null;
+  if (!img || !img.closest(ZOOMABLE) || img.closest('a, button')) return null;
+  return img.closest('.lmp-shell, .workspace-leaf-content[data-type^="lampada"], .lmp-hover-card, .modal') ? img : null;
+}
+
+/**
+ * Immagine a tutto schermo. Ingrandire: pizzico, doppio tocco (o doppio clic), rotella; trascinare: spostare.
+ * Chiudere: ✕, Esc, tocco fuori dall'immagine quando non è ingrandita.
+ */
+function openImageViewer(app, src, alt) {
+  const bg = document.body.createDiv('lmp-imgview');
+  const img = bg.createEl('img', { attr: { src, alt: alt || '', draggable: 'false' } });
+  if (alt) bg.createDiv({ cls: 'lmp-imgview-cap', text: alt });
+  const closeBtn = bg.createEl('button', { cls: 'lmp-imgview-close clickable-icon', attr: { 'aria-label': t('Chiudi') } });
+  setIcon(closeBtn, 'x');
+  let s = 1, x = 0, y = 0;
+  const apply = () => {
+    img.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+    bg.toggleClass('is-zoomed', s > 1);
+  };
+  // Ingrandisce di f tenendo fermo il punto (cx, cy) dello schermo.
+  const zoomAt = (f, cx, cy) => {
+    const r = bg.getBoundingClientRect();
+    const ox = cx - r.left - r.width / 2, oy = cy - r.top - r.height / 2;
+    const ns = Math.min(8, Math.max(1, s * f));
+    x = ox - ((ox - x) * ns) / s;
+    y = oy - ((oy - y) * ns) / s;
+    s = ns;
+    if (s === 1) x = y = 0;
+    apply();
+  };
+  const scope = new Scope(app.scope);
+  const close = () => {
+    app.keymap.popScope(scope);
+    bg.remove();
+  };
+  scope.register([], 'Escape', () => (close(), false));
+  app.keymap.pushScope(scope);
+  closeBtn.addEventListener('click', close);
+  bg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    zoomAt(Math.exp(-e.deltaY * 0.0025), e.clientX, e.clientY);
+  }, { passive: false });
+
+  const pts = new Map();
+  let pinch = null, moved = false, lastTap = 0, downAt = 0, onImg = false;
+  const two = () => {
+    const [a, b] = [...pts.values()];
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+  };
+  bg.addEventListener('pointerdown', (e) => {
+    if (e.target === closeBtn || closeBtn.contains(e.target)) return;
+    try { bg.setPointerCapture(e.pointerId); } catch { /* puntatore già sparito */ }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) { moved = false; downAt = Date.now(); onImg = e.target === img; }
+    if (pts.size === 2) pinch = two();
+  });
+  bg.addEventListener('pointermove', (e) => {
+    const p = pts.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+    p.x = e.clientX;
+    p.y = e.clientY;
+    if (pts.size === 2 && pinch) {
+      const now = two();
+      zoomAt(now.d / (pinch.d || 1), now.cx, now.cy);
+      x += now.cx - pinch.cx;
+      y += now.cy - pinch.cy;
+      if (s === 1) x = y = 0;
+      apply();
+      pinch = now;
+    } else if (pts.size === 1 && s > 1) {
+      x += dx;
+      y += dy;
+      apply();
+    }
+  });
+  const up = (e) => {
+    if (!pts.delete(e.pointerId)) return;
+    if (pts.size < 2) pinch = null;
+    if (pts.size || moved || Date.now() - downAt > 400) return;
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      lastTap = 0;
+      if (s > 1) { s = 1; x = y = 0; apply(); } else zoomAt(2.5, e.clientX, e.clientY);
+    } else {
+      lastTap = now;
+      // Tocco singolo fuori dall'immagine, non ingrandita: chiude (dopo l'attesa del doppio tocco).
+      if (!onImg && s === 1) window.setTimeout(() => lastTap === now && close(), 300);
+    }
+  };
+  bg.addEventListener('pointerup', up);
+  bg.addEventListener('pointercancel', up);
+  return close;
+}
+
+export { openImageViewer, zoomableImage, AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, hasSelection, paneResizer, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };

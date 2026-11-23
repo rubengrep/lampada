@@ -1,5 +1,10 @@
 # Novità
 
+## 0.21.0 — 2026-11-23
+
+- Bibbia: schema del capitolo e del libro. Nel lettore, il pulsante «Schema del capitolo» (sul telefono nel menu ⋯) apre i punti del capitolo nel pannello; con «Libro» si vede tutto lo schema, col capitolo aperto segnato. Toccando un punto si va al versetto. Nella pagina del libro, sotto i capitoli, «Schema del libro». Viene dal sommario o dalla panoramica della Bibbia scaricata.
+- Immagini: nello studio, nei documenti, nel programma dell'adunanza e nelle schede un tocco apre l'immagine a tutto schermo. Si ingrandisce col pizzico, col doppio tocco o con la rotella, e si sposta trascinando. Si chiude con ✕, Esc o un tocco fuori dall'immagine.
+
 ## 0.20.3 — 2026-11-23
 
 - Più spazio per il testo: scorrendo non c'è più la riga in fondo con percentuale e minuti. Resta solo nella lettura a pagine («Pagina 3 di 7»).

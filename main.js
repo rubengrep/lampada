@@ -828,7 +828,12 @@ var en_default = {
   "Novit\xE0": "What's new",
   "Novit\xE0 di Lampada": "What's new in Lampada",
   "Versione installata: {v}": "Installed version: {v}",
-  "Trascina per cambiare la larghezza": "Drag to change the width"
+  "Trascina per cambiare la larghezza": "Drag to change the width",
+  "Schema del capitolo": "Chapter outline",
+  "Schema del libro": "Book outline",
+  "Questa Bibbia non ha lo schema dei libri.": "This Bible has no book outlines.",
+  "Capitolo {n}": "Chapter {n}",
+  "Salmo": "Psalm"
 };
 
 // src/lingua.js
@@ -1408,6 +1413,23 @@ function parseRefLinks(md) {
 function codesFromJwUrl(url) {
   const m = /bible=(\d{7,8})(?:-(\d{7,8}))?/.exec(url);
   return m ? [m[1], m[2]] : null;
+}
+function parseOutline(md, bookNum) {
+  const out = [];
+  for (const line of stripFrontmatter(md).split("\n")) {
+    const m = /^(\s*)[-*]\s+(.*\S)\s*$/.exec(line);
+    if (!m) continue;
+    const link = /\]\(jwlibrary:\/\/\/?finder\?[^)\s]*bible=(\d{7,8})(?:-(\d{7,8}))?/.exec(m[2]);
+    if (!link) continue;
+    const a = parseCode(link[1]);
+    const b = parseCode(link[2] || link[1]);
+    if (a.book !== bookNum) continue;
+    const label = m[2].replace(/\s*\^[\w-]+$/, "").replace(JWLIB_LINK_RE, "$1").replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1").replace(/\*\*|__/g, "").replace(/\s+/g, " ").trim();
+    out.push({ depth: m[1].replace(/\t/g, "    ").length >> 2, label, chapter: a.chapter, verse: a.verse, endChapter: b.chapter, endVerse: b.verse });
+  }
+  const min = Math.min(...out.map((o) => o.depth));
+  for (const o of out) o.depth -= min;
+  return out;
 }
 function cleanSnippet(line) {
   return line.replace(/\]\([^)]*\)/g, "]").replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, "$2").replace(/[\[\]]/g, "").replace(/^\s*(?:[#>\-*+]|\d+\.)+\s*/, "").replace(/[*_]{1,3}/g, "").trim();
@@ -2032,6 +2054,7 @@ var BibleData = class {
     this.loadPromise = null;
     this.pubFolders = [];
     this.bookInfo = /* @__PURE__ */ new Map();
+    this.outlines = /* @__PURE__ */ new Map();
     this.verseDataCache = /* @__PURE__ */ new Map();
   }
   /** Cartella delle pubblicazioni nella lingua scelta (costanti.js, langRoot). */
@@ -2066,6 +2089,7 @@ var BibleData = class {
     this.loadPromise = null;
     this.docPubs = null;
     this.bookInfo.clear();
+    this.outlines.clear();
     this.verseDataCache.clear();
     this.chapterCache.clear();
     this.docCache.clear();
@@ -2222,6 +2246,22 @@ var BibleData = class {
     }
     this.bookInfo.set(book.num, info);
     return info;
+  }
+  /** Schema del libro: tra i documenti collegati dalla nota del libro, l'elenco di passi più lungo (Sommario, Panoramica). */
+  async getOutline(book) {
+    if (this.outlines.has(book.num)) return this.outlines.get(book.num);
+    let items = [];
+    const file = this.getFile(this.bookPath(book));
+    if (file) {
+      for (const m of stripFrontmatter(await readFile(this.app, file)).matchAll(/^- \[\[([^\]|]+)\|[^\]]+\]\]/gm)) {
+        const doc = this.resolveLink(m[1], file.path);
+        const found = doc ? parseOutline(await this.readDoc(doc), book.num) : [];
+        if (found.length > items.length) items = found;
+      }
+      if (items.length < 8) items = [];
+    }
+    this.outlines.set(book.num, items);
+    return items;
   }
   async getChapter(bookNum, ch) {
     const key = `${bookNum}:${ch}`;
@@ -4616,6 +4656,107 @@ function pubLangButton(plugin, parent, onClick) {
   });
   return b;
 }
+var ZOOMABLE = ".lmp-figure, .lmp-week-figure, .lmp-md, .lmp-lib-doc-body, .scrabb-md";
+function zoomableImage(target) {
+  const img = target instanceof HTMLImageElement ? target : null;
+  if (!img || !img.closest(ZOOMABLE) || img.closest("a, button")) return null;
+  return img.closest('.lmp-shell, .workspace-leaf-content[data-type^="lampada"], .lmp-hover-card, .modal') ? img : null;
+}
+function openImageViewer(app, src, alt) {
+  const bg = document.body.createDiv("lmp-imgview");
+  const img = bg.createEl("img", { attr: { src, alt: alt || "", draggable: "false" } });
+  if (alt) bg.createDiv({ cls: "lmp-imgview-cap", text: alt });
+  const closeBtn = bg.createEl("button", { cls: "lmp-imgview-close clickable-icon", attr: { "aria-label": t("Chiudi") } });
+  (0, import_obsidian8.setIcon)(closeBtn, "x");
+  let s = 1, x = 0, y = 0;
+  const apply = () => {
+    img.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+    bg.toggleClass("is-zoomed", s > 1);
+  };
+  const zoomAt = (f, cx, cy) => {
+    const r = bg.getBoundingClientRect();
+    const ox = cx - r.left - r.width / 2, oy = cy - r.top - r.height / 2;
+    const ns = Math.min(8, Math.max(1, s * f));
+    x = ox - (ox - x) * ns / s;
+    y = oy - (oy - y) * ns / s;
+    s = ns;
+    if (s === 1) x = y = 0;
+    apply();
+  };
+  const scope = new import_obsidian8.Scope(app.scope);
+  const close = () => {
+    app.keymap.popScope(scope);
+    bg.remove();
+  };
+  scope.register([], "Escape", () => (close(), false));
+  app.keymap.pushScope(scope);
+  closeBtn.addEventListener("click", close);
+  bg.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    zoomAt(Math.exp(-e.deltaY * 25e-4), e.clientX, e.clientY);
+  }, { passive: false });
+  const pts = /* @__PURE__ */ new Map();
+  let pinch = null, moved = false, lastTap = 0, downAt = 0, onImg = false;
+  const two = () => {
+    const [a, b] = [...pts.values()];
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
+  };
+  bg.addEventListener("pointerdown", (e) => {
+    if (e.target === closeBtn || closeBtn.contains(e.target)) return;
+    try {
+      bg.setPointerCapture(e.pointerId);
+    } catch {
+    }
+    pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pts.size === 1) {
+      moved = false;
+      downAt = Date.now();
+      onImg = e.target === img;
+    }
+    if (pts.size === 2) pinch = two();
+  });
+  bg.addEventListener("pointermove", (e) => {
+    const p = pts.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
+    p.x = e.clientX;
+    p.y = e.clientY;
+    if (pts.size === 2 && pinch) {
+      const now = two();
+      zoomAt(now.d / (pinch.d || 1), now.cx, now.cy);
+      x += now.cx - pinch.cx;
+      y += now.cy - pinch.cy;
+      if (s === 1) x = y = 0;
+      apply();
+      pinch = now;
+    } else if (pts.size === 1 && s > 1) {
+      x += dx;
+      y += dy;
+      apply();
+    }
+  });
+  const up = (e) => {
+    if (!pts.delete(e.pointerId)) return;
+    if (pts.size < 2) pinch = null;
+    if (pts.size || moved || Date.now() - downAt > 400) return;
+    const now = Date.now();
+    if (now - lastTap < 300) {
+      lastTap = 0;
+      if (s > 1) {
+        s = 1;
+        x = y = 0;
+        apply();
+      } else zoomAt(2.5, e.clientX, e.clientY);
+    } else {
+      lastTap = now;
+      if (!onImg && s === 1) window.setTimeout(() => lastTap === now && close(), 300);
+    }
+  };
+  bg.addEventListener("pointerup", up);
+  bg.addEventListener("pointercancel", up);
+  return close;
+}
 
 // src/scrabb-vista.js
 var ScrabbSuggest = class extends import_obsidian9.EditorSuggest {
@@ -6991,6 +7132,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.nextBtn = btn("chevron-right", t("Capitolo successivo (\u2192)"), () => this.stepChapter(1), "lmp-reader-only");
     btn("search", t("Cerca ovunque"), () => this.plugin.openSearch(this));
     this.parBtn = btn("columns-3", t("Racconti paralleli"), () => this.toggleParallels(), "lmp-reader-only lmp-desktop-only");
+    this.outlineBtn = btn("list-tree", t("Schema del capitolo"), () => this.openOutline(), "lmp-reader-only lmp-desktop-only");
     this.histBtn = btn("history", t("Aperti di recente"), () => new PlacesModal(this.plugin, null, "recent").open(), "lmp-desktop-only");
     btn("bookmark", t("Segnalibri"), () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open(), "lmp-desktop-only lmp-rail-keep");
     btn("type", t("Aspetto del testo"), () => new ReadingModal(this.plugin).open(), "lmp-desktop-only");
@@ -7041,6 +7183,8 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     menu.addItem((i) => i.setTitle(t("Aspetto del testo\u2026")).setIcon("type").onClick(() => new ReadingModal(this.plugin).open()));
     menu.addSeparator();
     if (this.state.mode === "reader") {
+      if (import_obsidian12.Platform.isPhone || this.outlineBtn && !this.outlineBtn.offsetParent)
+        menu.addItem((i) => i.setTitle(t("Schema del capitolo")).setIcon("list-tree").onClick(() => this.openOutline()));
       menu.addItem(
         (i) => i.setTitle(this.paneVisible ? t("Nascondi pannello di studio") : t("Mostra pannello di studio")).setIcon("panel-right").onClick(() => this.togglePane())
       );
@@ -7520,6 +7664,17 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     }
     const file = this.bible.getFile(this.bible.bookPath(book));
     if (!file) return;
+    this.bible.getOutline(book).then((items) => {
+      if (!items.length || token !== this.renderToken) return;
+      const box = wrap.createEl("details", { cls: "lmp-book-outline" });
+      box.open = !!this.plugin.ui.bookOutlineOpen;
+      box.addEventListener("toggle", () => {
+        this.plugin.ui.bookOutlineOpen = box.open;
+        this.plugin.requestSave();
+      });
+      box.createEl("summary", { text: t("Schema del libro") });
+      this.renderOutline(box, items, { book, pick: (it) => this.navigate({ book: book.num, chapter: it.chapter, at: it.verse }) });
+    });
     const text = stripFrontmatter(await readFile(this.app, file));
     if (token !== this.renderToken) return;
     for (const line of text.split("\n")) {
@@ -8185,7 +8340,8 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     else if (top && top.ai) {
       this.paneHeader(top.title, { back: () => this.dropPaneAi(top.ai) });
       this.paneEl.createDiv("lmp-pane-content").appendChild(top.ai);
-    } else if (top) await this.renderPaneDoc(top, comp, token);
+    } else if (top && top.outline) await this.renderPaneOutline(top, token);
+    else if (top) await this.renderPaneDoc(top, comp, token);
     else await this.renderPaneVerse(comp, token);
   }
   paneHeader(title, { back, extra } = {}) {
@@ -8215,6 +8371,63 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     if (extra) extra(iconBtn);
     iconBtn("x", t("Chiudi"), () => this.clearSelection());
     return header;
+  }
+  /* ---------------- schema (Sommario o Panoramica del libro) ---------------- */
+  /** Nel pannello: lo schema del capitolo aperto, o di tutto il libro (scope 'chapter' | 'book'). */
+  async openOutline(scope = "chapter") {
+    if (this.state.mode !== "reader" || !this.chapterData) return;
+    const items = await this.bible.getOutline(this.chapterData.book);
+    if (!items.length) return new import_obsidian12.Notice(t("Questa Bibbia non ha lo schema dei libri."));
+    this.selected.clear();
+    this.primary = null;
+    this.decorateVerses();
+    this.paneVisible = true;
+    this.paneStack = [{ outline: scope }];
+    this.renderPane();
+  }
+  async renderPaneOutline(entry, token) {
+    const { book, chapter } = this.chapterData;
+    const items = await this.bible.getOutline(book);
+    if (token !== this.paneToken) return;
+    const whole = entry.outline === "book";
+    const header = this.paneHeader(whole ? book.title : `${this.bible.bookName(book, true)} ${chapter}`);
+    const seg = createDiv("lmp-outline-scope");
+    header.insertBefore(seg, header.lastChild);
+    for (const [scope, label] of [["chapter", t("Capitolo")], ["book", t("Libro")]]) {
+      const b = seg.createEl("button", { text: label, cls: entry.outline === scope ? "is-active" : "" });
+      b.addEventListener("click", () => {
+        entry.outline = scope;
+        this.renderPane();
+      });
+    }
+    const content = this.paneEl.createDiv("lmp-pane-content");
+    const inChapter = (it) => it.chapter <= chapter && it.endChapter >= chapter;
+    const list = whole ? items : items.filter((it) => inChapter(it) && it.label !== String(it.chapter));
+    this.renderOutline(content, list, {
+      book,
+      current: whole ? inChapter : null,
+      pick: async (it) => {
+        if (it.chapter === chapter) return this.scrollToVerse(it.verse, true, 0, true);
+        await this.navigate({ book: book.num, chapter: it.chapter, at: it.verse });
+        this.openOutline(entry.outline);
+      }
+    });
+    if (whole) content.querySelector(`.is-current[data-ch="${chapter}"]`)?.scrollIntoView({ block: "center" });
+  }
+  /** Elenco dello schema: i numeri soli (Sommario) sono i titoli dei capitoli. */
+  renderOutline(el, items, { book, current, pick }) {
+    const chName = (n) => book.num === 19 ? `${book.chapterName || t("Salmo")} ${n}` : t("Capitolo {n}", { n });
+    const list = el.createDiv("lmp-outline");
+    for (const it of items) {
+      const ch = it.label === String(it.chapter);
+      const row = list.createDiv({ cls: `lmp-outline-item${ch ? " is-chapter" : ""}`, text: ch ? chName(it.chapter) : it.label, attr: { role: "button", tabindex: "0" } });
+      row.addEventListener("keydown", (e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), pick(it)));
+      row.style.setProperty("--depth", String(ch ? 0 : it.depth));
+      if (!ch && !it.depth) row.addClass("is-top");
+      row.dataset.ch = String(it.chapter);
+      if (current && current(it)) row.addClass("is-current");
+      row.addEventListener("click", () => pick(it));
+    }
   }
   async renderPaneVerse(comp, token) {
     const d = this.chapterData;
@@ -8750,8 +8963,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
         continue;
       }
       const fig = grid.createEl("figure", { cls: "lmp-figure" });
-      const img = fig.createEl("img", { attr: { src: fileSrc(this.app, file), loading: "lazy", alt: caption } });
-      img.addEventListener("click", () => this.plugin.openFileRaw(file, "tab"));
+      fig.createEl("img", { attr: { src: fileSrc(this.app, file), loading: "lazy", alt: caption } });
       if (caption) fig.createEl("figcaption", { text: caption });
     }
     if (fallback.length) renderMd(this.app, fallback.join("\n"), el.createDiv("lmp-md"), sourcePath, comp);
@@ -9658,8 +9870,7 @@ var LibraryView = class extends import_obsidian13.ItemView {
     if (!f && !it.alt && !it.cap) return;
     const fig = el.createEl("figure", { cls: "lmp-week-figure" });
     if (f) {
-      const img = fig.createEl("img", { attr: { src: fileSrc(this.app, f), alt: it.alt || "", loading: "lazy" } });
-      img.addEventListener("click", () => this.plugin.openFileRaw(f, "tab"));
+      fig.createEl("img", { attr: { src: fileSrc(this.app, f), alt: it.alt || "", loading: "lazy" } });
     }
     if (it.cap) fig.createEl("figcaption", { cls: "lmp-img-caption", text: it.cap });
     if (it.alt && it.alt !== it.cap) fig.createDiv({ cls: "lmp-img-alt", text: it.alt });
@@ -13028,7 +13239,7 @@ async function newsAfterUpdate(plugin, md, title, settings, save, isNew) {
 }
 
 // CHANGELOG.md
-var CHANGELOG_default = "# Novit\xE0\n\n## 0.20.3 \u2014 2026-11-23\n\n- Pi\xF9 spazio per il testo: scorrendo non c'\xE8 pi\xF9 la riga in fondo con percentuale e minuti. Resta solo nella lettura a pagine (\xABPagina 3 di 7\xBB).\n- Oggi: il pulsante della lingua delle pubblicazioni accanto alla data.\n- Telefono e tablet: niente barre di scorrimento nelle viste di Lampada.\n- Oggi: il testo di \xABCerca o chiedi\xBB non esce pi\xF9 dal riquadro sugli schermi stretti.\n\n## 0.20.2 \u2014 2026-11-23\n\n- iPhone Duo aperto e tablet: selezionando il testo, la barra dei colori sta in colonna sul bordo del testo, a met\xE0 altezza, a portata di pollice e lontana dal menu di iOS. Sul telefono resta in basso.\n\n## 0.20.1 \u2014 2026-11-23\n\n- Telefono: il pannello del versetto che sale dal basso era diventato una striscia stretta a sinistra; torna largo quanto lo schermo.\n- Modalit\xE0 app, iPhone Duo aperto (o tablet) in orizzontale: strumenti e sezioni in una sola colonna laterale, il testo guadagna larghezza. Sul Duo chiuso restano due colonne.\n\n## 0.20.0 \u2014 2026-11-23\n\n- Modalit\xE0 app, telefono e tablet in orizzontale (anche iPhone Duo): i comandi vanno in colonna sul lato dove arriva il pollice, il testo prende tutta l'altezza. Indietro in alto, le azioni a met\xE0, le sezioni in basso nella colonna accanto all'ora e al Wi\u2011Fi. In verticale le sezioni stanno sempre in basso.\n- Modalit\xE0 normale: torna la riga delle linguette di Obsidian, cos\xEC si vede la differenza con la modalit\xE0 app.\n- Pannello di studio affiancato (Bibbia e Biblioteca): si allarga o si stringe trascinando il bordo; doppio tocco per la misura di prima.\n- Selezione del testo: la barra dei colori sta in basso anche sul tablet e sull'iPhone Duo aperto, dove il menu di iOS (Copia, Cerca info\u2026) non la copre.\n- Selezionando il testo nella Bibbia il testo non salta pi\xF9: niente pi\xF9 swipe per cambiare capitolo (si usano \u2039 \u203A) e le barre restano ferme mentre si trascinano le maniglie.\n\n## 0.19.0 \u2014 2026-11-23\n\n- Dopo un aggiornamento si apre una finestra con le novit\xE0. Tutte le novit\xE0 anche da Impostazioni \u2192 Novit\xE0 o dal comando \xABNovit\xE0 di Lampada\xBB.\n- iPad e iPhone pieghevole aperto: con Lampada unica scheda, la riga delle linguette di Obsidian sparisce e i pulsanti delle barre laterali passano nella barra di Lampada. Tolta anche la fascia vuota tra le linguette e la barra di Lampada: pi\xF9 spazio per il testo.\n\n## 0.18.0 \u2014 2026-11-23\n\n- Lampada in italiano e in inglese: segue la lingua di Obsidian, si cambia in Impostazioni \u2192 Lingua.\n- Pubblicazioni in pi\xF9 lingue: ogni lingua ha la sua biblioteca. Il pulsante \xABIT\xBB (pagina dei libri, Biblioteca, intestazione di una pubblicazione, accanto al titolo di un articolo) passa a un'altra lingua restando sulla stessa pagina, o scarica la pubblicazione in quella lingua.\n- Le note di JW Library sui versetti e sui paragrafi si vedono in tutte le lingue, come in JW Library. Le evidenziazioni restano nella loro lingua.\n- Backup di JW Library: le evidenziazioni di pi\xF9 lingue entrano ed escono ognuna nella sua; le risposte valgono in tutte le lingue.\n- Chi aveva gi\xE0 scaricato la Bibbia in un'altra lingua la ritrova dov'era.\n- Telefono: quando le barre si chiudono o si riaprono scorrendo, il testo resta fermo sotto il dito (prima per un attimo saltava).\n- iPhone: la barra dei colori non resta pi\xF9 sotto il menu Copia/Condividi.\n- Tablet e telefono: toccando i libri della Bibbia non si apre pi\xF9 la barra laterale di Obsidian.\n\n## 0.17.1 \u2014 2026-11-21\n\n- Tablet e telefono: toccando il selettore Bibbia/Biblioteca in alto (o le linguette in basso) non si apre pi\xF9 la barra laterale di Obsidian\n\n## 0.17.0 \u2014 2026-11-21\n\n- \xABCitato in\xBB nella Biblioteca: toccando una pubblicazione o un video si apre un'anteprima con i paragrafi; da l\xEC si entra nel punto giusto\n\n## 0.16.1 \u2014 2026-11-21\n\n- Biblioteca: in \xABNelle mie note\xBB si vedono le righe delle note che citano il versetto, come nella Bibbia\n\n## 0.16.0 \u2014 2026-11-21\n\n- Nella scheda vuota di Obsidian c'\xE8 \xABApri Lampada\xBB, accanto a Nuova nota e Nuova Base\n\n## 0.15.3 \u2014 2026-11-21\n\n- Lettore sul telefono: barra in alto pi\xF9 libera (segnalibri, recenti, racconti paralleli e aspetto del testo nel menu \u22EF), si legge dove sei\n\n## 0.15.2 \u2014 2026-11-21\n\n- Pannello del versetto: le pillole delle sezioni stanno su una riga e scorrono di lato\n\n## 0.15.1 \u2014 2026-11-21\n\n- Pannello del versetto: nomi pi\xF9 chiari e uguali ovunque (Note JW Library, Approfondimenti, Rbi8, Nelle mie note)\n\n## 0.15.0 \u2014 2026-11-21\n\n- Impostazioni \u2192 Pannello del versetto: scegli l'ordine delle sezioni (le tue note, studio, note in calce, riferimenti, Bibbia con riferimenti, nelle mie note, media, citato in, SCRABB). Le schede in alto seguono lo stesso ordine.\n\n## 0.14.1 \u2014 2026-11-21\n\n- Backup JW Library: i titoli lunghi delle note non vengono pi\xF9 accorciati quando il taglio a 160 caratteri cade su uno spazio.\n\n## 0.14.0 \u2014 2026-11-21\n\n- Segnalibri e recenti separati: nella barra c'\xE8 un'icona Recenti (orologio) accanto ai Segnalibri; nelle home un Tutti per ogni riga.\n\n## 0.13.1 \u2014 2026-11-21\n\n- Biblioteca, pannello del paragrafo: su tablet e telefono le azioni (Collega a SCRABB, Copia, JW Library, Spunti) vanno a capo e sono tutte raggiungibili.\n\n## 0.13.0 \u2014 2026-11-21\n\n- Bibbia: se nel vault ci sono pi\xF9 Bibbie complete, si sceglie quale usare dalla pagina dei libri o dal menu \u22EF del lettore. Si resta sullo stesso capitolo.\n\n## 0.12.0 \u2014 2026-11-21\n\n- Biblioteca: nell'intestazione di una pubblicazione le estensioni possono dire da dove arriva e offrire un pulsante.\n\n## 0.11.0 \u2014 2026-11-21\n\n- Biblioteca: pulsante cestino per togliere una pubblicazione o un solo numero (note, immagini, indici). La Bibbia in uso non si toglie.\n\n## 0.10.0 \u2014 2026-11-21\n\n- Importazione EPUB: titoli senza tag HTML, simbolo scritto come sul sito (T-31), i volantini e le altre pubblicazioni nuove vanno nella loro categoria quando \xE8 nota. Le estensioni possono scaricare una pubblicazione in EPUB (anche sul telefono).\n\n## 0.9.0 \u2014 2026-11-21\n\n- Nel programma della settimana le estensioni possono aggiungere un'icona accanto ai link (per esempio la trascrizione di un video).\n\n## 0.8.0 \u2014 2026-11-21\n\n- Le estensioni possono aggiungere pagine dentro la Biblioteca (una riga nella home, con il tasto indietro della biblioteca).\n\n## 0.7.2 \u2014 2026-11-21\n\n- La finestra \xABScarica da jw.org\xBB mostra i titoli puliti; \xABAnnulla\xBB sulla Bibbia con riferimenti non d\xE0 pi\xF9 errore; le estensioni possono usare la stessa finestra.\n\n## 0.7.1 \u2014 2026-11-21\n\n- Prima di ogni download da jw.org: finestra con l'indirizzo esatto del file, le condizioni d'uso del sito e la barra di avanzamento.\n\n## 0.7.0 \u2014 2026-11-21\n\n- Importa le pubblicazioni dagli EPUB (da file, per simbolo, nuovi numeri), con programma delle adunanze, campi risposta e testi delle immagini. Al primo avvio si scarica la Bibbia scegliendo la lingua. L'indice delle parole di Chiedi si crea anche dal telefono.\n\n";
+var CHANGELOG_default = "# Novit\xE0\n\n## 0.21.0 \u2014 2026-11-23\n\n- Bibbia: schema del capitolo e del libro. Nel lettore, il pulsante \xABSchema del capitolo\xBB (sul telefono nel menu \u22EF) apre i punti del capitolo nel pannello; con \xABLibro\xBB si vede tutto lo schema, col capitolo aperto segnato. Toccando un punto si va al versetto. Nella pagina del libro, sotto i capitoli, \xABSchema del libro\xBB. Viene dal sommario o dalla panoramica della Bibbia scaricata.\n- Immagini: nello studio, nei documenti, nel programma dell'adunanza e nelle schede un tocco apre l'immagine a tutto schermo. Si ingrandisce col pizzico, col doppio tocco o con la rotella, e si sposta trascinando. Si chiude con \u2715, Esc o un tocco fuori dall'immagine.\n\n## 0.20.3 \u2014 2026-11-23\n\n- Pi\xF9 spazio per il testo: scorrendo non c'\xE8 pi\xF9 la riga in fondo con percentuale e minuti. Resta solo nella lettura a pagine (\xABPagina 3 di 7\xBB).\n- Oggi: il pulsante della lingua delle pubblicazioni accanto alla data.\n- Telefono e tablet: niente barre di scorrimento nelle viste di Lampada.\n- Oggi: il testo di \xABCerca o chiedi\xBB non esce pi\xF9 dal riquadro sugli schermi stretti.\n\n## 0.20.2 \u2014 2026-11-23\n\n- iPhone Duo aperto e tablet: selezionando il testo, la barra dei colori sta in colonna sul bordo del testo, a met\xE0 altezza, a portata di pollice e lontana dal menu di iOS. Sul telefono resta in basso.\n\n## 0.20.1 \u2014 2026-11-23\n\n- Telefono: il pannello del versetto che sale dal basso era diventato una striscia stretta a sinistra; torna largo quanto lo schermo.\n- Modalit\xE0 app, iPhone Duo aperto (o tablet) in orizzontale: strumenti e sezioni in una sola colonna laterale, il testo guadagna larghezza. Sul Duo chiuso restano due colonne.\n\n## 0.20.0 \u2014 2026-11-23\n\n- Modalit\xE0 app, telefono e tablet in orizzontale (anche iPhone Duo): i comandi vanno in colonna sul lato dove arriva il pollice, il testo prende tutta l'altezza. Indietro in alto, le azioni a met\xE0, le sezioni in basso nella colonna accanto all'ora e al Wi\u2011Fi. In verticale le sezioni stanno sempre in basso.\n- Modalit\xE0 normale: torna la riga delle linguette di Obsidian, cos\xEC si vede la differenza con la modalit\xE0 app.\n- Pannello di studio affiancato (Bibbia e Biblioteca): si allarga o si stringe trascinando il bordo; doppio tocco per la misura di prima.\n- Selezione del testo: la barra dei colori sta in basso anche sul tablet e sull'iPhone Duo aperto, dove il menu di iOS (Copia, Cerca info\u2026) non la copre.\n- Selezionando il testo nella Bibbia il testo non salta pi\xF9: niente pi\xF9 swipe per cambiare capitolo (si usano \u2039 \u203A) e le barre restano ferme mentre si trascinano le maniglie.\n\n## 0.19.0 \u2014 2026-11-23\n\n- Dopo un aggiornamento si apre una finestra con le novit\xE0. Tutte le novit\xE0 anche da Impostazioni \u2192 Novit\xE0 o dal comando \xABNovit\xE0 di Lampada\xBB.\n- iPad e iPhone pieghevole aperto: con Lampada unica scheda, la riga delle linguette di Obsidian sparisce e i pulsanti delle barre laterali passano nella barra di Lampada. Tolta anche la fascia vuota tra le linguette e la barra di Lampada: pi\xF9 spazio per il testo.\n\n## 0.18.0 \u2014 2026-11-23\n\n- Lampada in italiano e in inglese: segue la lingua di Obsidian, si cambia in Impostazioni \u2192 Lingua.\n- Pubblicazioni in pi\xF9 lingue: ogni lingua ha la sua biblioteca. Il pulsante \xABIT\xBB (pagina dei libri, Biblioteca, intestazione di una pubblicazione, accanto al titolo di un articolo) passa a un'altra lingua restando sulla stessa pagina, o scarica la pubblicazione in quella lingua.\n- Le note di JW Library sui versetti e sui paragrafi si vedono in tutte le lingue, come in JW Library. Le evidenziazioni restano nella loro lingua.\n- Backup di JW Library: le evidenziazioni di pi\xF9 lingue entrano ed escono ognuna nella sua; le risposte valgono in tutte le lingue.\n- Chi aveva gi\xE0 scaricato la Bibbia in un'altra lingua la ritrova dov'era.\n- Telefono: quando le barre si chiudono o si riaprono scorrendo, il testo resta fermo sotto il dito (prima per un attimo saltava).\n- iPhone: la barra dei colori non resta pi\xF9 sotto il menu Copia/Condividi.\n- Tablet e telefono: toccando i libri della Bibbia non si apre pi\xF9 la barra laterale di Obsidian.\n\n## 0.17.1 \u2014 2026-11-21\n\n- Tablet e telefono: toccando il selettore Bibbia/Biblioteca in alto (o le linguette in basso) non si apre pi\xF9 la barra laterale di Obsidian\n\n## 0.17.0 \u2014 2026-11-21\n\n- \xABCitato in\xBB nella Biblioteca: toccando una pubblicazione o un video si apre un'anteprima con i paragrafi; da l\xEC si entra nel punto giusto\n\n## 0.16.1 \u2014 2026-11-21\n\n- Biblioteca: in \xABNelle mie note\xBB si vedono le righe delle note che citano il versetto, come nella Bibbia\n\n## 0.16.0 \u2014 2026-11-21\n\n- Nella scheda vuota di Obsidian c'\xE8 \xABApri Lampada\xBB, accanto a Nuova nota e Nuova Base\n\n## 0.15.3 \u2014 2026-11-21\n\n- Lettore sul telefono: barra in alto pi\xF9 libera (segnalibri, recenti, racconti paralleli e aspetto del testo nel menu \u22EF), si legge dove sei\n\n## 0.15.2 \u2014 2026-11-21\n\n- Pannello del versetto: le pillole delle sezioni stanno su una riga e scorrono di lato\n\n## 0.15.1 \u2014 2026-11-21\n\n- Pannello del versetto: nomi pi\xF9 chiari e uguali ovunque (Note JW Library, Approfondimenti, Rbi8, Nelle mie note)\n\n## 0.15.0 \u2014 2026-11-21\n\n- Impostazioni \u2192 Pannello del versetto: scegli l'ordine delle sezioni (le tue note, studio, note in calce, riferimenti, Bibbia con riferimenti, nelle mie note, media, citato in, SCRABB). Le schede in alto seguono lo stesso ordine.\n\n## 0.14.1 \u2014 2026-11-21\n\n- Backup JW Library: i titoli lunghi delle note non vengono pi\xF9 accorciati quando il taglio a 160 caratteri cade su uno spazio.\n\n## 0.14.0 \u2014 2026-11-21\n\n- Segnalibri e recenti separati: nella barra c'\xE8 un'icona Recenti (orologio) accanto ai Segnalibri; nelle home un Tutti per ogni riga.\n\n## 0.13.1 \u2014 2026-11-21\n\n- Biblioteca, pannello del paragrafo: su tablet e telefono le azioni (Collega a SCRABB, Copia, JW Library, Spunti) vanno a capo e sono tutte raggiungibili.\n\n## 0.13.0 \u2014 2026-11-21\n\n- Bibbia: se nel vault ci sono pi\xF9 Bibbie complete, si sceglie quale usare dalla pagina dei libri o dal menu \u22EF del lettore. Si resta sullo stesso capitolo.\n\n## 0.12.0 \u2014 2026-11-21\n\n- Biblioteca: nell'intestazione di una pubblicazione le estensioni possono dire da dove arriva e offrire un pulsante.\n\n## 0.11.0 \u2014 2026-11-21\n\n- Biblioteca: pulsante cestino per togliere una pubblicazione o un solo numero (note, immagini, indici). La Bibbia in uso non si toglie.\n\n## 0.10.0 \u2014 2026-11-21\n\n- Importazione EPUB: titoli senza tag HTML, simbolo scritto come sul sito (T-31), i volantini e le altre pubblicazioni nuove vanno nella loro categoria quando \xE8 nota. Le estensioni possono scaricare una pubblicazione in EPUB (anche sul telefono).\n\n## 0.9.0 \u2014 2026-11-21\n\n- Nel programma della settimana le estensioni possono aggiungere un'icona accanto ai link (per esempio la trascrizione di un video).\n\n## 0.8.0 \u2014 2026-11-21\n\n- Le estensioni possono aggiungere pagine dentro la Biblioteca (una riga nella home, con il tasto indietro della biblioteca).\n\n## 0.7.2 \u2014 2026-11-21\n\n- La finestra \xABScarica da jw.org\xBB mostra i titoli puliti; \xABAnnulla\xBB sulla Bibbia con riferimenti non d\xE0 pi\xF9 errore; le estensioni possono usare la stessa finestra.\n\n## 0.7.1 \u2014 2026-11-21\n\n- Prima di ogni download da jw.org: finestra con l'indirizzo esatto del file, le condizioni d'uso del sito e la barra di avanzamento.\n\n## 0.7.0 \u2014 2026-11-21\n\n- Importa le pubblicazioni dagli EPUB (da file, per simbolo, nuovi numeri), con programma delle adunanze, campi risposta e testi delle immagini. Al primo avvio si scarica la Bibbia scegliendo la lingua. L'indice delle parole di Chiedi si crea anche dal telefono.\n\n";
 
 // src/plugin.js
 var DEVICE_KEY = "lampada-lettura";
@@ -14657,6 +14868,13 @@ ${md}
     for (const type of ["mousedown", "mouseup", "click"]) {
       this.registerDomEvent(document, type, (evt) => this.onDocPointer(evt), { capture: true });
     }
+    this.registerDomEvent(document, "click", (evt) => {
+      const img = zoomableImage(evt.target);
+      if (!img) return;
+      evt.preventDefault();
+      evt.stopPropagation();
+      openImageViewer(this.app, img.currentSrc || img.src, img.alt);
+    }, { capture: true });
     this.registerDomEvent(document, "mouseover", (evt) => this.onDocHover(evt));
     this.registerDomEvent(document, "mouseout", (evt) => this.onDocHoverOut(evt));
     this.hoverEl = document.body.createDiv("lmp-hover-card");
@@ -14803,4 +15021,4 @@ ${md}
 
 // src/main.js
 var main_default = LampadaPlugin;
-var _test = { newsBetween, cmpVersion, langOfMeps, mepsOf, lingua: lingua_exports, dataDir, langRoot, epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
+var _test = { parseOutline, newsBetween, cmpVersion, langOfMeps, mepsOf, lingua: lingua_exports, dataDir, langRoot, epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };

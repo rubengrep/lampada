@@ -1,7 +1,14 @@
 // Spunti per il commento: prompt rapidi, tetto delle fonti, risposta del modello → spunti con le fonti.
 const assert = require('assert');
 const { carica, obsidian } = require('./obsidian-finto');
-const { BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments } = carica(process.argv[2])._test;
+const { BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, parseOutline } = carica(process.argv[2])._test;
+
+// Schema del libro: punti dell'elenco col primo link biblico; i numeri soli sono i capitoli (Sommario).
+const schema = parseOutline(['---', 'title: x', '---', '# SOMMARIO', '-   [3](jwlibrary:///finder?bible=43003001-43003036) ^p11', '',
+  '    -   Gesù e **Nicodemo** ([1-21](jwlibrary:///finder?bible=43003001-43003021)) ^p11', '        -   Nascere di nuovo ([3-8](jwlibrary:///finder?bible=43003003-43003008)) ^p12',
+  '-   Fuori dal libro ([1:1](jwlibrary:///finder?bible=40001001))', '-   Senza link'].join('\n'), 43);
+assert.deepStrictEqual(schema.map((o) => [o.depth, o.label, o.chapter, o.verse, o.endChapter, o.endVerse]), [
+  [0, '3', 3, 1, 3, 36], [1, 'Gesù e Nicodemo (1-21)', 3, 1, 3, 21], [2, 'Nascere di nuovo (3-8)', 3, 3, 3, 8]]);
 
 // Definizione al tocco lungo: prima riga vera dell'articolo, senza titolo, link e codici dei paragrafi.
 assert.strictEqual(leadText('---\ntitle: x\n---\n\n# SPIRITO SANTO\n\nVedi [[it_spirito_1|SPIRITO]]. ^p2\n'), 'Vedi SPIRITO.');

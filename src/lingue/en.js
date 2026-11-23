@@ -771,4 +771,9 @@ export default {
   "Novità di Lampada": "What's new in Lampada",
   "Versione installata: {v}": "Installed version: {v}",
   "Trascina per cambiare la larghezza": "Drag to change the width",
+  "Schema del capitolo": "Chapter outline",
+  "Schema del libro": "Book outline",
+  "Questa Bibbia non ha lo schema dei libri.": "This Bible has no book outlines.",
+  "Capitolo {n}": "Chapter {n}",
+  "Salmo": "Psalm",
 };

@@ -226,6 +226,7 @@ class BibleView extends ItemView {
     btn('search', t('Cerca ovunque'), () => this.plugin.openSearch(this));
     // Sul telefono questi stanno nel menu ⋯ (fillMenu): la barra resta leggibile, col titolo intero.
     this.parBtn = btn('columns-3', t('Racconti paralleli'), () => this.toggleParallels(), 'lmp-reader-only lmp-desktop-only');
+    this.outlineBtn = btn('list-tree', t('Schema del capitolo'), () => this.openOutline(), 'lmp-reader-only lmp-desktop-only');
     this.histBtn = btn('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open(), 'lmp-desktop-only');
     btn('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open(), 'lmp-desktop-only lmp-rail-keep');
     btn('type', t('Aspetto del testo'), () => new ReadingModal(this.plugin).open(), 'lmp-desktop-only');
@@ -283,6 +284,8 @@ class BibleView extends ItemView {
     menu.addItem((i) => i.setTitle(t('Aspetto del testo…')).setIcon('type').onClick(() => new ReadingModal(this.plugin).open()));
     menu.addSeparator();
     if (this.state.mode === 'reader') {
+      if (Platform.isPhone || (this.outlineBtn && !this.outlineBtn.offsetParent))
+        menu.addItem((i) => i.setTitle(t('Schema del capitolo')).setIcon('list-tree').onClick(() => this.openOutline()));
       menu.addItem((i) =>
         i
           .setTitle(this.paneVisible ? t('Nascondi pannello di studio') : t('Mostra pannello di studio'))
@@ -828,6 +831,17 @@ class BibleView extends ItemView {
 
     const file = this.bible.getFile(this.bible.bookPath(book));
     if (!file) return;
+    this.bible.getOutline(book).then((items) => {
+      if (!items.length || token !== this.renderToken) return;
+      const box = wrap.createEl('details', { cls: 'lmp-book-outline' });
+      box.open = !!this.plugin.ui.bookOutlineOpen;
+      box.addEventListener('toggle', () => {
+        this.plugin.ui.bookOutlineOpen = box.open;
+        this.plugin.requestSave();
+      });
+      box.createEl('summary', { text: t('Schema del libro') });
+      this.renderOutline(box, items, { book, pick: (it) => this.navigate({ book: book.num, chapter: it.chapter, at: it.verse }) });
+    });
     const text = stripFrontmatter(await readFile(this.app, file));
     if (token !== this.renderToken) return;
     for (const line of text.split('\n')) {
@@ -1563,7 +1577,8 @@ class BibleView extends ItemView {
     else if (top && top.ai) {
       this.paneHeader(top.title, { back: () => this.dropPaneAi(top.ai) });
       this.paneEl.createDiv('lmp-pane-content').appendChild(top.ai);
-    } else if (top) await this.renderPaneDoc(top, comp, token);
+    } else if (top && top.outline) await this.renderPaneOutline(top, token);
+    else if (top) await this.renderPaneDoc(top, comp, token);
     else await this.renderPaneVerse(comp, token);
   }
 
@@ -1594,6 +1609,67 @@ class BibleView extends ItemView {
     if (extra) extra(iconBtn);
     iconBtn('x', t('Chiudi'), () => this.clearSelection());
     return header;
+  }
+
+  /* ---------------- schema (Sommario o Panoramica del libro) ---------------- */
+
+  /** Nel pannello: lo schema del capitolo aperto, o di tutto il libro (scope 'chapter' | 'book'). */
+  async openOutline(scope = 'chapter') {
+    if (this.state.mode !== 'reader' || !this.chapterData) return;
+    const items = await this.bible.getOutline(this.chapterData.book);
+    if (!items.length) return new Notice(t('Questa Bibbia non ha lo schema dei libri.'));
+    this.selected.clear();
+    this.primary = null;
+    this.decorateVerses();
+    this.paneVisible = true;
+    this.paneStack = [{ outline: scope }];
+    this.renderPane();
+  }
+
+  async renderPaneOutline(entry, token) {
+    const { book, chapter } = this.chapterData;
+    const items = await this.bible.getOutline(book);
+    if (token !== this.paneToken) return;
+    const whole = entry.outline === 'book';
+    const header = this.paneHeader(whole ? book.title : `${this.bible.bookName(book, true)} ${chapter}`);
+    const seg = createDiv('lmp-outline-scope');
+    header.insertBefore(seg, header.lastChild);
+    for (const [scope, label] of [['chapter', t('Capitolo')], ['book', t('Libro')]]) {
+      const b = seg.createEl('button', { text: label, cls: entry.outline === scope ? 'is-active' : '' });
+      b.addEventListener('click', () => {
+        entry.outline = scope;
+        this.renderPane();
+      });
+    }
+    const content = this.paneEl.createDiv('lmp-pane-content');
+    const inChapter = (it) => it.chapter <= chapter && it.endChapter >= chapter;
+    const list = whole ? items : items.filter((it) => inChapter(it) && it.label !== String(it.chapter));
+    this.renderOutline(content, list, {
+      book,
+      current: whole ? inChapter : null,
+      pick: async (it) => {
+        if (it.chapter === chapter) return this.scrollToVerse(it.verse, true, 0, true);
+        await this.navigate({ book: book.num, chapter: it.chapter, at: it.verse });
+        this.openOutline(entry.outline);
+      },
+    });
+    if (whole) content.querySelector(`.is-current[data-ch="${chapter}"]`)?.scrollIntoView({ block: 'center' });
+  }
+
+  /** Elenco dello schema: i numeri soli (Sommario) sono i titoli dei capitoli. */
+  renderOutline(el, items, { book, current, pick }) {
+    const chName = (n) => (book.num === 19 ? `${book.chapterName || t('Salmo')} ${n}` : t('Capitolo {n}', { n }));
+    const list = el.createDiv('lmp-outline');
+    for (const it of items) {
+      const ch = it.label === String(it.chapter);
+      const row = list.createDiv({ cls: `lmp-outline-item${ch ? ' is-chapter' : ''}`, text: ch ? chName(it.chapter) : it.label, attr: { role: 'button', tabindex: '0' } });
+      row.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), pick(it)));
+      row.style.setProperty('--depth', String(ch ? 0 : it.depth));
+      if (!ch && !it.depth) row.addClass('is-top');
+      row.dataset.ch = String(it.chapter);
+      if (current && current(it)) row.addClass('is-current');
+      row.addEventListener('click', () => pick(it));
+    }
   }
 
   async renderPaneVerse(comp, token) {
@@ -2172,8 +2248,7 @@ class BibleView extends ItemView {
         continue;
       }
       const fig = grid.createEl('figure', { cls: 'lmp-figure' });
-      const img = fig.createEl('img', { attr: { src: fileSrc(this.app, file), loading: 'lazy', alt: caption } });
-      img.addEventListener('click', () => this.plugin.openFileRaw(file, 'tab'));
+      fig.createEl('img', { attr: { src: fileSrc(this.app, file), loading: 'lazy', alt: caption } });
       if (caption) fig.createEl('figcaption', { text: caption });
     }
     if (fallback.length) renderMd(this.app, fallback.join('\n'), el.createDiv('lmp-md'), sourcePath, comp);

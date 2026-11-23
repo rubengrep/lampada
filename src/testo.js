@@ -253,6 +253,28 @@ function codesFromJwUrl(url) {
   return m ? [m[1], m[2]] : null;
 }
 
+/**
+ * Schema di un libro (Sommario o Panoramica): una voce per ogni punto dell'elenco col suo primo link biblico.
+ * [{ depth, label, chapter, verse, endChapter, endVerse }], solo i punti del libro bookNum.
+ */
+function parseOutline(md, bookNum) {
+  const out = [];
+  for (const line of stripFrontmatter(md).split('\n')) {
+    const m = /^(\s*)[-*]\s+(.*\S)\s*$/.exec(line);
+    if (!m) continue;
+    const link = /\]\(jwlibrary:\/\/\/?finder\?[^)\s]*bible=(\d{7,8})(?:-(\d{7,8}))?/.exec(m[2]);
+    if (!link) continue;
+    const a = parseCode(link[1]);
+    const b = parseCode(link[2] || link[1]);
+    if (a.book !== bookNum) continue;
+    const label = m[2].replace(/\s*\^[\w-]+$/, '').replace(JWLIB_LINK_RE, '$1').replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, '$1').replace(/\*\*|__/g, '').replace(/\s+/g, ' ').trim();
+    out.push({ depth: m[1].replace(/\t/g, '    ').length >> 2, label, chapter: a.chapter, verse: a.verse, endChapter: b.chapter, endVerse: b.verse });
+  }
+  const min = Math.min(...out.map((o) => o.depth));
+  for (const o of out) o.depth -= min;
+  return out;
+}
+
 function cleanSnippet(line) {
   return line
     .replace(/\]\([^)]*\)/g, ']')
@@ -385,4 +407,4 @@ function categoryOf(num) {
   return c ? c.id : 'pent';
 }
 
-export { parseRefLinks, norm, nameKey, pad, verseCode, stripFrontmatter, splitParagraphs, cleanInline, tokenizeInline, VERSE_MARK_RE, NAV_LINE_RE, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, parseCode, refFromCodes, jwLibraryUrl, JWLIB_LINK_RE, codesFromJwUrl, cleanSnippet, sleep, JW_TOKEN_RE, jwTokenCount, splitJwTokens, newGuid, JWL_MARKER_RE, jwlMarker, jwTokenText, parseNoteFile, formatNoteBlock, noteFreeText, categoryOf };
+export { parseOutline, parseRefLinks, norm, nameKey, pad, verseCode, stripFrontmatter, splitParagraphs, cleanInline, tokenizeInline, VERSE_MARK_RE, NAV_LINE_RE, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, parseCode, refFromCodes, jwLibraryUrl, JWLIB_LINK_RE, codesFromJwUrl, cleanSnippet, sleep, JW_TOKEN_RE, jwTokenCount, splitJwTokens, newGuid, JWL_MARKER_RE, jwlMarker, jwTokenText, parseNoteFile, formatNoteBlock, noteFreeText, categoryOf };

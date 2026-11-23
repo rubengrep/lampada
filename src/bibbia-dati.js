@@ -3,7 +3,7 @@ import { CITE_PERIODICALS, issueLabel } from './biblioteca-dati.js';
 import { BOOK_ABBR, EXTRA_ALIASES, INDEX_MIRROR, baseLang, langRoot, pubLang } from './costanti.js';
 import { compare, t } from './lingua.js';
 import { fileAt, fileMeta, linkDest, readFile, scanHidden } from './file.js';
-import { JWLIB_LINK_RE, codesFromJwUrl, extractBlock, jwLibraryUrl, nameKey, norm, parseChapterMarkdown, parseCode, parseVerseList, refFromCodes, stripFrontmatter, verseCode } from './testo.js';
+import { JWLIB_LINK_RE, codesFromJwUrl, extractBlock, jwLibraryUrl, nameKey, norm, parseChapterMarkdown, parseCode, parseOutline, parseVerseList, refFromCodes, stripFrontmatter, verseCode } from './testo.js';
 
 /* ------------------------------------------------------------------ */
 /* Dati della Bibbia                                                   */
@@ -38,6 +38,7 @@ class BibleData {
     this.loadPromise = null;
     this.pubFolders = [];
     this.bookInfo = new Map();
+    this.outlines = new Map();
     this.verseDataCache = new Map();
   }
 
@@ -79,6 +80,7 @@ class BibleData {
     this.loadPromise = null;
     this.docPubs = null;
     this.bookInfo.clear();
+    this.outlines.clear();
     this.verseDataCache.clear();
     this.chapterCache.clear();
     this.docCache.clear();
@@ -250,6 +252,23 @@ class BibleData {
     }
     this.bookInfo.set(book.num, info);
     return info;
+  }
+
+  /** Schema del libro: tra i documenti collegati dalla nota del libro, l'elenco di passi più lungo (Sommario, Panoramica). */
+  async getOutline(book) {
+    if (this.outlines.has(book.num)) return this.outlines.get(book.num);
+    let items = [];
+    const file = this.getFile(this.bookPath(book));
+    if (file) {
+      for (const m of stripFrontmatter(await readFile(this.app, file)).matchAll(/^- \[\[([^\]|]+)\|[^\]]+\]\]/gm)) {
+        const doc = this.resolveLink(m[1], file.path);
+        const found = doc ? parseOutline(await this.readDoc(doc), book.num) : [];
+        if (found.length > items.length) items = found; // l'introduzione ha qualche punto con i passi, lo schema molti di più
+      }
+      if (items.length < 8) items = [];
+    }
+    this.outlines.set(book.num, items);
+    return items;
   }
 
   async getChapter(bookNum, ch) {
