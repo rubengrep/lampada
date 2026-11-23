@@ -48,6 +48,8 @@ const noti = {
   parseYaml: (s) => Object.fromEntries(s.split('\n').map((l) => l.split(/:\s*/))),
   debounce: (f) => f,
   setIcon: () => {},
+  // Le prove controllano i testi italiani.
+  getLanguage: () => 'it',
 };
 const obsidian = new Proxy(noti, { get: (t, k) => (k in t ? t[k] : class {}) });
 

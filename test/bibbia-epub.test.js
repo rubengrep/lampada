@@ -85,6 +85,11 @@ const epub = {
   await bibleE.load();
   assert.strictEqual(bibleE.byNum.get(19).abbr, 'Sal');
   assert.strictEqual(bibleE.parseReference('sl 1:1'), null, 'alias italiani solo per la Bibbia italiana');
+  // Bibbia inglese: abbreviazioni inglesi comuni, anche nei riferimenti scritti a mano.
+  assert.deepStrictEqual(bibleE.parseReference('ps 1:2'), { book: 19, chapter: 1, verse: 2 });
+  assert.deepStrictEqual(bibleE.parseReference('Jude 3'), { book: 65, chapter: 1, verse: 3 });
+  assert.deepStrictEqual(bibleE.scanLine('See Ps 1:2.', true).map((h) => [h.kind, h.ref.book, h.verses]), [['plain', 19, [2]]]);
+  assert.strictEqual(bibleE.scanLine('see ps 1:2.', true).length, 0, 'abbreviazione breve: solo con la maiuscola');
   console.log('OK Bibbia dall’EPUB');
 })().catch((e) => {
   console.error(e);

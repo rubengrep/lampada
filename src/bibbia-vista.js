@@ -1,3 +1,4 @@
+import { compare, lang, t } from './lingua.js';
 import { ItemView, Component, Notice, setIcon, debounce, Platform, Menu, normalizePath } from 'obsidian';
 import { GotoModal } from './bibbia-modali.js';
 import { renderBibleDownload } from './bibbia-epub.js';
@@ -10,7 +11,7 @@ import { linkVerseToScrabb } from './scrabb-vista.js';
 import { categoryOf, codesFromJwUrl, parseRefLinks, compressVerses, extractBlock, jwTokenText, newGuid, norm, noteFreeText, parseNoteFile, refFromCodes, splitJwTokens, stripFrontmatter, verseCode } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { GOSPELS, ParallelModal, aiMenu, highlightParts, parallelsInChapter, renderRbi8Verse, showAiSuggestions, verseAiCtx, wordStudy } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
+import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, renderCitedIn, renderNoteCites, pubLangButton, setBarsHidden, viewKeys } from './ui.js';
 
 /* ------------------------------------------------------------------ */
 /* Vista lettore                                                       */
@@ -47,10 +48,10 @@ class BibleView extends ItemView {
   getDisplayText() {
     const s = this.state;
     if (s.mode === 'reader' && s.book) return this.bible.refLabel({ book: s.book, chapter: s.chapter });
-    if (s.mode === 'chapters' && s.book) return this.bible.byNum.get(s.book)?.title || 'Bibbia';
-    if (s.mode === 'tags') return 'Etichette';
+    if (s.mode === 'chapters' && s.book) return this.bible.byNum.get(s.book)?.title || t('Bibbia');
+    if (s.mode === 'tags') return t('Etichette');
     if (s.mode === 'tag') return this.plugin.tagLabel(s.tag);
-    return 'Bibbia';
+    return t('Bibbia');
   }
 
   getState() {
@@ -70,6 +71,9 @@ class BibleView extends ItemView {
     const root = this.contentEl;
     root.empty();
     root.addClass('lmp-view');
+    // Telefono e tablet: un tocco che si sposta di poco (es. su un libro della colonna di sinistra) Obsidian lo prendeva per
+    // uno swipe e apriva la sua barra laterale. Qui i gesti orizzontali sono di Lampada (capitolo, pagina): Obsidian li salta.
+    root.dataset.ignoreSwipe = 'true';
     this.applyTypography();
 
     this.toolbarEl = root.createDiv('lmp-toolbar');
@@ -90,12 +94,12 @@ class BibleView extends ItemView {
     this.buildToolbar();
     if (Platform.isPhone && this.addAction && !this.inShell) {
       // L'intestazione di Obsidian mostra già il titolo: le azioni vanno lì, la barra del plugin si nasconde.
-      this.addAction('chevron-right', 'Capitolo successivo', () => this.stepChapter(1));
-      this.addAction('chevron-left', 'Capitolo precedente', () => this.stepChapter(-1));
-      this.addAction('search', 'Cerca ovunque', () => this.plugin.openSearch(this));
-      this.addAction('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
-      this.addAction('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
-      this.addAction('list', 'Libri e capitoli', () => {
+      this.addAction('chevron-right', t('Capitolo successivo'), () => this.stepChapter(1));
+      this.addAction('chevron-left', t('Capitolo precedente'), () => this.stepChapter(-1));
+      this.addAction('search', t('Cerca ovunque'), () => this.plugin.openSearch(this));
+      this.addAction('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
+      this.addAction('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open());
+      this.addAction('list', t('Libri e capitoli'), () => {
         const st = this.state;
         if (st.mode === 'reader' && st.book) this.navigate({ mode: 'chapters', book: st.book });
         else this.navigate({ mode: 'books' });
@@ -218,7 +222,7 @@ class BibleView extends ItemView {
       b.addEventListener('click', onClick);
       return b;
     };
-    this.backBtn = btn('arrow-left', 'Indietro', () => this.goBack());
+    this.backBtn = btn('arrow-left', t('Indietro'), () => this.goBack());
     addViewSwitch(tb, this.plugin, 'bible', () => this.navigate({ mode: 'books' }), this.inShell);
     this.titleBtn = tb.createEl('button', { cls: 'lmp-tb-title' });
     this.titleBtn.addEventListener('click', () => {
@@ -227,16 +231,16 @@ class BibleView extends ItemView {
       else this.navigate({ mode: 'books' });
     });
     tb.createDiv('lmp-tb-spacer');
-    this.prevBtn = btn('chevron-left', 'Capitolo precedente (←)', () => this.stepChapter(-1), 'lmp-reader-only');
-    this.nextBtn = btn('chevron-right', 'Capitolo successivo (→)', () => this.stepChapter(1), 'lmp-reader-only');
-    btn('search', 'Cerca ovunque', () => this.plugin.openSearch(this));
+    this.prevBtn = btn('chevron-left', t('Capitolo precedente (←)'), () => this.stepChapter(-1), 'lmp-reader-only');
+    this.nextBtn = btn('chevron-right', t('Capitolo successivo (→)'), () => this.stepChapter(1), 'lmp-reader-only');
+    btn('search', t('Cerca ovunque'), () => this.plugin.openSearch(this));
     // Sul telefono questi stanno nel menu ⋯ (fillMenu): la barra resta leggibile, col titolo intero.
-    this.parBtn = btn('columns-3', 'Racconti paralleli', () => this.toggleParallels(), 'lmp-reader-only lmp-desktop-only');
-    btn('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open(), 'lmp-desktop-only');
-    btn('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open(), 'lmp-desktop-only');
-    btn('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open(), 'lmp-desktop-only');
-    this.paneBtn = btn('panel-right', 'Mostra/nascondi pannello di studio', () => this.togglePane(), 'lmp-reader-only lmp-desktop-only');
-    btn('more-vertical', 'Altre opzioni', (evt) => this.showMoreMenu(evt));
+    this.parBtn = btn('columns-3', t('Racconti paralleli'), () => this.toggleParallels(), 'lmp-reader-only lmp-desktop-only');
+    btn('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open(), 'lmp-desktop-only');
+    btn('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open(), 'lmp-desktop-only');
+    btn('type', t('Aspetto del testo'), () => new ReadingModal(this.plugin).open(), 'lmp-desktop-only');
+    this.paneBtn = btn('panel-right', t('Mostra/nascondi pannello di studio'), () => this.togglePane(), 'lmp-reader-only lmp-desktop-only');
+    btn('more-vertical', t('Altre opzioni'), (evt) => this.showMoreMenu(evt));
     this.updateToolbar();
   }
 
@@ -272,32 +276,32 @@ class BibleView extends ItemView {
   fillMenu(menu) {
     const s = this.plugin.settings;
     if (Platform.isPhone) {
-      menu.addItem((i) => i.setTitle('Segnalibri').setIcon('bookmark').onClick(() => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open()));
-      menu.addItem((i) => i.setTitle('Aperti di recente').setIcon('history').onClick(() => new PlacesModal(this.plugin, null, 'recent').open()));
+      menu.addItem((i) => i.setTitle(t('Segnalibri')).setIcon('bookmark').onClick(() => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open()));
+      menu.addItem((i) => i.setTitle(t('Aperti di recente')).setIcon('history').onClick(() => new PlacesModal(this.plugin, null, 'recent').open()));
       menu.addSeparator();
     }
-    menu.addItem((i) => i.setTitle('Vai a riferimento…').setIcon('locate').onClick(() => this.openGoto()));
-    menu.addItem((i) => i.setTitle('Libri della Bibbia').setIcon('library').onClick(() => this.navigate({ mode: 'books' })));
+    menu.addItem((i) => i.setTitle(t('Vai a riferimento…')).setIcon('locate').onClick(() => this.openGoto()));
+    menu.addItem((i) => i.setTitle(t('Libri della Bibbia')).setIcon('library').onClick(() => this.navigate({ mode: 'books' })));
     if ((this.bible.bibles || []).length > 1) {
       menu.addSeparator();
       for (const b of this.bible.bibles) menu.addItem((i) => i.setTitle(b.title).setIcon('book').setChecked(b.symbol === this.bible.symbol).onClick(() => this.plugin.setBible(b.symbol)));
       menu.addSeparator();
     }
-    menu.addItem((i) => i.setTitle('Etichette').setIcon('tags').onClick(() => this.navigate({ mode: 'tags' })));
+    menu.addItem((i) => i.setTitle(t('Etichette')).setIcon('tags').onClick(() => this.navigate({ mode: 'tags' })));
     menu.addSeparator();
-    menu.addItem((i) => i.setTitle('Aspetto del testo…').setIcon('type').onClick(() => new ReadingModal(this.plugin).open()));
+    menu.addItem((i) => i.setTitle(t('Aspetto del testo…')).setIcon('type').onClick(() => new ReadingModal(this.plugin).open()));
     menu.addSeparator();
     if (this.state.mode === 'reader') {
       menu.addItem((i) =>
         i
-          .setTitle(this.paneVisible ? 'Nascondi pannello di studio' : 'Mostra pannello di studio')
+          .setTitle(this.paneVisible ? t('Nascondi pannello di studio') : t('Mostra pannello di studio'))
           .setIcon('panel-right')
           .onClick(() => this.togglePane())
       );
       if (!Platform.isPhone)
         menu.addItem((i) =>
           i
-            .setTitle('Apri i riferimenti in un riquadro a parte')
+            .setTitle(t('Apri i riferimenti in un riquadro a parte'))
             .setIcon('columns-2')
             .setChecked(!!this.plugin.ui.splitRefs)
             .onClick(() => {
@@ -306,10 +310,10 @@ class BibleView extends ItemView {
             })
         );
       if (this.isGospel())
-        menu.addItem((i) => i.setTitle('Racconti paralleli').setIcon('columns-3').setChecked(!!this.plugin.ui.parallels).onClick(() => this.toggleParallels()));
+        menu.addItem((i) => i.setTitle(t('Racconti paralleli')).setIcon('columns-3').setChecked(!!this.plugin.ui.parallels).onClick(() => this.toggleParallels()));
       menu.addItem((i) =>
         i
-          .setTitle('Segna i versetti più citati')
+          .setTitle(t('Segna i versetti più citati'))
           .setIcon('flame')
           .setChecked(this.plugin.ui.citeHeat !== false)
           .onClick(() => {
@@ -318,10 +322,10 @@ class BibleView extends ItemView {
             for (const v of this.plugin.views()) v.layoutCiteHeat();
           })
       );
-      menu.addItem((i) => i.setTitle('Spunti sul capitolo').setIcon('lightbulb').onClick((evt) => this.bibleAi(evt, null)));
+      menu.addItem((i) => i.setTitle(t('Spunti sul capitolo')).setIcon('lightbulb').onClick((evt) => this.bibleAi(evt, null)));
       menu.addItem((i) =>
         i
-          .setTitle('Apri il capitolo in JW Library')
+          .setTitle(t('Apri il capitolo in JW Library'))
           .setIcon('smartphone')
           .onClick(() => this.plugin.openInJwLibrary({ book: this.state.book, chapter: this.state.chapter, verse: this.primary ?? 1 }))
       );
@@ -335,7 +339,7 @@ class BibleView extends ItemView {
       if (where === here) continue;
       menu.addItem((i) =>
         i
-          .setTitle(title)
+          .setTitle(t(title))
           .setIcon(icon)
           .onClick(async () => {
             s.readerLocation = where;
@@ -407,7 +411,7 @@ class BibleView extends ItemView {
     if (!lines.size) return;
     const layer = (this.citeHeatEl = wrap.createDiv('lmp-cite-heat'));
     for (const x of lines.values()) {
-      const m = layer.createDiv({ cls: 'lmp-cite-heat-mark', attr: { 'data-level': String(x.level), 'aria-label': `${d.chapter}:${x.v} · citato in ${x.n} pubblicazioni` } });
+      const m = layer.createDiv({ cls: 'lmp-cite-heat-mark', attr: { 'data-level': String(x.level), 'aria-label': t('{ref} · citato in {n} pubblicazioni', { ref: `${d.chapter}:${x.v}`, n: x.n }) } });
       m.style.top = `${x.top + (glyph * 1.15 - glyph) / 2}px`;
       m.style.height = `${glyph}px`;
       m.addEventListener('click', (evt) => {
@@ -618,11 +622,15 @@ class BibleView extends ItemView {
   renderError(e) {
     this.mainEl.empty();
     // Nessuna Bibbia nel vault: si scarica da qui.
-    if (e && e.noBible) return renderBibleDownload(this.plugin, this.mainEl.createDiv('lmp-error'), { onDone: () => this.navigate({ book: 1, chapter: 1 }) });
+    if (e && e.noBible) {
+      // Anche il cambio di lingua: per tornare a una lingua in cui la Bibbia c'è già.
+      pubLangButton(this.plugin, this.mainEl.createDiv('lmp-pub-lang-row'));
+      return renderBibleDownload(this.plugin, this.mainEl.createDiv('lmp-error'), { onDone: () => this.navigate({ book: 1, chapter: 1 }) });
+    }
     const box = this.mainEl.createDiv('lmp-error');
-    box.createEl('h3', { text: 'Impossibile aprire la Bibbia' });
+    box.createEl('h3', { text: t('Impossibile aprire la Bibbia') });
     box.createEl('p', { text: e && e.message ? e.message : String(e) });
-    const b = box.createEl('button', { text: 'Apri impostazioni' });
+    const b = box.createEl('button', { text: t('Apri impostazioni') });
     b.addEventListener('click', () => {
       this.app.setting.open();
       this.app.setting.openTabById(this.plugin.manifest.id);
@@ -635,7 +643,7 @@ class BibleView extends ItemView {
   biblePicker(parent) {
     const list = this.bible.bibles || [];
     if (list.length < 2) return;
-    const sel = parent.createDiv('lmp-bible-pick').createEl('select', { cls: 'dropdown', attr: { 'aria-label': 'Bibbia' } });
+    const sel = parent.createDiv('lmp-bible-pick').createEl('select', { cls: 'dropdown', attr: { 'aria-label': t('Bibbia') } });
     for (const b of list) sel.createEl('option', { text: b.title, value: b.symbol });
     sel.value = this.bible.symbol;
     sel.addEventListener('change', () => this.plugin.setBible(sel.value));
@@ -646,7 +654,10 @@ class BibleView extends ItemView {
     main.empty();
     main.scrollTop = 0;
     const wrap = main.createDiv('lmp-home');
-    this.biblePicker(wrap);
+    // In cima: la Bibbia in uso (se ce n'è più d'una) e la lingua delle pubblicazioni, sulla stessa riga.
+    const top = wrap.createDiv('lmp-home-top');
+    this.biblePicker(top);
+    pubLangButton(this.plugin, top);
 
     const quick = wrap.createDiv('lmp-quick');
     // L'ultima lettura, anche se fatta su un altro dispositivo.
@@ -657,7 +668,7 @@ class BibleView extends ItemView {
       if (!last || !this.bible.byNum.get(last.book) || !card.isConnected) return;
       setIcon(card.createDiv('lmp-continue-icon'), 'book-open');
       const txt = card.createDiv();
-      txt.createDiv({ cls: 'lmp-continue-label', text: 'Continua a leggere' });
+      txt.createDiv({ cls: 'lmp-continue-label', text: t('Continua a leggere') });
       txt.createDiv({ cls: 'lmp-continue-ref', text: this.bible.refLabel({ book: last.book, chapter: last.chapter, verse: last.verse }) });
       card.addEventListener('click', () => this.navigate({ book: last.book, chapter: last.chapter, at: last.verse }));
       card.show();
@@ -666,8 +677,8 @@ class BibleView extends ItemView {
     const tagsCard = quick.createDiv('lmp-continue lmp-tags-card');
     setIcon(tagsCard.createDiv('lmp-continue-icon'), 'tags');
     const tagsTxt = tagsCard.createDiv();
-    tagsTxt.createDiv({ cls: 'lmp-continue-label', text: 'Note di JW Library' });
-    tagsTxt.createDiv({ cls: 'lmp-continue-ref', text: 'Etichette' });
+    tagsTxt.createDiv({ cls: 'lmp-continue-label', text: t('Note di JW Library') });
+    tagsTxt.createDiv({ cls: 'lmp-continue-ref', text: t('Etichette') });
     tagsCard.addEventListener('click', () => this.navigate({ mode: 'tags' }));
 
     this.plugin.renderPlaces(wrap.createDiv(), null, true);
@@ -677,7 +688,7 @@ class BibleView extends ItemView {
       wrap.createEl('h4', { cls: 'lmp-section-title', text: title });
       const legend = wrap.createDiv('lmp-legend');
       for (const cat of CATEGORIES.filter((c) => c.from >= from && c.to <= to)) {
-        legend.createSpan({ cls: `lmp-cat-label cat-${cat.id}`, text: cat.label });
+        legend.createSpan({ cls: `lmp-cat-label cat-${cat.id}`, text: t(cat.label) });
       }
       const grid = wrap.createDiv('lmp-book-grid');
       for (const b of this.bible.books.filter((b) => b.num >= from && b.num <= to)) {
@@ -692,8 +703,8 @@ class BibleView extends ItemView {
         tiles.push({ b, tile, writer, date });
       }
     };
-    group('Scritture Ebraico-Aramaiche', 1, 39);
-    group('Scritture Greche Cristiane', 40, 66);
+    group(t('Scritture Ebraico-Aramaiche'), 1, 39);
+    group(t('Scritture Greche Cristiane'), 40, 66);
 
     Promise.all(tiles.map((t) => this.bible.getBookInfo(t.b).then((info) => ({ ...t, info })))).then((list) => {
       for (const { b, tile, writer, date, info } of list) {
@@ -705,11 +716,11 @@ class BibleView extends ItemView {
         tile.setAttr(
           'title',
           [
-            `${b.title}${cat ? ` · ${cat.label}` : ''}`,
-            info.writer && `Scrittore: ${info.writer}`,
-            info.place && `Luogo: ${info.place}`,
-            info.completed && `Completato: ${info.completed}`,
-            info.period && `Periodo: ${info.period}`,
+            `${b.title}${cat ? ` · ${t(cat.label)}` : ''}`,
+            info.writer && t('Scrittore: {nome}', { nome: info.writer }),
+            info.place && t('Luogo: {luogo}', { luogo: info.place }),
+            info.completed && t('Completato: {data}', { data: info.completed }),
+            info.period && t('Periodo: {periodo}', { periodo: info.period }),
           ]
             .filter(Boolean)
             .join('\n')
@@ -725,20 +736,20 @@ class BibleView extends ItemView {
     main.empty();
     main.scrollTop = 0;
     const wrap = main.createDiv('lmp-tags');
-    wrap.createEl('h2', { text: 'Etichette' });
-    const status = wrap.createDiv({ cls: 'lmp-empty', text: 'Carico le note…' });
+    wrap.createEl('h2', { text: t('Etichette') });
+    const status = wrap.createDiv({ cls: 'lmp-empty', text: t('Carico le note…') });
     const notes = await this.plugin.collectTaggedNotes();
     if (token !== this.renderToken) return;
     status.remove();
     const counts = new Map();
     for (const n of notes) for (const t of n.tags) counts.set(t, (counts.get(t) || 0) + 1);
     if (!counts.size) {
-      wrap.createDiv({ cls: 'lmp-empty', text: 'Nessuna etichetta: importa un backup di JW Library o aggiungi #etichette nei blocchi delle note.' });
+      wrap.createDiv({ cls: 'lmp-empty', text: t('Nessuna etichetta: importa un backup di JW Library o aggiungi #etichette nei blocchi delle note.') });
       return;
     }
-    const input = wrap.createEl('input', { type: 'search', cls: 'lmp-tags-filter', attr: { placeholder: 'Filtra le etichette…' } });
+    const input = wrap.createEl('input', { type: 'search', cls: 'lmp-tags-filter', attr: { placeholder: t('Filtra le etichette…') } });
     const list = wrap.createDiv('lmp-tag-list');
-    const tags = [...counts.entries()].sort((a, b) => this.plugin.tagLabel(a[0]).localeCompare(this.plugin.tagLabel(b[0]), 'it', { sensitivity: 'base' }));
+    const tags = [...counts.entries()].sort((a, b) => compare(this.plugin.tagLabel(a[0]), this.plugin.tagLabel(b[0])));
     const draw = () => {
       list.empty();
       const q = norm(input.value).trim();
@@ -818,7 +829,7 @@ class BibleView extends ItemView {
       const marks = this.plugin.marksFor(book.num, ch);
       if (marks.length) {
         cell.addClass('has-marks');
-        cell.setAttr('aria-label', `${marks.length} evidenziazion${marks.length === 1 ? 'e' : 'i'}`);
+        cell.setAttr('aria-label', marks.length === 1 ? t('1 evidenziazione') : t('{n} evidenziazioni', { n: marks.length }));
         cell.createSpan({ cls: 'lmp-chapter-dot' }).dataset.hl = marks[marks.length - 1].color;
       }
       cell.addEventListener('click', () => this.navigate({ book: book.num, chapter: ch }));
@@ -889,23 +900,23 @@ class BibleView extends ItemView {
           const isFirst = seg.v === 1;
           span.createSpan({ cls: isFirst ? 'lmp-num lmp-chnum' : 'lmp-num lmp-vnum', text: seg.marker });
         }
-        for (const t of seg.tokens) {
-          if (t.t === 'ref') {
+        for (const tok of seg.tokens) {
+          if (tok.t === 'ref') {
             if (seg.v && this.plugin.settings.showRefMarkers) {
-              span.createSpan({ cls: 'lmp-ref-mark lmp-ref-inline', text: '+', attr: { 'data-v': String(seg.v), 'data-r': String(t.n), 'aria-label': 'Riferimenti' } });
+              span.createSpan({ cls: 'lmp-ref-mark lmp-ref-inline', text: '+', attr: { 'data-v': String(seg.v), 'data-r': String(tok.n), 'aria-label': t('Riferimenti') } });
             }
             continue;
           }
-          if (t.t !== 'text') {
-            span.createEl('sup', { cls: 'lmp-fn', text: '*', attr: { 'data-fn': t.n, 'aria-label': 'Nota in calce' } });
+          if (tok.t !== 'text') {
+            span.createEl('sup', { cls: 'lmp-fn', text: '*', attr: { 'data-fn': tok.n, 'aria-label': t('Nota in calce') } });
             continue;
           }
           if (!seg.v) {
-            span.appendText(t.s);
+            span.appendText(tok.s);
             continue;
           }
           // Ogni parola ha il suo indice (come in JW Library), così le evidenziazioni sono parola per parola.
-          for (const part of splitJwTokens(t.s)) {
+          for (const part of splitJwTokens(tok.s)) {
             const n = counters.get(seg.v) || 0;
             if (part.w) {
               span.createSpan({ cls: 'lmp-w', text: part.s, attr: { 'data-t': String(n) } });
@@ -973,16 +984,20 @@ class BibleView extends ItemView {
     const out = new Map();
     const prefix = this.plugin.notePath(book, chapter, 1).replace(/-1\.md$/, '-');
     const folder = prefix.split('/').slice(0, -1).join('/');
-    const files = this.app.vault.getMarkdownFiles().filter((f) => f.path.startsWith(prefix) && /-\d+\.md$/.test(f.path) && f.path.split('/').slice(0, -1).join('/') === folder);
-    for (const f of files) {
-      const v = +/-(\d+)\.md$/.exec(f.path)[1];
+    const byVerse = new Map();
+    for (const f of this.app.vault.getMarkdownFiles())
+      if (f.path.startsWith(prefix) && /-\d+\.md$/.test(f.path) && f.path.split('/').slice(0, -1).join('/') === folder) byVerse.set(+/-(\d+)\.md$/.exec(f.path)[1], f);
+    // Note col nome del libro in un'altra lingua: per codice (plugin.verseNoteFile).
+    const chCode = verseCode(book.num, chapter, 0).slice(0, -3);
+    for (const [code, f] of this.plugin.verseNotesByCode()) if (code.startsWith(chCode) && !byVerse.has(+code.slice(-3))) byVerse.set(+code.slice(-3), f);
+    for (const [v, f] of byVerse) {
       const parsed = parseNoteFile(await this.app.vault.cachedRead(f));
       const data = await this.bible.getChapter(book.num, chapter).catch(() => null);
       const list = parsed.blocks.map((b) => {
         const m = this.noteMark(b, book, chapter, v, data);
         return { title: b.title && b.title !== 'Nota' ? b.title : b.content.split('\n')[0], color: m ? m.color : '', mark: m || null };
       });
-      if (!list.length && noteFreeText(parsed.rest)) list.push({ title: 'Appunti', color: '' });
+      if (!list.length && noteFreeText(parsed.rest)) list.push({ title: t('Appunti'), color: '' });
       if (list.length) out.set(v, list);
     }
     return out;
@@ -1200,10 +1215,10 @@ class BibleView extends ItemView {
       } else if (num) num.removeClass('has-study');
 
       const vNotes = (this.chapterNotes && this.chapterNotes.get(v)) || null;
-      if (vNotes || this.bible.getFile(this.plugin.notePath(d.book, c, v))) {
+      if (vNotes || this.plugin.verseNoteFile(d.book, c, v)) {
         // Icona della nota all'inizio del versetto, del colore dell'evidenziazione collegata.
         const n = vNotes ? vNotes.length : 0;
-        const mark = createSpan({ cls: 'lmp-note-mark', attr: { 'aria-label': n ? `${n} not${n === 1 ? 'a' : 'e'}` : 'Nota su questo versetto' } });
+        const mark = createSpan({ cls: 'lmp-note-mark', attr: { 'aria-label': n ? (n === 1 ? t('1 nota') : t('{n} note', { n })) : t('Nota su questo versetto') } });
         setIcon(mark, 'sticky-note');
         if (vNotes && vNotes[0].color) mark.dataset.hl = vNotes[0].color;
         if (n > 1) mark.createSpan({ cls: 'lmp-note-count', text: String(n) });
@@ -1219,7 +1234,7 @@ class BibleView extends ItemView {
       // "+" in fondo al versetto solo se l'esportazione non ha i segni nel punto esatto.
       const hasInline = !!this.mainEl.querySelector(`.lmp-verse[data-v="${v}"] .lmp-ref-inline`);
       if (!hasInline && this.plugin.settings.showRefMarkers && this.bible.verseHasSection(d.book, c, v, 'Riferimenti')) {
-        el.createSpan({ cls: 'lmp-ref-mark', text: '+', attr: { 'data-v': String(v), 'aria-label': 'Riferimenti' } });
+        el.createSpan({ cls: 'lmp-ref-mark', text: '+', attr: { 'data-v': String(v), 'aria-label': t('Riferimenti') } });
       }
     }
   }
@@ -1294,27 +1309,27 @@ class BibleView extends ItemView {
     // mousedown: non perdere la selezione cliccando sulla barra
     bar.addEventListener('mousedown', (e) => e.preventDefault());
     for (const h of HIGHLIGHTS) {
-      const dot = bar.createEl('button', { cls: `lmp-color-dot hl-${h.id}`, attr: { 'aria-label': `Evidenzia: ${h.label}` } });
+      const dot = bar.createEl('button', { cls: `lmp-color-dot hl-${h.id}`, attr: { 'aria-label': t('Evidenzia: {colore}', { colore: t(h.label) }) } });
       dot.addEventListener('click', () => this.applySelection(h.id));
     }
-    const erase = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Rimuovi evidenziazione' } });
+    const erase = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Rimuovi evidenziazione') } });
     setIcon(erase, 'eraser');
     erase.addEventListener('click', () => this.applySelection(null));
-    const note = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Nota sul testo selezionato' } });
+    const note = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Nota sul testo selezionato') } });
     setIcon(note, 'sticky-note');
     note.addEventListener('click', () => this.noteFromSelection());
-    const word = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Studia la parola' } });
+    const word = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Studia la parola') } });
     setIcon(word, 'book-a');
     word.addEventListener('click', () => this.studyWord());
-    const copy = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Copia' } });
+    const copy = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Copia') } });
     setIcon(copy, 'copy');
     copy.addEventListener('click', async () => {
       if (!this.selInfo) return;
       await navigator.clipboard.writeText(this.selInfo.text);
-      new Notice('Testo copiato');
+      new Notice(t('Testo copiato'));
       this.hideSelectionBar();
     });
-    const ai = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Spunti sul testo selezionato' } });
+    const ai = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Spunti sul testo selezionato') } });
     setIcon(ai, 'lightbulb');
     ai.addEventListener('click', (evt) => {
       const info = this.selInfo;
@@ -1492,7 +1507,7 @@ class BibleView extends ItemView {
     }
     const pop = this.popoverEl;
     pop.empty();
-    pop.createDiv({ cls: 'lmp-pop-title', text: `Riferimenti · ${d.book.title} ${d.chapter}:${v}` });
+    pop.createDiv({ cls: 'lmp-pop-title', text: `${paneLabel('Riferimenti')} · ${d.book.title} ${d.chapter}:${v}` });
     const body = pop.createDiv('lmp-pop-refs');
     const src = details.file ? details.file.path : '';
     body.dataset.sourcePath = src;
@@ -1562,7 +1577,7 @@ class BibleView extends ItemView {
   }
 
   paneHeader(title, { back, extra } = {}) {
-    const handle = this.paneEl.createDiv({ cls: 'lmp-pane-handle', attr: { 'aria-label': 'Ingrandisci o riduci' } });
+    const handle = this.paneEl.createDiv({ cls: 'lmp-pane-handle', attr: { 'aria-label': t('Ingrandisci o riduci') } });
     handle.createDiv('lmp-pane-handle-bar');
     let startY = null;
     handle.addEventListener('click', () => this.bodyEl.toggleClass('pane-expanded', !this.bodyEl.hasClass('pane-expanded')));
@@ -1583,10 +1598,10 @@ class BibleView extends ItemView {
       b.addEventListener('click', fn);
       return b;
     };
-    if (back) iconBtn('arrow-left', 'Indietro', back);
+    if (back) iconBtn('arrow-left', t('Indietro'), back);
     header.createDiv({ cls: 'lmp-pane-title', text: title });
     if (extra) extra(iconBtn);
-    iconBtn('x', 'Chiudi', () => this.clearSelection());
+    iconBtn('x', t('Chiudi'), () => this.clearSelection());
     return header;
   }
 
@@ -1602,8 +1617,8 @@ class BibleView extends ItemView {
 
     this.paneHeader(info.label, {
       extra: (iconBtn) => {
-        iconBtn('chevron-up', 'Versetto precedente (↑)', () => this.stepVerse(-1));
-        iconBtn('chevron-down', 'Versetto successivo (↓)', () => this.stepVerse(1));
+        iconBtn('chevron-up', t('Versetto precedente (↑)'), () => this.stepVerse(-1));
+        iconBtn('chevron-down', t('Versetto successivo (↓)'), () => this.stepVerse(1));
       },
     });
 
@@ -1612,14 +1627,14 @@ class BibleView extends ItemView {
     const colors = actions.createDiv('lmp-colors');
     const current = this.plugin.markColorAt(book.num, c, v);
     for (const h of HIGHLIGHTS) {
-      const dot = colors.createEl('button', { cls: `lmp-color-dot hl-${h.id}`, attr: { 'aria-label': `Evidenzia: ${h.label}` } });
+      const dot = colors.createEl('button', { cls: `lmp-color-dot hl-${h.id}`, attr: { 'aria-label': t('Evidenzia: {colore}', { colore: t(h.label) }) } });
       if (current === h.id) dot.addClass('is-active');
       dot.addEventListener('click', () => {
         if (current !== h.id) this.plugin.ui.lastColor = h.id;
         this.setHighlight(current === h.id ? null : h.id);
       });
     }
-    const erase = colors.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Rimuovi evidenziazione' } });
+    const erase = colors.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Rimuovi evidenziazione') } });
     setIcon(erase, 'eraser');
     erase.addEventListener('click', () => this.setHighlight(null));
 
@@ -1632,34 +1647,34 @@ class BibleView extends ItemView {
       return b;
     };
     const bm = this.plugin.findBookmark({ book: book.num, chapter: c, verse: v });
-    tool(bm ? 'bookmark-check' : 'bookmark', bm ? 'Rimuovi segnalibro' : 'Aggiungi segnalibro', () => {
+    tool(bm ? 'bookmark-check' : 'bookmark', bm ? t('Rimuovi segnalibro') : t('Aggiungi segnalibro'), () => {
       this.plugin.toggleBookmark({ book: book.num, chapter: c, verse: v });
       this.renderPane();
     }, !!bm);
-    tool('copy', 'Copia testo', async () => {
+    tool('copy', t('Copia testo'), async () => {
       await navigator.clipboard.writeText(`${info.text} (${info.label})`);
-      new Notice('Versetto copiato');
+      new Notice(t('Versetto copiato'));
     });
-    tool('lightbulb', 'Spunti su questi versetti', (evt) => this.bibleAi(evt, [...this.selected]));
-    tool('smartphone', 'Apri in JW Library', () => this.plugin.openInJwLibrary(info.ref));
-    tool('more-horizontal', 'Altre azioni', (evt) => {
+    tool('lightbulb', t('Spunti su questi versetti'), (evt) => this.bibleAi(evt, [...this.selected]));
+    tool('smartphone', t('Apri in JW Library'), () => this.plugin.openInJwLibrary(info.ref));
+    tool('more-horizontal', t('Altre azioni'), (evt) => {
       const menu = new Menu();
-      menu.addItem((it) => it.setTitle('Copia link').setIcon('link').onClick(async () => {
+      menu.addItem((it) => it.setTitle(t('Copia link')).setIcon('link').onClick(async () => {
         await navigator.clipboard.writeText(info.link);
-        new Notice('Link copiato');
+        new Notice(t('Link copiato'));
       }));
-      menu.addItem((it) => it.setTitle('Inserisci nella nota aperta').setIcon('text-cursor-input').onClick(() => this.plugin.insertIntoNote(info)));
+      menu.addItem((it) => it.setTitle(t('Inserisci nella nota aperta')).setIcon('text-cursor-input').onClick(() => this.plugin.insertIntoNote(info)));
       if (this.plugin.scrabb && this.plugin.scrabb.ready)
-        menu.addItem((it) => it.setTitle('Collega a una scheda SCRABB…').setIcon('waypoints').onClick(() => this.linkToScrabb(book, c, v)));
+        menu.addItem((it) => it.setTitle(t('Collega a una scheda SCRABB…')).setIcon('waypoints').onClick(() => this.linkToScrabb(book, c, v)));
       menu.addSeparator();
-      menu.addItem((it) => it.setTitle('Apri il file markdown').setIcon('file-text').onClick(() => {
+      menu.addItem((it) => it.setTitle(t('Apri il file markdown')).setIcon('file-text').onClick(() => {
         const f = this.bible.getFile(this.bible.chapterPath(book, c));
         if (f) this.plugin.openFileRaw(f, 'tab');
       }));
       menu.showAtMouseEvent(evt);
     });
 
-    const content = pane.createDiv({ cls: 'lmp-pane-content', text: 'Caricamento…' });
+    const content = pane.createDiv({ cls: 'lmp-pane-content', text: t('Caricamento…') });
     let details;
     try {
       details = await this.bible.getVerseDetails(book, c, v);
@@ -1669,7 +1684,7 @@ class BibleView extends ItemView {
     if (token !== this.paneToken) return;
     content.empty();
 
-    const noteFile = this.bible.getFile(this.plugin.notePath(book, c, v));
+    const noteFile = this.plugin.verseNoteFile(book, c, v);
     const parsedNote = noteFile ? parseNoteFile(await this.app.vault.cachedRead(noteFile)) : null;
     if (token !== this.paneToken) return;
     await this.renderNotesSection(content, { book, c, v, verseText: this.bible.verseText(d, v), file: noteFile, parsed: parsedNote }, comp);
@@ -1682,7 +1697,7 @@ class BibleView extends ItemView {
       if (citesDone) return;
       citesDone = true;
       if (cites.length) this.renderCitations(content, cites);
-      else if (!this.plugin.noteIndex.ready) content.createDiv({ cls: 'lmp-empty lmp-small', text: 'Indicizzazione delle note in corso…' });
+      else if (!this.plugin.noteIndex.ready) content.createDiv({ cls: 'lmp-empty lmp-small', text: t('Indicizzazione delle note in corso…') });
     };
 
     // Ordine: le tue note, lo studio (approfondimenti, note in calce, riferimenti), dove ne hai scritto, dove è citato, media.
@@ -1721,7 +1736,7 @@ class BibleView extends ItemView {
     renderMine();
     this.renderScrabbSection(content, book, c, v);
     if (!sections.length && !(parsedNote && parsedNote.blocks.length) && !cites.length)
-      content.createDiv({ cls: 'lmp-empty', text: 'Nessun approfondimento per questo versetto.' });
+      content.createDiv({ cls: 'lmp-empty', text: t('Nessun approfondimento per questo versetto.') });
 
     this.buildPaneNav(content, wantNotes ? 'Note' : null);
   }
@@ -1806,12 +1821,12 @@ class BibleView extends ItemView {
     const sec = this.section(content, 'SCRABB', String(ents.length));
     const chips = sec.createDiv('scrabb-chips');
     for (const e of ents) {
-      const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'aria-label': SCRABB_TYPES[e.tipo].label } });
+      const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'aria-label': t(SCRABB_TYPES[e.tipo].label) } });
       chip.createSpan('scrabb-dot');
       chip.createSpan({ text: e.name });
       chip.addEventListener('click', () => this.plugin.showInScrabb(e.path));
     }
-    const btn = sec.createEl('button', { cls: 'lmp-small-btn', text: '+ Collega a un\'altra scheda' });
+    const btn = sec.createEl('button', { cls: 'lmp-small-btn', text: t('+ Collega a un\'altra scheda') });
     btn.addEventListener('click', () => this.linkToScrabb(book, c, v));
   }
 
@@ -1839,7 +1854,7 @@ class BibleView extends ItemView {
       const paint = () => {
         const on = this.plugin.ui.autoLinks !== false;
         tg.toggleClass('is-active', on);
-        tg.setAttr('aria-label', on ? 'Nascondi le linee di collegamento' : 'Mostra le linee di collegamento');
+        tg.setAttr('aria-label', on ? t('Nascondi le linee di collegamento') : t('Mostra le linee di collegamento'));
         setIcon(tg, on ? 'spline' : 'unlink');
       };
       paint();
@@ -1856,12 +1871,12 @@ class BibleView extends ItemView {
     const free = parsed ? noteFreeText(parsed.rest) : '';
     if (free) {
       const card = list.createDiv('lmp-note-card lmp-note-free');
-      card.createDiv({ cls: 'lmp-note-card-title', text: 'Appunti' });
+      card.createDiv({ cls: 'lmp-note-card-title', text: t('Appunti') });
       await renderMd(this.app, free, card.createDiv('lmp-md'), file.path, comp);
     }
 
     const actions = sec.createDiv('lmp-note-actions');
-    const add = actions.createEl('button', { cls: 'mod-cta lmp-add-note', text: '+ Aggiungi nota' });
+    const add = actions.createEl('button', { cls: 'mod-cta lmp-add-note', text: t('+ Aggiungi nota') });
     add.addEventListener('click', () => {
       actions.hide();
       this.noteForm(list, { tags: [] }, ctx, () => actions.show());
@@ -1874,7 +1889,7 @@ class BibleView extends ItemView {
       sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
     }
     if (file) {
-      const open = actions.createEl('button', { cls: 'lmp-small-btn', text: 'Apri il file' });
+      const open = actions.createEl('button', { cls: 'lmp-small-btn', text: t('Apri il file') });
       open.addEventListener('click', () => this.plugin.openNote(ctx.book, ctx.c, ctx.v, ctx.verseText));
     }
   }
@@ -1899,8 +1914,8 @@ class BibleView extends ItemView {
       if (quote && quote !== blk.title) card.createDiv({ cls: 'lmp-note-quote', text: `«${quote}»` });
     }
     const head = card.createDiv('lmp-note-card-head');
-    head.createDiv({ cls: 'lmp-note-card-title', text: blk.title && blk.title !== 'Nota' ? blk.title : 'Nota' });
-    const edit = head.createEl('button', { cls: 'clickable-icon lmp-note-edit', attr: { 'aria-label': 'Modifica' } });
+    head.createDiv({ cls: 'lmp-note-card-title', text: blk.title && blk.title !== 'Nota' ? blk.title : t('Nota') });
+    const edit = head.createEl('button', { cls: 'clickable-icon lmp-note-edit', attr: { 'aria-label': t('Modifica') } });
     setIcon(edit, 'pencil');
     if (blk.content) await renderMd(this.app, blk.content, card.createDiv('lmp-md lmp-note-card-body'), ctx.file ? ctx.file.path : '', comp);
     if (blk.tags.length || blk.date) {
@@ -1930,9 +1945,9 @@ class BibleView extends ItemView {
     let pickRow = null;
     if (marks.length) {
       pickRow = form.createDiv('lmp-note-marks');
-      pickRow.createSpan({ cls: 'lmp-note-marks-label', text: 'Collega a:' });
+      pickRow.createSpan({ cls: 'lmp-note-marks-label', text: t('Collega a:') });
     }
-    const title = form.createEl('input', { type: 'text', cls: 'lmp-note-title-input', attr: { placeholder: 'Titolo' } });
+    const title = form.createEl('input', { type: 'text', cls: 'lmp-note-title-input', attr: { placeholder: t('Titolo') } });
     title.value = initial.title && initial.title !== 'Nota' ? initial.title : '';
     const drawPicks = () => {
       if (!pickRow) return;
@@ -1950,7 +1965,7 @@ class BibleView extends ItemView {
       }
     };
     drawPicks();
-    const body = form.createEl('textarea', { cls: 'lmp-note-body-input', attr: { placeholder: 'Scrivi la nota…', rows: '5' } });
+    const body = form.createEl('textarea', { cls: 'lmp-note-body-input', attr: { placeholder: t('Scrivi la nota…'), rows: '5' } });
     body.value = initial.content || '';
     const grow = () => {
       body.style.height = 'auto';
@@ -1962,9 +1977,9 @@ class BibleView extends ItemView {
     const tagsRow = form.createDiv('lmp-note-tags');
     const chips = tagsRow.createDiv('lmp-tag-chips');
     const listId = `lmp-tags-${Date.now()}`;
-    const tagInput = tagsRow.createEl('input', { type: 'text', cls: 'lmp-note-tag-input', attr: { placeholder: '+ Etichetta', list: listId } });
+    const tagInput = tagsRow.createEl('input', { type: 'text', cls: 'lmp-note-tag-input', attr: { placeholder: t('+ Etichetta'), list: listId } });
     const datalist = tagsRow.createEl('datalist', { attr: { id: listId } });
-    for (const label of [...new Set(Object.values(this.plugin.tagNames || {}))].sort((a, b) => a.localeCompare(b, 'it'))) datalist.createEl('option', { attr: { value: label } });
+    for (const label of [...new Set(Object.values(this.plugin.tagNames || {}))].sort((a, b) => compare(a, b))) datalist.createEl('option', { attr: { value: label } });
     const drawChips = () => {
       chips.empty();
       for (const t of tags) {
@@ -1997,8 +2012,8 @@ class BibleView extends ItemView {
     drawChips();
 
     const buttons = form.createDiv('lmp-note-form-buttons');
-    const cancel = buttons.createEl('button', { text: 'Annulla' });
-    const save = buttons.createEl('button', { cls: 'mod-cta', text: 'Salva' });
+    const cancel = buttons.createEl('button', { text: t('Annulla') });
+    const save = buttons.createEl('button', { cls: 'mod-cta', text: t('Salva') });
     cancel.addEventListener('click', () => {
       form.remove();
       onCancel && onCancel();
@@ -2006,7 +2021,7 @@ class BibleView extends ItemView {
     save.addEventListener('click', async () => {
       addTag();
       if (!title.value.trim() && !body.value.trim()) {
-        new Notice('Scrivi un titolo o un testo');
+        new Notice(t('Scrivi un titolo o un testo'));
         return;
       }
       save.disabled = true;
@@ -2025,7 +2040,7 @@ class BibleView extends ItemView {
         this.renderPane();
       } catch (e) {
         console.error('[lampada] salvataggio della nota non riuscito', e);
-        new Notice(`Nota non salvata: ${e.message}`);
+        new Notice(t('Nota non salvata: {errore}', { errore: e.message }));
         save.disabled = false;
       }
     });
@@ -2092,7 +2107,7 @@ class BibleView extends ItemView {
       for (const card of cards) {
         if (!card.isConnected || card.scrollHeight < 300) continue;
         card.addClass('is-clamped');
-        const more = card.createEl('button', { cls: 'lmp-card-more', text: 'Leggi tutto' });
+        const more = card.createEl('button', { cls: 'lmp-card-more', text: t('Leggi tutto') });
         const open = (evt) => {
           if (evt && evt.target instanceof HTMLElement && evt.target.closest('a')) return;
           card.removeClass('is-clamped');
@@ -2104,7 +2119,7 @@ class BibleView extends ItemView {
     });
     for (const { file, id } of docs.values()) {
       const title = fileMeta(this.app, file)?.frontmatter?.title || file.basename;
-      const a = el.createEl('button', { cls: 'lmp-small-btn', text: `Apri: ${title}` });
+      const a = el.createEl('button', { cls: 'lmp-small-btn', text: t('Apri: {titolo}', { titolo: title }) });
       a.addEventListener('click', () => this.plugin.openFileRaw(file, 'tab', `#^${id}`));
     }
   }
@@ -2206,7 +2221,7 @@ class BibleView extends ItemView {
       const first = this.mainEl.querySelector(`.lmp-verse[data-v="${v}"]`);
       if (!first) continue;
       for (const ev of events) {
-        const mark = createSpan({ cls: 'lmp-par-mark', attr: { 'aria-label': 'Confronta i racconti paralleli' } });
+        const mark = createSpan({ cls: 'lmp-par-mark', attr: { 'aria-label': t('Confronta i racconti paralleli') } });
         setIcon(mark.createSpan('lmp-par-icon'), 'columns-3');
         mark.createSpan({ cls: 'lmp-par-title', text: ev.title });
         const others = GOSPELS.filter((b, i) => b !== d.book.num && ev.refs[i].length).map(abbr);
@@ -2233,7 +2248,7 @@ class BibleView extends ItemView {
     aiMenu(this.plugin, evt, (preset) =>
       showAiSuggestions(this.plugin, preset, () => this.bibleAiCtx(d, vs, title, focus), {
         place: (box) => {
-          this.paneStack.push({ ai: box, title: `Spunti · ${title}` });
+          this.paneStack.push({ ai: box, title: t('Spunti · {titolo}', { titolo: title }) });
           this.peek = false;
           this.paneVisible = true;
           this.renderPane();
@@ -2298,7 +2313,7 @@ class BibleView extends ItemView {
         this.renderPane();
       },
     });
-    const content = this.paneEl.createDiv({ cls: 'lmp-pane-content lmp-word', text: 'Cerco la parola…' });
+    const content = this.paneEl.createDiv({ cls: 'lmp-pane-content lmp-word', text: t('Cerco la parola…') });
     let res;
     try {
       res = await wordStudy(this.plugin, entry.word);
@@ -2308,7 +2323,7 @@ class BibleView extends ItemView {
     if (token !== this.paneToken) return;
     content.empty();
     if (!res) {
-      content.createDiv({ cls: 'lmp-empty', text: 'Seleziona una parola del versetto.' });
+      content.createDiv({ cls: 'lmp-empty', text: t('Seleziona una parola del versetto.') });
       return;
     }
     const { key } = res;
@@ -2341,11 +2356,11 @@ class BibleView extends ItemView {
           const card = item.createDiv('lmp-study-card');
           card.dataset.sourcePath = r.file.path;
           await renderMd(this.app, r.md, card, r.file.path, comp);
-          const go = item.createEl('button', { cls: 'lmp-small-btn', text: `Vai a ${this.bible.refLabel(n.ref)}` });
+          const go = item.createEl('button', { cls: 'lmp-small-btn', text: t('Vai a {ref}', { ref: this.bible.refLabel(n.ref) }) });
           go.addEventListener('click', () => this.navigate(n.ref));
         });
       }
-      if (res.notes.length > 80) sec.createDiv({ cls: 'lmp-empty lmp-small', text: `…e altre ${res.notes.length - 80}` });
+      if (res.notes.length > 80) sec.createDiv({ cls: 'lmp-empty lmp-small', text: t('…e altre {n}', { n: res.notes.length - 80 }) });
     }
 
     if (res.perspicacia.length) {
@@ -2359,14 +2374,14 @@ class BibleView extends ItemView {
 
     // Concordanza: tutti i versetti con la parola (o una parola con la stessa radice), libro per libro.
     const sec = this.section(content, 'Nella Bibbia');
-    const status = sec.createDiv({ cls: 'lmp-empty lmp-small', text: 'Cerco nei versetti…' });
-    const index = await this.bible.getSearchIndex((done, total) => status.setText(`Cerco nei versetti… ${Math.round((done / total) * 100)}%`)).catch(() => null);
+    const status = sec.createDiv({ cls: 'lmp-empty lmp-small', text: t('Cerco nei versetti…') });
+    const index = await this.bible.getSearchIndex((done, total) => status.setText(t('Cerco nei versetti… {p}%', { p: Math.round((done / total) * 100) }))).catch(() => null);
     if (token !== this.paneToken) return;
     const hits = (index || []).filter((e) => {
       key.re.lastIndex = 0;
       return key.re.test(e.n.replace(/[’‘`]/g, "'"));
     });
-    status.setText(hits.length ? `${hits.length} versetti` : 'Nessun versetto con questa parola.');
+    status.setText(hits.length ? (hits.length === 1 ? t('1 versetto') : t('{n} versetti', { n: hits.length.toLocaleString(lang()) })) : t('Nessun versetto con questa parola.'));
     const summary = sec.parentElement && sec.parentElement.querySelector('summary');
     if (summary && hits.length) summary.createSpan({ cls: 'lmp-badge', text: String(hits.length) });
     const byBook = new Map();
@@ -2407,9 +2422,9 @@ class BibleView extends ItemView {
         this.paneStack.pop();
         this.renderPane();
       },
-      extra: (iconBtn) => iconBtn('external-link', 'Apri in una scheda', () => this.plugin.openFileRaw(file, 'tab', subpath)),
+      extra: (iconBtn) => iconBtn('external-link', t('Apri in una scheda'), () => this.plugin.openFileRaw(file, 'tab', subpath)),
     });
-    const content = this.paneEl.createDiv({ cls: 'lmp-pane-content lmp-doc', text: 'Caricamento…' });
+    const content = this.paneEl.createDiv({ cls: 'lmp-pane-content lmp-doc', text: t('Caricamento…') });
     content.dataset.sourcePath = file.path;
     const text = await this.bible.readDoc(file);
     if (token !== this.paneToken) return;
@@ -2419,7 +2434,7 @@ class BibleView extends ItemView {
       const md = extractBlock(text, blockId);
       if (md != null) {
         await renderMd(this.app, md, content.createDiv('lmp-study-card'), file.path, comp);
-        const full = content.createEl('button', { cls: 'lmp-small-btn', text: 'Mostra documento intero' });
+        const full = content.createEl('button', { cls: 'lmp-small-btn', text: t('Mostra documento intero') });
         full.addEventListener('click', () => {
           this.paneStack[this.paneStack.length - 1] = { file, subpath: '' };
           this.renderPane();
@@ -2428,8 +2443,8 @@ class BibleView extends ItemView {
       }
     }
     if (text.length > 250000) {
-      content.createDiv({ cls: 'lmp-empty', text: 'Documento molto lungo: aprilo in una scheda.' });
-      const b = content.createEl('button', { cls: 'lmp-small-btn', text: 'Apri in una scheda' });
+      content.createDiv({ cls: 'lmp-empty', text: t('Documento molto lungo: aprilo in una scheda.') });
+      const b = content.createEl('button', { cls: 'lmp-small-btn', text: t('Apri in una scheda') });
       b.addEventListener('click', () => this.plugin.openFileRaw(file, 'tab', subpath));
       return;
     }
@@ -2527,10 +2542,10 @@ class BibleView extends ItemView {
     pop.empty();
     pop.createDiv({ cls: 'lmp-pop-title', text: this.bible.refLabel(ref) });
     const txt = parts.join(' ');
-    pop.createDiv({ cls: 'lmp-ref-pop-text', text: txt ? txt + (ref.verse ? '' : ' …') : 'Testo non trovato.' });
+    pop.createDiv({ cls: 'lmp-ref-pop-text', text: txt ? txt + (ref.verse ? '' : ' …') : t('Testo non trovato.') });
     const bar = pop.createDiv('lmp-cite-pop-actions');
-    if (!Platform.isPhone) bar.createEl('button', { text: 'A lato' }).addEventListener('click', () => open(true));
-    bar.createEl('button', { cls: 'mod-cta', text: 'Apri' }).addEventListener('click', () => open(false));
+    if (!Platform.isPhone) bar.createEl('button', { text: t('A lato') }).addEventListener('click', () => open(true));
+    bar.createEl('button', { cls: 'mod-cta', text: t('Apri') }).addEventListener('click', () => open(false));
     this.positionPopover(anchor, 420);
   }
 
@@ -2560,7 +2575,7 @@ class BibleView extends ItemView {
         else this.navigate(ref);
         return;
       }
-      new Notice(`Collegamento non trovato: ${linktext}`);
+      new Notice(t('Collegamento non trovato: {link}', { link: linktext }));
       return;
     }
     const hash = linktext.indexOf('#');

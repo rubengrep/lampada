@@ -1,5 +1,6 @@
 import { Menu, Modal, Notice, requestUrl, setIcon } from 'obsidian';
 import { fileMeta, mdFiles, readFile } from './file.js';
+import { t } from './lingua.js';
 import { codesFromJwUrl, norm, parseRefLinks, refFromCodes, stripFrontmatter } from './testo.js';
 
 /* ------------------------------------------------------------------ */
@@ -210,7 +211,7 @@ class ParallelModal extends Modal {
       const col = grid.createDiv('lmp-par-col');
       if (GOSPELS[i] === this.currentBook) col.addClass('is-current');
       for (const ref of refs) {
-        const head = col.createEl('button', { cls: 'lmp-par-head', text: bible.refLabel(ref), attr: { 'aria-label': 'Apri nella Bibbia' } });
+        const head = col.createEl('button', { cls: 'lmp-par-head', text: bible.refLabel(ref), attr: { 'aria-label': t('Apri nella Bibbia') } });
         head.addEventListener('click', () => {
           this.close();
           this.plugin.openReader(ref);
@@ -226,7 +227,7 @@ class ParallelModal extends Modal {
               p.appendText(' ' + bible.verseText(data, v));
             }
           })
-          .catch(() => body.setText('Testo non trovato.'));
+          .catch(() => body.setText(t('Testo non trovato.')));
       }
     });
   }
@@ -250,7 +251,7 @@ function textKey(s) {
 /** Una richiesta a OpenRouter con `body` (messages, tools…); il modello è quello delle impostazioni. → risposta JSON */
 async function openRouter(plugin, body) {
   const key = (plugin.settings.openrouterKey || '').trim();
-  if (!key) throw new Error('Manca la chiave OpenRouter: Impostazioni → Lampada → Intelligenza artificiale.');
+  if (!key) throw new Error(t('Manca la chiave OpenRouter: Impostazioni → Lampada → Intelligenza artificiale.'));
   const res = await requestUrl({
     url: 'https://openrouter.ai/api/v1/chat/completions',
     method: 'POST',
@@ -265,9 +266,9 @@ async function openRouter(plugin, body) {
   } catch (e) {
     /* risposta non JSON */
   }
-  const msg = (json && json.error && json.error.message) || `OpenRouter ha risposto ${res.status}`;
-  if (res.status === 401) throw new Error(`Chiave OpenRouter non valida (${msg})`);
-  if (res.status === 402) throw new Error(`Credito OpenRouter esaurito (${msg})`);
+  const msg = (json && json.error && json.error.message) || t('OpenRouter ha risposto {status}', { status: res.status });
+  if (res.status === 401) throw new Error(t('Chiave OpenRouter non valida ({msg})', { msg }));
+  if (res.status === 402) throw new Error(t('Credito OpenRouter esaurito ({msg})', { msg }));
   if (res.status >= 400 || !json) throw new Error(msg);
   const u = json.usage || {};
   const det = u.prompt_tokens_details || {};
@@ -296,14 +297,14 @@ async function aiChat(plugin, system, user) {
     ...(Array.isArray(user) && user.some((p) => p.cache) ? { session_id: `lmp-${textKey(user.filter((p) => p.cache).map((p) => p.text).join(''))}` } : {}),
   });
   const text = json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content;
-  if (!text) throw new Error('Risposta vuota dal modello');
+  if (!text) throw new Error(t('Risposta vuota dal modello'));
   return text;
 }
 
 /** Istruzioni personali (Impostazioni → Intelligenza artificiale) in fondo al prompt di sistema. */
 function withUserStyle(plugin, system) {
   const own = String(plugin.settings.aiInstructions || '').trim();
-  return own ? `${system}\n\nISTRUZIONI DELL'UTENTE (valgono per lo stile, non cambiano il formato della risposta né l'uso delle fonti):\n${own}` : system;
+  return own ? `${system}\n\n${t('ISTRUZIONI DELL’UTENTE (valgono per lo stile, non cambiano il formato della risposta né l’uso delle fonti):')}\n${own}` : system;
 }
 
 /* ---------------- spunti per il commento ---------------- */
@@ -317,7 +318,7 @@ Esempio biblico: un commento con un esempio o un personaggio biblico che illustr
 /** Prompt rapidi: elenco [{ name, prompt }] dalle impostazioni, oppure testo "Nome: istruzione" per riga; vuoto = predefiniti. */
 function parsePresets(text) {
   if (Array.isArray(text) && text.length) return text.map((p) => ({ name: String(p.name || '').trim(), prompt: String(p.prompt || '').trim() || String(p.name || '').trim() })).filter((p) => p.name);
-  return ((typeof text === 'string' && text.trim()) || DEFAULT_PRESETS)
+  return ((typeof text === 'string' && text.trim()) || t(DEFAULT_PRESETS))
     .split('\n')
     .map((l) => l.trim())
     .filter(Boolean)
@@ -404,13 +405,13 @@ async function addScriptureSources(plugin, refs, list, skipFile, { maxVerses = 4
     const embeds = [...study.matchAll(/!\[\[([^\]#|]+)#\^([^\]|]+)/g)];
     for (const m of embeds) {
       const b = await bible.getBlock(m[1], m[2], d.src).catch(() => null);
-      if (b) list.add(`Nota di studio a ${d.label}`, plain(b.md), { verse: d.r });
+      if (b) list.add(t('Nota di studio a {ref}', { ref: d.label }), plain(b.md), { verse: d.r });
     }
-    if (!embeds.length && study) list.add(`Nota di studio a ${d.label}`, plain(study), { verse: d.r });
+    if (!embeds.length && study) list.add(t('Nota di studio a {ref}', { ref: d.label }), plain(study), { verse: d.r });
     const fn = sec(d, 'Note in calce');
-    if (fn) list.add(`Note in calce a ${d.label}`, plain(fn), { verse: d.r });
+    if (fn) list.add(t('Note in calce a {ref}', { ref: d.label }), plain(fn), { verse: d.r });
     // Didascalie delle immagini ("*…*" sotto ogni immagine)
-    for (const m of sec(d, 'Media').matchAll(/^\s*\*(.+)\*\s*$/gm)) list.add(`Immagine a ${d.label}`, plain(m[1]), { verse: d.r });
+    for (const m of sec(d, 'Media').matchAll(/^\s*\*(.+)\*\s*$/gm)) list.add(t('Immagine a {ref}', { ref: d.label }), plain(m[1]), { verse: d.r });
   }
 
   // 2. riferimenti a margine, con il loro testo
@@ -425,7 +426,7 @@ async function addScriptureSources(plugin, refs, list, skipFile, { maxVerses = 4
         if (seen.has(lbl)) continue;
         seen.add(lbl);
         const p = await bible.previewRef(r2, lbl).catch(() => null);
-        if (p && p.text) list.add(`Riferimento a margine di ${d.label}: ${lbl}`, p.text, { verse: r2 });
+        if (p && p.text) list.add(t('Riferimento a margine di {ref}: {to}', { ref: d.label, to: lbl }), p.text, { verse: r2 });
       }
     }
   };
@@ -447,7 +448,7 @@ async function addScriptureSources(plugin, refs, list, skipFile, { maxVerses = 4
           if (seenCite.has(key)) continue;
           seenCite.add(key);
           const b = await bible.getBlock(file, `p${m[1]}`, '').catch(() => null);
-          if (b) list.add(`${pubs.get(file) ? `${pubs.get(file)}, ` : ''}«${title}» ¶${m[1]} (cita ${d.label})`, plain(b.md), { cite: file, par: +m[1] });
+          if (b) list.add(`${pubs.get(file) ? `${pubs.get(file)}, ` : ''}«${title}» ¶${m[1]} ${t('(cita {ref})', { ref: d.label })}`, plain(b.md), { cite: file, par: +m[1] });
         }
       }
     }
@@ -456,6 +457,7 @@ async function addScriptureSources(plugin, refs, list, skipFile, { maxVerses = 4
   for (const step of citesFirst ? [citedIn, marginRefs] : [marginRefs, citedIn]) await step();
 }
 
+// Prompt in italiano, tradotti quando servono con t(): restano identici tra le domande finché la lingua non cambia.
 // Uguale per spunti e domande: così l'articolo in cache (subito dopo) serve a tutte e due.
 const AI_SYSTEM = `Aiuti un Testimone di Geova a prepararsi alle adunanze e a studiare la Bibbia e le pubblicazioni.
 Ricevi l'articolo intero (o il capitolo della Bibbia) e molte fonti numerate [F1], [F2]…: paragrafi, versetti, note di studio, note in calce, riferimenti a margine, paragrafi di pubblicazioni che citano le scritture, note personali. Le fonti possono essere in due elenchi (quelle dell'articolo e quelle per questa richiesta), con la stessa numerazione.
@@ -482,10 +484,10 @@ function aiMessage(ctx, middle, tail) {
   const line = (x) => `[${x.id}] (${x.label}) ${x.text}`;
   const items = ctx.sources.items;
   const shared = ctx.shared > 0 ? Math.min(ctx.shared, items.length) : 0;
-  if (!shared) return [`ARTICOLO: ${ctx.title}`, ...middle, `FONTI:\n${items.map(line).join('\n')}`, ...tail].join('\n\n');
-  const rest = shared < items.length ? [`FONTI PER QUESTA RICHIESTA:\n${items.slice(shared).map(line).join('\n')}`] : [];
+  if (!shared) return [t('ARTICOLO: {title}', { title: ctx.title }), ...middle, `${t('FONTI:')}\n${items.map(line).join('\n')}`, ...tail].join('\n\n');
+  const rest = shared < items.length ? [`${t('FONTI PER QUESTA RICHIESTA:')}\n${items.slice(shared).map(line).join('\n')}`] : [];
   return [
-    { text: `ARTICOLO: ${ctx.title}\n\nFONTI DELL'ARTICOLO:\n${items.slice(0, shared).map(line).join('\n')}`, cache: true },
+    { text: `${t('ARTICOLO: {title}', { title: ctx.title })}\n\n${t('FONTI DELL’ARTICOLO:')}\n${items.slice(0, shared).map(line).join('\n')}`, cache: true },
     { text: [...middle, ...rest, ...tail].join('\n\n') },
   ];
 }
@@ -509,18 +511,18 @@ async function suggestComments(plugin, ctx, preset) {
   const src = (ids) => ids.map((id) => `[${id}]`).join(' ');
   const middle = [];
   // Senza domanda (un paragrafo qualsiasi, una parte del programma): si commenta il punto principale.
-  middle.push(`DOMANDA DA COMMENTARE: ${ctx.question || 'nessuna domanda stampata: commenta il punto principale dei paragrafi indicati'}`);
+  middle.push(t('DOMANDA DA COMMENTARE: {q}', { q: ctx.question || t('nessuna domanda stampata: commenta il punto principale dei paragrafi indicati') }));
   middle.push(
-    `PARAGRAFI DELLA DOMANDA: ${
-      ctx.review ? 'domanda di ripasso: la risposta riassume il punto dell’articolo che la riguarda, cercalo nei paragrafi' : src(ctx.paragraphIds) || '(vedi articolo)'
-    }`
+    t('PARAGRAFI DELLA DOMANDA: {p}', {
+      p: ctx.review ? t('domanda di ripasso: la risposta riassume il punto dell’articolo che la riguarda, cercalo nei paragrafi') : src(ctx.paragraphIds) || t('(vedi articolo)'),
+    })
   );
-  if (ctx.focus) middle.push(`TESTO SELEZIONATO (i commenti partono da qui): «${ctx.focus}»`);
-  if (ctx.notes && ctx.notes.length) middle.push(`MIE NOTE SU QUESTI PARAGRAFI:\n${ctx.notes.join('\n')}`);
-  const text = await aiChat(plugin, AI_SYSTEM, aiMessage(ctx, middle, [`RICHIESTA: ${preset.prompt}`, `COMPITO:\n${COMMENT_TASK}`]));
+  if (ctx.focus) middle.push(t('TESTO SELEZIONATO (i commenti partono da qui): «{focus}»', { focus: ctx.focus }));
+  if (ctx.notes && ctx.notes.length) middle.push(`${t('MIE NOTE SU QUESTI PARAGRAFI:')}\n${ctx.notes.join('\n')}`);
+  const text = await aiChat(plugin, t(AI_SYSTEM), aiMessage(ctx, middle, [t('RICHIESTA: {p}', { p: preset.prompt }), `${t('COMPITO:')}\n${t(COMMENT_TASK)}`]));
   const json = aiJson(text);
   const list = json && json.commenti;
-  if (!Array.isArray(list) || !list.length) throw new Error('Il modello non ha restituito commenti leggibili');
+  if (!Array.isArray(list) || !list.length) throw new Error(t('Il modello non ha restituito commenti leggibili'));
   return list.filter((c) => c && c.testo).map((c) => ({ testo: String(c.testo).trim(), fonti: sourcesOf(ctx, c.fonti) }));
 }
 
@@ -531,14 +533,14 @@ async function suggestComments(plugin, ctx, preset) {
 async function askAboutSources(plugin, ctx, question, history = []) {
   const src = (ids) => ids.map((id) => `[${id}]`).join(' ');
   const middle = [];
-  if (ctx.paragraphIds && ctx.paragraphIds.length) middle.push(`PARAGRAFI DI CUI SI PARLA: ${src(ctx.paragraphIds)}`);
-  if (ctx.question) middle.push(`DOMANDA STAMPATA PER QUESTI PARAGRAFI: ${ctx.question}`);
-  if (ctx.focus) middle.push(`TESTO SELEZIONATO: «${ctx.focus}»`);
-  if (ctx.notes && ctx.notes.length) middle.push(`MIE NOTE SU QUESTI PARAGRAFI:\n${ctx.notes.join('\n')}`);
-  if (history.length) middle.push(`DOMANDE E RISPOSTE PRECEDENTI:\n${history.slice(-6).map((h) => `D: ${h.q}\nR: ${h.a}`).join('\n')}`);
-  const text = await aiChat(plugin, AI_SYSTEM, aiMessage(ctx, middle, [`DOMANDA: ${String(question).trim()}`, `COMPITO:\n${ASK_TASK}`]));
+  if (ctx.paragraphIds && ctx.paragraphIds.length) middle.push(t('PARAGRAFI DI CUI SI PARLA: {p}', { p: src(ctx.paragraphIds) }));
+  if (ctx.question) middle.push(t('DOMANDA STAMPATA PER QUESTI PARAGRAFI: {q}', { q: ctx.question }));
+  if (ctx.focus) middle.push(t('TESTO SELEZIONATO: «{focus}»', { focus: ctx.focus }));
+  if (ctx.notes && ctx.notes.length) middle.push(`${t('MIE NOTE SU QUESTI PARAGRAFI:')}\n${ctx.notes.join('\n')}`);
+  if (history.length) middle.push(`${t('DOMANDE E RISPOSTE PRECEDENTI:')}\n${history.slice(-6).map((h) => t('D: {q}\nR: {a}', { q: h.q, a: h.a })).join('\n')}`);
+  const text = await aiChat(plugin, t(AI_SYSTEM), aiMessage(ctx, middle, [t('DOMANDA: {q}', { q: String(question).trim() }), `${t('COMPITO:')}\n${t(ASK_TASK)}`]));
   const json = aiJson(text);
-  if (!json || !json.risposta) throw new Error('Il modello non ha restituito una risposta leggibile');
+  if (!json || !json.risposta) throw new Error(t('Il modello non ha restituito una risposta leggibile'));
   return { testo: String(json.risposta).trim(), fonti: sourcesOf(ctx, json.fonti) };
 }
 
@@ -562,46 +564,46 @@ function splitCited(text, ctx) {
  * `chat` ({ turns: [] }) lo tiene chi chiama, così la conversazione resta quando il pannello si ridisegna.
  * Restituisce il riquadro (da mettere nel pannello).
  */
-function renderAskBox(plugin, getCtx, chat, onSource, placeholder = 'Chiedi qualcosa su questo paragrafo…', { ask: askFn } = {}) {
+function renderAskBox(plugin, getCtx, chat, onSource, placeholder = t('Chiedi qualcosa su questo paragrafo…'), { ask: askFn } = {}) {
   const box = createDiv('lmp-ai-ask');
   const list = box.createDiv('lmp-ai-ask-list');
-  const turnEl = (t) => {
+  const turnEl = (turn) => {
     const el = createDiv('lmp-ai-ask-turn');
-    el.createDiv({ cls: 'lmp-ai-ask-q', text: t.q });
+    el.createDiv({ cls: 'lmp-ai-ask-q', text: turn.q });
     const a = el.createDiv('lmp-ai-ask-a');
-    if (t.error) {
+    if (turn.error) {
       a.addClass('is-error');
-      a.setText(t.error);
-    } else if (!t.a) {
+      a.setText(turn.error);
+    } else if (!turn.a) {
       a.addClass('is-loading');
-      a.setText(t.status || 'Sto cercando nelle fonti…');
+      a.setText(turn.status || t('Sto cercando nelle fonti…'));
     } else {
-      for (const p of t.parts) {
+      for (const p of turn.parts) {
         if (p.t) a.appendText(p.t);
         else {
           const chip = a.createEl('button', { cls: 'lmp-ai-src lmp-ai-src-inline', text: p.src.label, attr: { 'aria-label': p.src.text.slice(0, 300) } });
-          chip.addEventListener('click', () => onSource(p.src.target, t.ctx));
+          chip.addEventListener('click', () => onSource(p.src.target, turn.ctx));
         }
       }
-      const copy = el.createEl('button', { cls: 'lmp-small-btn lmp-ai-ask-copy', text: 'Copia' });
+      const copy = el.createEl('button', { cls: 'lmp-small-btn lmp-ai-ask-copy', text: t('Copia') });
       copy.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(t.a.replace(/\s*\[F\d+(?:\s*,\s*F\d+)*\]/g, ''));
-        new Notice('Risposta copiata');
+        await navigator.clipboard.writeText(turn.a.replace(/\s*\[F\d+(?:\s*,\s*F\d+)*\]/g, ''));
+        new Notice(t('Risposta copiata'));
       });
     }
     return el;
   };
   const draw = () => {
     list.empty();
-    for (const t of chat.turns) list.appendChild(turnEl(t));
+    for (const turn of chat.turns) list.appendChild(turnEl(turn));
     clear.toggleClass('is-hidden', !chat.turns.length);
-    input.setAttr('placeholder', chat.turns.length ? 'Un’altra domanda…' : placeholder);
+    input.setAttr('placeholder', chat.turns.length ? t('Un’altra domanda…') : placeholder);
   };
   const form = box.createDiv('lmp-ai-ask-form');
   const input = form.createEl('textarea', { cls: 'lmp-ai-ask-input', attr: { rows: '1', 'aria-label': placeholder } });
-  const send = form.createEl('button', { cls: 'clickable-icon lmp-ai-ask-send', attr: { 'aria-label': 'Chiedi' } });
+  const send = form.createEl('button', { cls: 'clickable-icon lmp-ai-ask-send', attr: { 'aria-label': t('Chiedi') } });
   setIcon(send, 'send');
-  const clear = form.createEl('button', { cls: 'clickable-icon lmp-ai-ask-clear', attr: { 'aria-label': 'Nuova conversazione' } });
+  const clear = form.createEl('button', { cls: 'clickable-icon lmp-ai-ask-clear', attr: { 'aria-label': t('Nuova conversazione') } });
   setIcon(clear, 'rotate-ccw');
   clear.addEventListener('click', () => {
     if (chat.busy) return;
@@ -614,16 +616,16 @@ function renderAskBox(plugin, getCtx, chat, onSource, placeholder = 'Chiedi qual
     if (!q || chat.busy) return;
     input.value = '';
     chat.busy = true;
-    const t = { q };
+    const turn = { q };
     const history = chat.turns.filter((x) => x.a).map((x) => ({ q: x.q, a: x.a }));
-    chat.turns.push(t);
+    chat.turns.push(turn);
     chat.redraw();
     try {
       let r;
       if (askFn) {
         // Altro modo di rispondere (chat sulla biblioteca): tiene da sé il contesto in chat.ctx e dice a che punto è.
         r = await askFn(q, chat, (status) => {
-          t.status = status;
+          turn.status = status;
           chat.redraw();
         });
       } else {
@@ -631,10 +633,10 @@ function renderAskBox(plugin, getCtx, chat, onSource, placeholder = 'Chiedi qual
         const ctx = await (chat.ctx = chat.ctx || getCtx());
         r = { ...(await askAboutSources(plugin, ctx, q, history)), ctx };
       }
-      Object.assign(t, { a: r.testo, parts: splitCited(r.testo, r.ctx), ctx: r.ctx });
+      Object.assign(turn, { a: r.testo, parts: splitCited(r.testo, r.ctx), ctx: r.ctx });
     } catch (e) {
       chat.ctx = null;
-      t.error = e.message || String(e);
+      turn.error = e.message || String(e);
     }
     chat.busy = false;
     chat.redraw();
@@ -657,7 +659,7 @@ function aiMenu(plugin, evt, run) {
   const menu = new Menu();
   for (const preset of parsePresets(plugin.settings.aiPresets)) menu.addItem((i) => i.setTitle(preset.name).onClick(() => run(preset)));
   menu.addSeparator();
-  menu.addItem((i) => i.setTitle('Scrivi tu la richiesta…').setIcon('pencil').onClick(() => new FreePromptModal(plugin, run).open()));
+  menu.addItem((i) => i.setTitle(t('Scrivi tu la richiesta…')).setIcon('pencil').onClick(() => new FreePromptModal(plugin, run).open()));
   menu.showAtMouseEvent(evt);
 }
 
@@ -670,15 +672,15 @@ class FreePromptModal extends Modal {
   }
 
   onOpen() {
-    this.titleEl.setText('Cosa vuoi negli spunti?');
-    const ta = this.contentEl.createEl('textarea', { cls: 'lmp-free-prompt', attr: { rows: 3, placeholder: 'Es. un commento che parte dall’immagine, per un bambino' } });
+    this.titleEl.setText(t('Cosa vuoi negli spunti?'));
+    const ta = this.contentEl.createEl('textarea', { cls: 'lmp-free-prompt', attr: { rows: 3, placeholder: t('Es. un commento che parte dall’immagine, per un bambino') } });
     ta.value = this.plugin.lastFreePrompt || '';
     const go = () => {
       const prompt = ta.value.trim();
       if (!prompt) return ta.focus();
       this.plugin.lastFreePrompt = prompt;
       this.close();
-      this.run({ name: 'Richiesta libera', prompt });
+      this.run({ name: t('Richiesta libera'), prompt });
     };
     ta.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
@@ -687,7 +689,7 @@ class FreePromptModal extends Modal {
       }
     });
     const bar = this.contentEl.createDiv({ cls: 'modal-button-container' });
-    bar.createEl('button', { cls: 'mod-cta', text: 'Chiedi' }).addEventListener('click', go);
+    bar.createEl('button', { cls: 'mod-cta', text: t('Chiedi') }).addEventListener('click', go);
     window.setTimeout(() => ta.focus(), 50);
   }
 
@@ -708,8 +710,8 @@ async function showAiSuggestions(plugin, preset, getCtx, { btn, ta, place, onSou
   }
   const box = createDiv('lmp-ai-box');
   const head = box.createDiv('lmp-ai-head');
-  const note = head.createDiv({ cls: 'lmp-ai-note', text: `${preset.name} · sto cercando nelle fonti…` });
-  const close = head.createEl('button', { cls: 'clickable-icon lmp-ai-close', attr: { 'aria-label': 'Chiudi gli spunti' } });
+  const note = head.createDiv({ cls: 'lmp-ai-note', text: `${preset.name} · ${t('sto cercando nelle fonti…')}` });
+  const close = head.createEl('button', { cls: 'clickable-icon lmp-ai-close', attr: { 'aria-label': t('Chiudi gli spunti') } });
   setIcon(close, 'x');
   const drop = () => {
     box.remove();
@@ -721,7 +723,7 @@ async function showAiSuggestions(plugin, preset, getCtx, { btn, ta, place, onSou
     const ctx = await getCtx();
     const list = await suggestComments(plugin, ctx, preset);
     const skipped = ctx.sources && ctx.sources.skipped;
-    note.setText(`${preset.name} · scegline uno e dillo con parole tue${skipped ? ` · ${skipped} fonti escluse perché troppo lunghe` : ''}`);
+    note.setText(`${preset.name} · ${t('scegline uno e dillo con parole tue')}${skipped ? ` · ${t('{n} fonti escluse perché troppo lunghe', { n: skipped })}` : ''}`);
     for (const c of list) {
       const card = box.createDiv('lmp-ai-card');
       card.createDiv({ cls: 'lmp-ai-text', text: c.testo });
@@ -734,17 +736,17 @@ async function showAiSuggestions(plugin, preset, getCtx, { btn, ta, place, onSou
       }
       const acts = card.createDiv('lmp-ai-actions');
       if (ta) {
-        const use = acts.createEl('button', { cls: 'lmp-small-btn', text: 'Usa nella risposta' });
+        const use = acts.createEl('button', { cls: 'lmp-small-btn', text: t('Usa nella risposta') });
         use.addEventListener('click', () => {
           ta.value = ta.value.trim() ? `${ta.value.trim()}\n${c.testo}` : c.testo;
           ta.dispatchEvent(new Event('input'));
           drop();
         });
       }
-      const copy = acts.createEl('button', { cls: 'lmp-small-btn', text: 'Copia' });
+      const copy = acts.createEl('button', { cls: 'lmp-small-btn', text: t('Copia') });
       copy.addEventListener('click', async () => {
         await navigator.clipboard.writeText(c.testo);
-        new Notice('Spunto copiato');
+        new Notice(t('Spunto copiato'));
       });
     }
   } catch (e) {
@@ -777,12 +779,12 @@ async function verseAiCtx(plugin, d, vs, title, focus) {
       const key = `${e.path}:${e.line}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      sources.add(`Mia nota «${e.path.split('/').pop().replace(/\.md$/, '')}» (cita ${bible.refLabel(at(v))})`, e.snippet, { note: e.path, line: e.line });
+      sources.add(t('Mia nota «{name}» (cita {ref})', { name: e.path.split('/').pop().replace(/\.md$/, ''), ref: bible.refLabel(at(v)) }), e.snippet, { note: e.path, line: e.line });
     }
   await addScriptureSources(plugin, chosen.map(at), sources, '', { maxVerses: Infinity, citesFirst: true });
   return {
-    title: `Bibbia, ${bible.refLabel({ book: d.book.num, chapter: d.chapter })}`,
-    question: `Che cosa impariamo da ${title}?`,
+    title: t('Bibbia, {ref}', { ref: bible.refLabel({ book: d.book.num, chapter: d.chapter }) }),
+    question: t('Che cosa impariamo da {ref}?', { ref: title }),
     paragraphIds: chosen.map((v) => ids.get(v)).filter(Boolean),
     focus: focus ? focus.replace(/\s+/g, ' ').trim().slice(0, 1500) : '',
     sources,
@@ -798,25 +800,25 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
   if (e === undefined) {
     // Dati non scaricati: senza un'estensione che li fornisca la sezione non compare.
     if (!plugin.has('downloadReferenceBible')) return (sec.closest('details') || sec).remove();
-    sec.createDiv({ cls: 'lmp-rbi-intro', text: 'Testo della Traduzione del Nuovo Mondo con riferimenti (1987), con i riferimenti a margine e le note, da confrontare con la Bibbia per lo studio.' });
-    const b = sec.createEl('button', { cls: 'mod-cta lmp-rbi-get', text: 'Scarica (26 MB, una volta sola)' });
+    sec.createDiv({ cls: 'lmp-rbi-intro', text: t('Testo della Traduzione del Nuovo Mondo con riferimenti (1987), con i riferimenti a margine e le note, da confrontare con la Bibbia per lo studio.') });
+    const b = sec.createEl('button', { cls: 'mod-cta lmp-rbi-get', text: t('Scarica (26 MB, una volta sola)') });
     b.addEventListener('click', async () => {
       b.disabled = true;
       try {
         await plugin.ask('downloadReferenceBible', (t) => b.isConnected && b.setText(t));
-        new Notice('Rbi8 pronta');
+        new Notice(t('Rbi8 pronta'));
         refresh();
       } catch (err) {
         b.disabled = false;
-        if (err.cancelled) return b.setText('Scarica (26 MB, una volta sola)');
-        b.setText('Riprova a scaricare');
-        new Notice(`Rbi8: ${err.message}`);
+        if (err.cancelled) return b.setText(t('Scarica (26 MB, una volta sola)'));
+        b.setText(t('Riprova a scaricare'));
+        new Notice(t('Rbi8: {e}', { e: err.message }));
       }
     });
     return;
   }
   if (!e) {
-    sec.createDiv({ cls: 'lmp-empty lmp-small', text: 'Questo versetto non c’è nell’edizione con riferimenti.' });
+    sec.createDiv({ cls: 'lmp-empty lmp-small', text: t('Questo versetto non c’è nell’edizione con riferimenti.') });
     return;
   }
   sec.createDiv({ cls: 'lmp-rbi-text', text: e.t });
@@ -840,7 +842,7 @@ async function renderRbi8Verse(plugin, sec, ref, { alive, onRef, refresh }) {
     });
   }
   if (e.f && e.f.length) {
-    sec.createDiv({ cls: 'lmp-rbi-sub', text: 'Note' });
+    sec.createDiv({ cls: 'lmp-rbi-sub', text: t('Note') });
     for (const [letter, word, text] of e.f) row(`*${letter}`, word).appendText(text);
   }
 }

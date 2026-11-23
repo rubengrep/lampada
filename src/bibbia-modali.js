@@ -1,4 +1,5 @@
 import { Modal, SuggestModal, EditorSuggest, Notice, debounce } from 'obsidian';
+import { t } from './lingua.js';
 import { categoryOf, norm } from './testo.js';
 
 /* ------------------------------------------------------------------ */
@@ -11,11 +12,11 @@ class GotoModal extends SuggestModal {
     this.plugin = plugin;
     this.bible = plugin.bible;
     this.onChoose = onChoose;
-    this.setPlaceholder('Es. Gv 3:16, Salmi 23, 1 Giovanni 4:8, Gda 5');
+    this.setPlaceholder(t('Es. Gv 3:16, Salmi 23, 1 Giovanni 4:8, Gda 5'));
     this.setInstructions([
-      { command: '↑↓', purpose: 'scegli' },
-      { command: '↵', purpose: 'apri' },
-      { command: 'esc', purpose: 'chiudi' },
+      { command: '↑↓', purpose: t('scegli') },
+      { command: '↵', purpose: t('apri') },
+      { command: 'esc', purpose: t('chiudi') },
     ]);
   }
 
@@ -47,7 +48,7 @@ class GotoModal extends SuggestModal {
     const dot = el.createSpan({ cls: `lmp-suggest-dot cat-${categoryOf(item.ref.book)}` });
     dot.setText(this.bible.byNum.get(item.ref.book)?.abbr || '');
     el.createSpan({ cls: 'lmp-suggest-label', text: item.label });
-    if (item.primary) el.createSpan({ cls: 'lmp-suggest-hint', text: 'Apri' });
+    if (item.primary) el.createSpan({ cls: 'lmp-suggest-hint', text: t('Apri') });
   }
 
   onChooseSuggestion(item) {
@@ -65,8 +66,8 @@ class SearchModal extends Modal {
 
   async onOpen() {
     this.modalEl.addClass('lmp-search-modal');
-    this.titleEl.setText('Cerca o chiedi');
-    const input = this.contentEl.createEl('input', { type: 'search', cls: 'lmp-search-input', attr: { placeholder: 'Un versetto (gv 3:16), un titolo, un argomento… o una domanda' } });
+    this.titleEl.setText(t('Cerca o chiedi'));
+    const input = this.contentEl.createEl('input', { type: 'search', cls: 'lmp-search-input', attr: { placeholder: t('Un versetto (gv 3:16), un titolo, un argomento… o una domanda') } });
     this.statusEl = this.contentEl.createDiv('lmp-search-status');
     this.resultsEl = this.contentEl.createDiv('lmp-search-results');
     input.focus();
@@ -85,8 +86,8 @@ class SearchModal extends Modal {
 
     try {
       await this.bible.ensureLoaded();
-      if (!this.bible.searchIndex) this.statusEl.setText('Preparazione dell’indice di ricerca…');
-      this.index = await this.bible.getSearchIndex((done, total) => this.statusEl.setText(`Preparazione dell’indice… ${Math.round((done / total) * 100)}%`));
+      if (!this.bible.searchIndex) this.statusEl.setText(t('Preparazione dell’indice di ricerca…'));
+      this.index = await this.bible.getSearchIndex((done, total) => this.statusEl.setText(t('Preparazione dell’indice… {p}%', { p: Math.round((done / total) * 100) })));
       this.statusEl.setText('');
       if (input.value) this.search(input.value);
     } catch (e) {
@@ -107,12 +108,12 @@ class SearchModal extends Modal {
     const ref = this.bible.parseReference(query);
     if (ref && !ref.invalid && ref.chapter) {
       const item = this.resultsEl.createDiv('lmp-search-item lmp-search-goto');
-      item.createDiv({ cls: 'lmp-search-ref', text: `Vai a ${this.bible.refLabel(ref)}` });
+      item.createDiv({ cls: 'lmp-search-ref', text: t('Vai a {ref}', { ref: this.bible.refLabel(ref) }) });
       item.addEventListener('click', () => this.pick(ref));
     }
 
     // Una domanda ("perché…?", frase lunga): prima di tutto la proposta di chiederla alla biblioteca.
-    const question = /\?\s*$/.test(query) || /^(perch[eé]|come|cosa|che cosa|chi|quando|dove|quale|quali|quanto|in che modo|cosa dice|cosa insegna)\b/i.test(query.trim()) || q.split(/\s+/).length >= 5;
+    const question = /\?\s*$/.test(query) || /^(perch[eé]|come|cosa|che cosa|chi|quando|dove|quale|quali|quanto|in che modo|cosa dice|cosa insegna|why|how|what|who|when|where|which)\b/i.test(query.trim()) || q.split(/\s+/).length >= 5;
     if (question) this.askItem(query);
     this.searchOthers(q);
     this.searchParagraphs(query);
@@ -128,8 +129,8 @@ class SearchModal extends Modal {
         if (results.length < 300) results.push(e);
       }
     }
-    this.statusEl.setText(count ? `${count} versetti${count > results.length ? ` (mostrati ${results.length})` : ''}` : 'Nessun versetto');
-    if (results.length) this.resultsEl.createDiv({ cls: 'lmp-search-group', text: 'Versetti' });
+    this.statusEl.setText(count ? t('{n} versetti', { n: count }) + (count > results.length ? ` ${t('(mostrati {n})', { n: results.length })}` : '') : t('Nessun versetto'));
+    if (results.length) this.resultsEl.createDiv({ cls: 'lmp-search-group', text: t('Versetti') });
     for (const e of results) {
       const item = this.resultsEl.createDiv('lmp-search-item');
       item.createDiv({ cls: 'lmp-search-ref', text: this.bible.refLabel(e) });
@@ -141,8 +142,8 @@ class SearchModal extends Modal {
   /** "Chiedi alla biblioteca": l'AI cerca nelle pubblicazioni e risponde con le fonti. */
   askItem(query) {
     const item = this.resultsEl.createDiv('lmp-search-item lmp-search-ask');
-    item.createDiv({ cls: 'lmp-search-ref', text: 'Chiedi alla biblioteca' });
-    item.createDiv({ cls: 'lmp-search-text', text: `«${query.trim()}» · l’AI cerca nelle pubblicazioni e risponde con le fonti` });
+    item.createDiv({ cls: 'lmp-search-ref', text: t('Chiedi alla biblioteca') });
+    item.createDiv({ cls: 'lmp-search-text', text: `«${query.trim()}» · ${t('l’AI cerca nelle pubblicazioni e risponde con le fonti')}` });
     item.addEventListener('click', () => {
       this.close();
       this.plugin.askLibrary(query.trim());
@@ -158,7 +159,7 @@ class SearchModal extends Modal {
     ls.find(query, { limit: 8 })
       .then((found) => {
         if (token !== this.parToken || !found || !found.length) return;
-        box.createDiv({ cls: 'lmp-search-group', text: found.some((x) => !x.d) ? 'Paragrafi delle pubblicazioni e delle note' : 'Paragrafi delle pubblicazioni' });
+        box.createDiv({ cls: 'lmp-search-group', text: found.some((x) => !x.d) ? t('Paragrafi delle pubblicazioni e delle note') : t('Paragrafi delle pubblicazioni') });
         for (const x of found) {
           const item = box.createDiv('lmp-search-item is-other');
           item.createDiv({ cls: 'lmp-search-ref', text: `${x.title} · ${x.pub}` });
@@ -189,7 +190,7 @@ class SearchModal extends Modal {
           open();
         });
       }
-      if (items.length > MAX) this.resultsEl.createDiv({ cls: 'lmp-search-more', text: `e altri ${items.length - MAX}` });
+      if (items.length > MAX) this.resultsEl.createDiv({ cls: 'lmp-search-more', text: t('e altri {n}', { n: items.length - MAX }) });
     };
     const p = this.plugin;
     const lib = p.library;
@@ -199,20 +200,20 @@ class SearchModal extends Modal {
         if (norm(pub.title).includes(q) || norm(pub.symbol) === q) hits.push({ pub });
         for (const d of pub.docs) if (hits.length < 60 && norm(d.title).includes(q)) hits.push({ d });
       }
-      group('Pubblicazioni', hits, (h) =>
+      group(t('Pubblicazioni'), hits, (h) =>
         h.pub
-          ? [h.pub.title, 'Pubblicazione', () => p.openLibraryAt({ mode: 'pub', sym: h.pub.symbol })]
+          ? [h.pub.title, t('Pubblicazione'), () => p.openLibraryAt({ mode: 'pub', sym: h.pub.symbol })]
           : [h.d.title, h.d.pub.title, () => p.openLibraryDoc(h.d)]
       );
     } else lib.ensureLoaded().catch(() => null);
     if (p.scrabb && p.scrabb.ready) {
-      group('Schede SCRABB', p.scrabb.all().filter((e) => norm(e.name).includes(q)), (e) => [e.name, e.tipo.charAt(0).toUpperCase() + e.tipo.slice(1), () => p.showInScrabb(e.path)]);
+      group(t('Schede SCRABB'), p.scrabb.all().filter((e) => norm(e.name).includes(q)), (e) => [e.name, e.tipo.charAt(0).toUpperCase() + e.tipo.slice(1), () => p.showInScrabb(e.path)]);
     }
     const notes = this.app.vault
       .getMarkdownFiles()
       .filter((f) => norm(f.basename).includes(q) && !this.bible.refFromFile(f) && !(lib.byFile && lib.byFile.get(f.basename)) && !(p.scrabb && p.scrabb.get && p.scrabb.get(f.path)))
       .sort((a, b) => b.stat.mtime - a.stat.mtime);
-    group('Note', notes, (f) => [f.basename, f.parent && f.parent.path !== '/' ? f.parent.path : '', () => this.app.workspace.getLeaf('tab').openFile(f)]);
+    group(t('Note'), notes, (f) => [f.basename, f.parent && f.parent.path !== '/' ? f.parent.path : '', () => this.app.workspace.getLeaf('tab').openFile(f)]);
   }
 
   renderHighlighted(el, entry, words) {
@@ -302,7 +303,7 @@ class RefSuggest extends EditorSuggest {
       body.createDiv({ cls: 'lmp-suggest-label', text: item.book.title });
       return;
     }
-    const hint = { link: 'Inserisci link', quote: 'Inserisci link + testo', open: 'Apri nel lettore' }[item.type];
+    const hint = t({ link: 'Inserisci link', quote: 'Inserisci link + testo', open: 'Apri nel lettore' }[item.type]);
     const row = body.createDiv('lmp-suggest-row');
     row.createSpan({ cls: 'lmp-suggest-label', text: this.bible.refLabel(item.ref) });
     row.createSpan({ cls: 'lmp-suggest-hint', text: hint });
@@ -346,10 +347,10 @@ class NoteRefsModal extends Modal {
   async onOpen() {
     const bible = this.plugin.bible;
     this.modalEl.addClass('lmp-search-modal');
-    this.titleEl.setText(`Versetti in «${this.file.basename}»`);
+    this.titleEl.setText(t('Versetti in «{name}»', { name: this.file.basename }));
     const seen = new Set();
     const list = this.contentEl.createDiv('lmp-search-results');
-    if (!this.hits.length) list.createDiv({ cls: 'lmp-empty', text: 'Nessun riferimento biblico trovato in questa nota.' });
+    if (!this.hits.length) list.createDiv({ cls: 'lmp-empty', text: t('Nessun riferimento biblico trovato in questa nota.') });
     for (const h of this.hits) {
       const key = `${h.ref.book}:${h.ref.chapter}:${h.verses.join(',')}`;
       if (seen.has(key)) continue;
@@ -357,7 +358,7 @@ class NoteRefsModal extends Modal {
       const item = list.createDiv('lmp-search-item');
       const head = item.createDiv('lmp-search-ref');
       head.setText(bible.refLabel(h.ref, h.versesText));
-      if (h.kind === 'plain') head.createSpan({ cls: 'lmp-suggest-hint', text: ' · testo semplice' });
+      if (h.kind === 'plain') head.createSpan({ cls: 'lmp-suggest-hint', text: ` · ${t('testo semplice')}` });
       const txt = item.createDiv({ cls: 'lmp-search-text', text: '…' });
       item.addEventListener('click', () => {
         this.close();

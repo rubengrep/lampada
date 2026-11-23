@@ -1,4 +1,5 @@
-import { DATA_DIR, INDEX_MIRROR } from './costanti.js';
+import { INDEX_MIRROR, dataDir } from './costanti.js';
+import { compare, formatDate, intl, lang, t } from './lingua.js';
 import { fileAt, folderFiles, readFile, scanHidden, subfolders } from './file.js';
 import { stripFrontmatter, verseCode } from './testo.js';
 
@@ -44,8 +45,10 @@ const CITE_CATEGORIES = [
 ];
 const CITE_PERIODICALS = new Set(['torre-di-guardia', 'svegliatevi', 'guida-per-ladunanza', 'ministero-del-regno', 'annuari']);
 
-// "**CAPITOLO 23**", "**CANTICO 4**", "**LEZIONE 05**"… nelle prime righe del documento
-const DOC_LABEL_RE = /^\s*(?:\*\*|#+\s*)?(capitolo|cantico|lezione|parte|studio|domanda|sezione)[\s\u00a0]+(\d{1,3})(?:\*\*)?\s*(?:\^[\w-]+)?\s*$/i;
+// "**CAPITOLO 23**", "**CANTICO 4**", "**LEZIONE 05**"… nelle prime righe del documento (anche in inglese: "**CHAPTER 23**")
+const DOC_LABEL_RE = /^\s*(?:\*\*|#+\s*)?(capitolo|cantico|lezione|parte|studio|domanda|sezione|chapter|song|lesson|part|study|question|section)[\s\u00a0]+(\d{1,3})(?:\*\*)?\s*(?:\^[\w-]+)?\s*$/i;
+// Parole inglesi → parola italiana: kind resta in italiano (chiave), si traduce dove si mostra.
+const DOC_LABEL_IT = { chapter: 'capitolo', song: 'cantico', lesson: 'lezione', part: 'parte', study: 'studio', question: 'domanda', section: 'sezione' };
 
 function findDocLabel(body) {
   const lines = body.split('\n');
@@ -54,17 +57,33 @@ function findDocLabel(body) {
     if (!lines[i].trim()) continue;
     seen++;
     const m = DOC_LABEL_RE.exec(lines[i]);
-    if (m) return { kind: m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase(), num: +m[2], line: i };
+    if (m) {
+      const k = DOC_LABEL_IT[m[1].toLowerCase()] || m[1].toLowerCase();
+      return { kind: k.charAt(0).toUpperCase() + k.slice(1), num: +m[2], line: i };
+    }
   }
   return null;
 }
 
 const MONTHS = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
+// Mesi inglesi: per leggere le date nel testo delle pubblicazioni inglesi.
+const MONTHS_EN = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+/** Nome di un mese (italiano o inglese, maiuscole o no) → 0-11, -1 se non lo è. */
+const monthIndex = (s) => {
+  s = String(s).toLowerCase();
+  const i = MONTHS.indexOf(s);
+  return i >= 0 ? i : MONTHS_EN.indexOf(s);
+};
 
-/** "19540801" → "1° agosto 1954", "201808" → "agosto 2018" */
+/** "19540801" → "1° agosto 1954", "201808" → "agosto 2018" (in inglese "August 1, 1954", "August 2018") */
 function issueLabel(key) {
   const m = /^(\d{4})(\d{2})(\d{2})?$/.exec(key || '');
   if (!m) return key;
+  const day = m[3] && m[3] !== '00' ? +m[3] : 0;
+  if (lang() !== 'it' && +m[2] >= 1 && +m[2] <= 12) {
+    const d = new Date(+m[1], +m[2] - 1, day || 1);
+    return formatDate(d, day ? { day: 'numeric', month: 'long', year: 'numeric' } : { month: 'long', year: 'numeric' });
+  }
   const month = MONTHS[+m[2] - 1] || m[2];
   if (!m[3] || m[3] === '00') return `${month} ${m[1]}`;
   return `${+m[3] === 1 ? '1°' : +m[3]} ${month} ${m[1]}`;
@@ -75,14 +94,15 @@ class LibraryData {
   async studyArticles() {
     if (this.weeks) return this.weeks;
     const weeks = new Map();
-    // Dall'indice di ogni numero: "### Articolo di studio 2-8 novembre 2026" e il link subito sotto.
+    // Dall'indice di ogni numero: "### Articolo di studio 2-8 novembre 2026" (in inglese "### Study article for
+    // November 2-8, 2026", nel documento "Table of Contents") e il link subito sotto.
     for (const d of this.bySym.get('w')?.docs || []) {
-      if (d.title !== 'Indice') continue;
+      if (d.title !== 'Indice' && d.title !== 'Table of Contents') continue;
       const f = fileAt(this.app, `${d.pub.prefix}${d.rel}`);
       if (!f) continue;
       const lines = (await readFile(this.app, f)).split('\n');
       lines.forEach((l, i) => {
-        const h = /^#+\s*Articolo di studio\s+(.+)$/i.exec(l);
+        const h = /^#+\s*(?:Articolo di studio|Study article for)\s+(.+)$/i.exec(l);
         const k = h && weekStartFromLabel(h[1], d.issue);
         const link = k && /\[\[([^\]|#]+)/.exec(lines.slice(i + 1, i + 4).join('\n'));
         const art = link && this.byFile.get(link[1].trim());
@@ -157,6 +177,8 @@ class LibraryData {
       const parts = d.rel.split('/');
       return parts.length >= 4 && /^\d{6,8}$/.test(parts[parts.length - 2]) ? parts[parts.length - 2] : '';
     };
+    const byDocId = new Map();
+    const byFile = new Map();
     for (const pub of pubs) {
       const docs = pub.docs;
       if (docs.filter(issueOf).length > docs.length / 2) {
@@ -171,11 +193,14 @@ class LibraryData {
       }
       for (const d of docs) {
         d.pub = pub;
-        this.byDocId.set(d.id, d);
-        if (d.file) this.byFile.set(d.file, d);
+        byDocId.set(d.id, d);
+        if (d.file) byFile.set(d.file, d);
       }
     }
-    pubs.sort((x, y) => x.title.localeCompare(y.title, 'it', { sensitivity: 'base' }));
+    pubs.sort((x, y) => compare(x.title, y.title));
+    // Mappe nuove a ogni caricamento: cambiando lingua non restano i documenti dell'altra.
+    this.byDocId = byDocId;
+    this.byFile = byFile;
     this.pubs = pubs;
     this.weeks = null;
     this.bySym = new Map(pubs.map((p) => [p.symbol, p]));
@@ -195,7 +220,7 @@ class LibraryData {
   }
 
   get coversFolder() {
-    return `${DATA_DIR}/covers`;
+    return `${dataDir(this.plugin.settings)}/covers`;
   }
 
   /**
@@ -205,7 +230,7 @@ class LibraryData {
   async remove(symbol, issue = '') {
     const pub = this.bySym.get(symbol);
     if (!pub) return;
-    if (symbol === this.bible.symbol) throw new Error('È la Bibbia che stai usando: scegline un’altra prima di toglierla.');
+    if (symbol === this.bible.symbol) throw new Error(t('È la Bibbia che stai usando: scegline un’altra prima di toglierla.'));
     const a = this.app.vault.adapter;
     const prefix = this.bible.prefix;
     const docs = issue ? pub.issues?.find((i) => i.key === issue)?.docs || [] : pub.docs;
@@ -288,6 +313,7 @@ class LibraryData {
       if (list.length) out.push({ id, label, pubs: list });
     }
     const others = this.pubs.filter((p) => !known.has(p.category));
+    // label in italiano come quelle di LIB_CATEGORIES: si traduce dove si mostra.
     if (others.length) out.push({ id: 'varie', label: 'Varie', pubs: others });
     return out;
   }
@@ -325,23 +351,29 @@ function mondayOf(date) {
 
 /**
  * "2-8 novembre", "26 gennaio–1° febbraio", "30 novembre 2026 – 6 dicembre 2026", "28 (5-11 settembre 2022)"
- * → lunedì di quella settimana. Senza anno vale quello del numero (AAAAMM), +1 se il mese è già dell'anno dopo.
+ * → lunedì di quella settimana. Anche in inglese, col mese prima: "NOVEMBER 3-9", "JANUARY 26–FEBRUARY 1",
+ * "DECEMBER 29, 2025–JANUARY 4, 2026". Senza anno vale quello del numero (AAAAMM), +1 se il mese è già dell'anno dopo.
  */
 function weekStartFromLabel(text, issue) {
   const clean = String(text || '').replace(/<sup>o<\/sup>|[°º\\]/g, '');
-  const m = /^\s*(?:\d+\s*\(\s*)?(\d{1,2})(?:\s*[-–]\s*\d{1,2})?\s+([a-z]+)(?:\s+(\d{4}))?/i.exec(clean);
-  const month = m ? MONTHS.indexOf(m[2].toLowerCase()) : -1;
+  let m = /^\s*(?:\d+\s*\(\s*)?(\d{1,2})(?:\s*[-–]\s*\d{1,2})?\s+([a-z]+)(?:\s+(\d{4}))?/i.exec(clean);
+  let day = m && m[1];
+  let mon = m && m[2];
+  let yr = m && m[3];
+  if (!m && (m = /^\s*(?:\d+\s*\(\s*)?([a-z]+)\s+(\d{1,2})(?:\s*[-–]\s*\d{1,2}(?!\d))?(?:\s*,\s*(\d{4}))?/i.exec(clean))) [, mon, day, yr] = m;
+  const month = m ? monthIndex(mon) : -1;
   if (month < 0) return null;
-  let year = m[3] ? +m[3] : +String(issue || '').slice(0, 4);
-  if (!m[3] && +String(issue).slice(4, 6) - 1 - month > 6) year++;
-  return year ? mondayOf(new Date(year, month, +m[1])) : null;
+  let year = yr ? +yr : +String(issue || '').slice(0, 4);
+  if (!yr && +String(issue).slice(4, 6) - 1 - month > 6) year++;
+  return year ? mondayOf(new Date(year, month, +day)) : null;
 }
 
-/** "2026-11-02" → "2–8 novembre 2026", "30 novembre – 6 dicembre 2026" */
+/** "2026-11-02" → "2–8 novembre 2026", "30 novembre – 6 dicembre 2026"; nella lingua dell'interfaccia ("November 2 – 8, 2026"). */
 function weekLabel(iso) {
   const a = new Date(`${iso}T12:00:00`);
   const b = new Date(a);
   b.setDate(a.getDate() + 6);
+  if (lang() !== 'it') return intl(Intl.DateTimeFormat, { day: 'numeric', month: 'long', year: 'numeric' }).formatRange(a, b);
   const day = (d) => (d.getDate() === 1 ? '1°' : String(d.getDate()));
   if (a.getMonth() === b.getMonth()) return `${day(a)}–${day(b)} ${MONTHS[a.getMonth()]} ${a.getFullYear()}`;
   const ya = a.getFullYear() !== b.getFullYear() ? ` ${a.getFullYear()}` : '';

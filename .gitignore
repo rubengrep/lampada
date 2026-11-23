@@ -5,3 +5,4 @@ index-cache-*.json
 stato-*.json
 *.sync-conflict-*
 node_modules/
+.parole-private

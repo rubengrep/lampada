@@ -1,9 +1,20 @@
 
+import { t } from './lingua.js';
+
 const VIEW_TYPE = 'lampada';
 // Indici delle pubblicazioni nel formato aperto (<cartella>/index/<simbolo>.json; prima "Indici", ancora letto).
 const INDEX_MIRROR = 'index';
 // Dati che il plugin ricava da solo (campi risposta, adunanze, copertine, indice di Chiedi…): nascosti, si rigenerano.
 const DATA_DIR = '.lampada/data';
+// Una biblioteca per lingua delle pubblicazioni (settings.bibleLang, codice del sito: I, E…). L'italiano resta dov'era
+// (rootFolder e DATA_DIR); le altre lingue in .lampada/<codice>/markdown e .lampada/<codice>/data, ognuna con la sua
+// Bibbia, i suoi indici, copertine, adunanze e indice di Chiedi.
+const pubLang = (s) => (s && s.bibleLang) || 'I';
+// Lingua della cartella principale (rootFolder e DATA_DIR): italiano, o quella della Bibbia già scaricata lì dalle
+// versioni prima delle biblioteche per lingua (plugin.js, detectBaseLang). Le altre lingue in .lampada/<lingua>/.
+const baseLang = (s) => (s && s.baseLang) || 'I';
+const langRoot = (s, l = pubLang(s)) => (l === baseLang(s) ? (s && s.rootFolder) || '' : `.lampada/${l}/markdown`);
+const dataDir = (s, l = pubLang(s)) => (l === baseLang(s) ? DATA_DIR : `.lampada/${l}/data`);
 
 const DEFAULT_SETTINGS = {
   // Pubblicazioni nel formato aperto (Markdown e Indici/*.json): cartella nascosta, Obsidian non le indicizza.
@@ -11,6 +22,8 @@ const DEFAULT_SETTINGS = {
   symbol: 'nwtsty',
   // Lingua della Bibbia scaricata dall'EPUB (codice del sito: I, E…).
   bibleLang: 'I',
+  // Lingua dell'interfaccia: 'auto' = quella di Obsidian (vedi lingua.js).
+  uiLang: 'auto',
   fontSize: 19,
   lineHeight: 1.75,
   fontFamily: 'atkinson',
@@ -110,7 +123,7 @@ const PANE_SECTIONS = [
 ];
 const PANE_LABELS = new Map(PANE_SECTIONS);
 /** Nome mostrato di una sezione del pannello (chiave di PANE_SECTIONS, o il titolo così com'è). */
-const paneLabel = (title) => PANE_LABELS.get(title) || title;
+const paneLabel = (title) => t(PANE_LABELS.get(title) || title);
 /** Ordine delle sezioni del pannello: quello scelto (settings.paneOrder), le sezioni che mancano in fondo. */
 function paneOrder(settings) {
   const all = PANE_SECTIONS.map(([t]) => t);
@@ -118,4 +131,4 @@ function paneOrder(settings) {
   return [...saved, ...all.filter((t) => !saved.includes(t))];
 }
 
-export { VIEW_TYPE, INDEX_MIRROR, DATA_DIR, DEFAULT_SETTINGS, BOOK_ABBR, EXTRA_ALIASES, CATEGORIES, HIGHLIGHTS, FONT_CHOICES, SECTION_ORDER, PANE_SECTIONS, paneOrder, paneLabel };
+export { VIEW_TYPE, INDEX_MIRROR, DATA_DIR, baseLang, pubLang, langRoot, dataDir, DEFAULT_SETTINGS, BOOK_ABBR, EXTRA_ALIASES, CATEGORIES, HIGHLIGHTS, FONT_CHOICES, SECTION_ORDER, PANE_SECTIONS, paneOrder, paneLabel };

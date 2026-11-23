@@ -36,10 +36,16 @@ function addHidden(path) {
   return f;
 }
 
-/** Elenca una volta tutti i file sotto root (se è una cartella nascosta). Qualche secondo con decine di migliaia di file. */
-async function scanHidden(app, root) {
+const scanned = new Set();
+
+/**
+ * Elenca tutti i file sotto root (se è una cartella nascosta). Qualche secondo con decine di migliaia di file:
+ * con force=false una cartella già elencata non si rilegge (es. cambio di lingua, i file non sono cambiati).
+ */
+async function scanHidden(app, root, force = true) {
   root = root.replace(/\/$/, '');
-  if (!root || !isHidden(root)) return;
+  if (!root || !isHidden(root) || (!force && scanned.has(root))) return;
+  scanned.add(root);
   for (const p of [...byPath.keys()]) if (p.startsWith(`${root}/`)) byPath.delete(p);
   for (const [k, list] of byName) if (list.path.startsWith(`${root}/`)) byName.delete(k);
   for (const k of [...byFolder.keys()]) if (k === root || k.startsWith(`${root}/`)) byFolder.delete(k);

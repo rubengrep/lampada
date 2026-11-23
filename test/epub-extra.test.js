@@ -2,7 +2,7 @@
 const assert = require('assert');
 const { carica } = require('./obsidian-finto');
 global.DOMParser = require('./dom-finto').DOMParser;
-const { epubExtras } = carica(process.argv[2])._test;
+const { epubExtras, weekStartFromLabel } = carica(process.argv[2])._test;
 
 const doc = (id, body) => `<?xml version="1.0" encoding="utf-8" ?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops"><body class="pub-mwb docId-${id}">${body}</body></html>`;
@@ -113,6 +113,35 @@ const leggi = (pl, p) => JSON.parse(pl.mem[p]);
   await epubExtras(pl, { symbol: 'w', issue: '202601', files });
   assert.strictEqual(pl.mem['d/mt.json'], undefined);
   assert.ok(pl.mem['d/af.json']);
+
+  // Date delle settimane in italiano e in inglese (mese prima del giorno, anche a cavallo dell'anno).
+  assert.strictEqual(weekStartFromLabel('3-9 NOVEMBRE', '202511'), '2025-11-03');
+  assert.strictEqual(weekStartFromLabel('NOVEMBER 3-9', '202511'), '2025-11-03');
+  assert.strictEqual(weekStartFromLabel('JANUARY 26–FEBRUARY 1', '202601'), '2026-01-26');
+  assert.strictEqual(weekStartFromLabel('JANUARY 5-11', '202511'), '2026-01-05', 'gennaio nel numero di novembre: anno dopo');
+  assert.strictEqual(weekStartFromLabel('March 30, 2026–April 5, 2026', '202601'), '2026-03-30');
+  assert.strictEqual(weekStartFromLabel('Our Christian Life and Ministry—Meeting Workbook, November-December 2025', '202511'), null);
+
+  // Guida inglese (come l'EPUB del sito, mwb_E_202511): programma con le settimane giuste.
+  const settimanaEn = (id, h1) =>
+    doc(
+      id,
+      `<header><h1 class="du-fontSize--basePlus2" id="p1" data-pid="1"><span id="page2" class="pageNum" aria-hidden="true" data-no="2"></span>${h1}</h1></header>
+<p id="p7" data-pid="7" class="p7">The Bible compares mankind to a volatile sea (<span id="citationsource1"></span><a epub:type="noteref" href="#citation1">Isa 17:12</a>)</p>
+<div class="gen-field" id="p13" data-pid="13"><label for="tt20" class="dc-screenReaderText">Your answer</label><textarea id="tt20"></textarea></div>
+<aside epub:type="footnote"><div epub:type="footnote" class="extScrpCite" id="citation1"><p class="extScrpCiteTxt"><a href="#citationsource1">^ <strong>(Isa. 17:12)</strong></a> Listen!</p></div></aside>`
+    );
+  pl = finto({});
+  pl.bible.parseReference = (s) => {
+    const m = /^Isa\. (\d+):(\d+)$/.exec(s);
+    return m && { book: 23, chapter: +m[1], verse: +m[2] };
+  };
+  await epubExtras(pl, { symbol: 'mwb', issue: '202511', files: { '202025404.xhtml': settimanaEn('202025404', 'NOVEMBER 24–30'), '202025409.xhtml': settimanaEn('202025409', 'DECEMBER 29, 2025–JANUARY 4, 2026') } });
+  mt = leggi(pl, 'd/mt.json');
+  assert.deepStrictEqual(mt.weeks, { '2025-11-24': '202025404', '2025-12-29': '202025409' });
+  assert.deepStrictEqual(mt.docs['202025404'][0], { k: 'h1', x: ['NOVEMBER 24–30'] });
+  assert.deepStrictEqual(mt.docs['202025404'][1].x, ['The Bible compares mankind to a volatile sea (', ['Isa 17:12', '23017012', '23017012'], ')']);
+  assert.deepStrictEqual(leggi(pl, 'd/af.json').docs['202025404'], { 13: ['tt20'] });
   console.log('OK epub-extra');
 })().catch((e) => {
   console.error(e);

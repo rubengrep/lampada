@@ -27,6 +27,7 @@ Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-format
 | `scrabb-*.js` | schede di studio SCRABB |
 | `indice-note.js` | indice dei riferimenti biblici nelle note personali |
 | `testo.js` | utility: `norm`, `nameKey`, `verseCode`, `jwLibraryUrl`, `codesFromJwUrl`, `refFromCodes`, `stripFrontmatter` |
+| `lingua.js` + `lingue/en.js` | multilingua: `t('testo italiano', { valori })` → traduzione (chiave = l'italiano; manca → italiano), `lang()` per date/numeri/ordinamenti, `contentLang(settings)` = lingua dei contenuti da `bibleLang` (I, E…). `settings.uiLang` ('auto' = lingua di Obsidian; senza dizionario → inglese), evento `lampada:language` quando cambia. Nuova lingua: copia `lingue/en.js` e aggiungila a `DICTS`/`UI_LANGS`. Le estensioni: `addStrings(lingua, dict)` |
 | `costanti.js` | `DEFAULT_SETTINGS`, `EXTRA_ALIASES` (abbreviazioni dei libri), `INDEX_MIRROR` (= `index`, cartella degli indici) |
 | `ui.js` | componenti condivisi (segnalibri, barre, "Citato in", "Nelle mie note" `renderNoteCites`, anteprima di una pubblicazione citata `fillCitePreview`: popup nella Bibbia, `CitePreviewModal` nella Biblioteca) |
 | `main.js` (src) | punto di ingresso + `_test`: le funzioni usate da `test/` vanno esportate qui |
@@ -34,9 +35,10 @@ Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-format
 ## Cartelle (dal 2026-11-20)
 - Pubblicazioni: `.lampada/markdown/` (nascosta: Obsidian non la indicizza). Per leggerle usare `src/file.js` (`fileAt`, `readFile`, `linkDest`, `fileSrc`, `renderMd`…), **non** `vault.getAbstractFileByPath`/`cachedRead`/`metadataCache`, che non vedono le cartelle col punto.
 - Dati ricavati: `.lampada/data/` (`DATA_DIR`, nomi in inglese), spostati da soli all'avvio (`moveDerivedData`). Note e dati dell'utente: `Note Bibbia/`.
+- Una biblioteca per lingua delle pubblicazioni (`settings.bibleLang`, codice del sito: I, E…; dal 2026-11-23): la lingua base (`baseLang` in `costanti.js`, `settings.baseLang`: italiano, o quella della Bibbia scaricata nella cartella principale con le versioni di prima, vedi `detectBaseLang` in `plugin.js`) resta in `rootFolder` e `.lampada/data/`, le altre in `.lampada/<codice>/markdown` e `.lampada/<codice>/data` (`langRoot`, `dataDir`, `pubLang`; `ensureDataDir` crea quella della lingua scelta). Usare sempre `bible.prefix` e i percorsi del plugin (`answerFieldsPath`…), mai `DATA_DIR`/`rootFolder` direttamente. Bibbia in uso: `settings.symbol` (lingua base) o `settings.symbols[codice]` (`bible.setSymbol`). Si cambia con `plugin.setPubLang(codice)` (ridisegna le viste sulla stessa pagina, evento `lampada:publang`; non rielenca le cartelle nascoste già lette): pulsantino "IT" (`pubLangButton` in `ui.js`) nella pagina dei libri, nella home della Biblioteca, nei pannelli "scarica la Bibbia", nell'intestazione di una pubblicazione e accanto al percorso di un documento (`pubLangMenu`/`openInLang` in `biblioteca-vista.js`: stesso documento per id, o per posizione nel numero); anche nelle impostazioni. Le evidenziazioni delle altre lingue hanno `lang` (senza = lingua base; si vedono solo nella loro lingua). Note sui versetti e sui paragrafi in tutte le lingue, come in JW Library: file del versetto per nome o per `codice` nelle proprietà (`plugin.verseNoteFile`), note delle pubblicazioni per `docid`. Le risposte non hanno lingua: `doc|tag` vale in tutte. Backup `.jwlibrary` neutro: ogni evidenziazione entra ed esce con la sua `Location.MepsLanguage` (`MEPS`, `langOfMeps`, `mepsOf` in `jwl-formati.js`, relativi alla lingua base: 4 = I, 0 = E, altre → `meps<n>`), le risposte su una `Location` senza lingua.
 
 ## Regole
-- Commenti, testi dell'interfaccia e messaggi di commit in italiano; testi brevi e semplici.
+- Commenti, testi dell'interfaccia e messaggi di commit in italiano; testi brevi e semplici. Ogni testo mostrato passa da `t()` e ha la sua voce in `lingue/en.js` (`test/lingua.test.js` controlla i `{valori}`); mai `t()` a livello di modulo (la lingua non è ancora scelta): le etichette delle costanti si traducono dove si mostrano. Restano in italiano le chiavi dei dati (titoli delle sezioni come 'Riferimenti', cartelle, frontmatter, testo scritto nel vault e riletto).
 - Telefono e computer usano la stessa cartella `.obsidian/` (Syncthing porta il plugin sul telefono).
 - Sul telefono: niente download grandi, campi di testo a 16px (iOS ingrandisce sotto), `touch-action` già gestito.
 - Nessun dato personale nel repo; commit con l'email noreply di GitHub.
@@ -48,8 +50,9 @@ Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-format
 ## Pubblicare un aggiornamento
 Gli utenti ricevono gli aggiornamenti dalle release di GitHub (`rubengrep/lampada`, pubblico). Per ogni modifica da distribuire:
 1. alza `version` in `manifest.json` e aggiungila a `versions.json` (versione → `minAppVersion`);
-2. `npm run build` (prove ✓), commit;
-3. `gh auth switch -u rubengrep`, `npm run release -- "Cosa cambia"` (tag = versione, senza "v", e release con main.js, manifest.json, styles.css), poi di nuovo l’account di prima.
+2. in cima a `CHANGELOG.md` la sezione `## <versione> — <data>` con le novità per chi usa Lampada (punti brevi, in italiano). Le novità di Lampada non parlano mai delle estensioni private: quelle vanno nel loro repo. `release.js` si ferma se trova una delle parole di `.parole-private` (file locale, fuori dal repo);
+3. `npm run build` (prove ✓), commit;
+4. `gh auth switch -u rubengrep`, `npm run release` (tag = versione, senza "v", release con main.js, manifest.json, styles.css e come note la sezione di `CHANGELOG.md`), poi di nuovo l’account di prima.
 
 ## API per estensioni
 Un altro plugin può dare a Lampada dati e azioni che Lampada non ha. Lampada funziona anche senza nessun fornitore.

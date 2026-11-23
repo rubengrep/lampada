@@ -3,6 +3,7 @@ import { issueLabel } from './biblioteca-dati.js';
 import { renderMd } from './file.js';
 import { SCRABB_ALL_LISTS, SCRABB_BIBLE_LISTS, SCRABB_ERAS, SCRABB_FIELD_FOR, SCRABB_INTRO, SCRABB_LANES, SCRABB_STUDY_LISTS, SCRABB_TEACHERS, SCRABB_TEACHINGS, SCRABB_TYPES, SCRABB_USABLE, SCRABB_VIEW_TYPE, scrabbBody, scrabbDate, scrabbFmtDate, scrabbFold, scrabbListOf, scrabbListTypes, scrabbSafeName, scrabbUsageText, scrabbYear } from './scrabb-dati.js';
 import { cleanSnippet } from './testo.js';
+import { compare, t } from './lingua.js';
 import { addGoToAction, addViewSwitch, autoHideBars, setBarsHidden } from './ui.js';
 
 /* ---------------- finestre: scelta e creazione delle schede ---------------- */
@@ -51,14 +52,14 @@ class ScrabbSuggest extends EditorSuggest {
     if (item.create) {
       const icon = el.createSpan(`scrabb-suggest-icon scrabb-t-${item.create}`);
       setIcon(icon, 'plus');
-      el.createSpan({ cls: 'scrabb-suggest-name', text: `Crea «${item.name}»` });
-      el.createSpan({ cls: 'scrabb-suggest-meta', text: `nuovo ${SCRABB_TYPES[item.create].label.toLowerCase()}` });
+      el.createSpan({ cls: 'scrabb-suggest-name', text: t('Crea «{nome}»', { nome: item.name }) });
+      el.createSpan({ cls: 'scrabb-suggest-meta', text: t('nuovo {tipo}', { tipo: t(SCRABB_TYPES[item.create].label).toLowerCase() }) });
       return;
     }
     const e = item.e;
     setIcon(el.createSpan(`scrabb-suggest-icon scrabb-t-${e.tipo}`), SCRABB_TYPES[e.tipo].icon);
     el.createSpan({ cls: 'scrabb-suggest-name', text: e.name });
-    el.createSpan({ cls: 'scrabb-suggest-meta', text: [SCRABB_TYPES[e.tipo].label, e.categoria || scrabbDate(e)].filter(Boolean).join(' · ') });
+    el.createSpan({ cls: 'scrabb-suggest-meta', text: [t(SCRABB_TYPES[e.tipo].label), e.categoria || scrabbDate(e)].filter(Boolean).join(' · ') });
   }
 
   selectSuggestion(item) {
@@ -84,8 +85,8 @@ class ScrabbPickModal extends SuggestModal {
     this.plugin = plugin;
     this.opts = opts || {};
     this.onPick = onPick;
-    this.setPlaceholder(this.opts.placeholder || 'Cerca una scheda SCRABB…');
-    this.emptyStateText = 'Nessuna scheda trovata';
+    this.setPlaceholder(this.opts.placeholder || t('Cerca una scheda SCRABB…'));
+    this.emptyStateText = t('Nessuna scheda trovata');
   }
 
   getSuggestions(query) {
@@ -108,7 +109,7 @@ class ScrabbPickModal extends SuggestModal {
     el.addClass('scrabb-suggest');
     if (item.create) {
       setIcon(el.createSpan('scrabb-suggest-icon'), 'plus');
-      el.createSpan({ text: `Crea la scheda «${item.name}»` });
+      el.createSpan({ text: t('Crea la scheda «{nome}»', { nome: item.name }) });
       return;
     }
     const icon = el.createSpan(`scrabb-suggest-icon scrabb-t-${item.tipo}`);
@@ -119,7 +120,7 @@ class ScrabbPickModal extends SuggestModal {
       if (!this.usage) this.usage = this.plugin.scrabb.usageMap();
       extra = scrabbUsageText(this.usage.get(item.path) || []);
     }
-    el.createSpan({ cls: 'scrabb-suggest-meta', text: [SCRABB_TYPES[item.tipo].label, extra].filter(Boolean).join(' · ') });
+    el.createSpan({ cls: 'scrabb-suggest-meta', text: [t(SCRABB_TYPES[item.tipo].label), extra].filter(Boolean).join(' · ') });
   }
 
   onChooseSuggestion(item) {
@@ -137,22 +138,22 @@ class ScrabbNewModal extends Modal {
 
   onOpen() {
     const o = this.opts;
-    this.titleEl.setText('Nuova scheda SCRABB');
+    this.titleEl.setText(t('Nuova scheda SCRABB'));
     this.contentEl.addClass('scrabb-new');
-    new Setting(this.contentEl).setName('Nome').addText((t) => {
-      t.setValue(o.name).onChange((v) => (o.name = v));
-      window.setTimeout(() => t.inputEl.focus(), 30);
-      t.inputEl.addEventListener('keydown', (evt) => evt.key === 'Enter' && this.submit());
+    new Setting(this.contentEl).setName(t('Nome')).addText((c) => {
+      c.setValue(o.name).onChange((v) => (o.name = v));
+      window.setTimeout(() => c.inputEl.focus(), 30);
+      c.inputEl.addEventListener('keydown', (evt) => evt.key === 'Enter' && this.submit());
     });
-    new Setting(this.contentEl).setName('Tipo').addDropdown((d) => {
-      for (const [k, t] of Object.entries(SCRABB_TYPES)) d.addOption(k, t.label);
+    new Setting(this.contentEl).setName(t('Tipo')).addDropdown((d) => {
+      for (const [k, x] of Object.entries(SCRABB_TYPES)) d.addOption(k, t(x.label));
       d.setValue(o.tipo).onChange((v) => (o.tipo = v));
     });
     new Setting(this.contentEl)
-      .setName('Versetti')
-      .setDesc('Separati da punto e virgola, es. Romani 12:19; Proverbi 20:22')
-      .addText((t) => t.setValue(o.versetti).onChange((v) => (o.versetti = v)));
-    const linkSet = new Setting(this.contentEl).setName('Collegata a');
+      .setName(t('Versetti'))
+      .setDesc(t('Separati da punto e virgola, es. Romani 12:19; Proverbi 20:22'))
+      .addText((c) => c.setValue(o.versetti).onChange((v) => (o.versetti = v)));
+    const linkSet = new Setting(this.contentEl).setName(t('Collegata a'));
     const chips = linkSet.controlEl.createDiv('scrabb-chips');
     const drawChips = () => {
       chips.empty();
@@ -164,9 +165,9 @@ class ScrabbNewModal extends Modal {
           drawChips();
         });
       }
-      const add = chips.createEl('button', { cls: 'scrabb-chip scrabb-chip-add', text: '+ collega' });
+      const add = chips.createEl('button', { cls: 'scrabb-chip scrabb-chip-add', text: t('+ collega') });
       add.addEventListener('click', () =>
-        new ScrabbPickModal(this.plugin, { placeholder: 'Collega a…' }, (e) => {
+        new ScrabbPickModal(this.plugin, { placeholder: t('Collega a…') }, (e) => {
           if (!o.links.includes(e.name)) o.links.push(e.name);
           drawChips();
         }).open()
@@ -185,25 +186,25 @@ class ScrabbNewModal extends Modal {
       this.plugin.ui.scrabbOpenNew = cb.checked;
       this.plugin.requestSave();
     });
-    open.appendText(' Apri la nota');
-    btns.createEl('button', { cls: 'mod-cta', text: 'Crea' }).addEventListener('click', () => this.submit());
+    open.appendText(' ' + t('Apri la nota'));
+    btns.createEl('button', { cls: 'mod-cta', text: t('Crea') }).addEventListener('click', () => this.submit());
   }
 
   async submit() {
     const o = this.opts;
     if (!scrabbSafeName(o.name)) {
-      new Notice('Scrivi un nome per la scheda.');
+      new Notice(t('Scrivi un nome per la scheda.'));
       return;
     }
     try {
       const versetti = o.versetti.split(';').map((s) => s.trim()).filter(Boolean);
       const file = await this.plugin.scrabb.create({ name: o.name, tipo: o.tipo, versetti, links: o.links, body: o.body, fonti: o.fonti });
       this.close();
-      new Notice(`Scheda creata: ${file.basename}`);
+      new Notice(t('Scheda creata: {nome}', { nome: file.basename }));
       if (this.plugin.ui.scrabbOpenNew) await this.app.workspace.getLeaf('tab').openFile(file);
       if (this.onDone) this.onDone(file);
     } catch (e) {
-      new Notice(`Impossibile creare la scheda: ${e.message}`);
+      new Notice(t('Impossibile creare la scheda: {errore}', { errore: e.message }));
     }
   }
 
@@ -265,14 +266,14 @@ class ScrabbView extends ItemView {
     this.goHome = home;
     // Nella vista unica: Indietro (cronologia del guscio) prima del selettore, come nelle altre sezioni.
     if (this.inShell) {
-      this.backBtn = head.createEl('button', { cls: 'lmp-tb-btn clickable-icon', attr: { 'aria-label': 'Indietro' } });
+      this.backBtn = head.createEl('button', { cls: 'lmp-tb-btn clickable-icon', attr: { 'aria-label': t('Indietro') } });
       setIcon(this.backBtn, 'arrow-left');
       this.backBtn.addEventListener('click', () => this.inShell.goBack());
     }
     addViewSwitch(head, this.plugin, 'scrabb', home, this.inShell);
     if (Platform.isPhone && this.addAction && !this.inShell) addGoToAction(this, 'scrabb', home);
     this.tabsEl = head.createDiv('scrabb-tabs');
-    for (const [id, label, icon] of [['principi', 'Schede', 'gem'], ['cronologia', 'Cronologia', 'calendar-range'], ['mappa', 'Mappa', 'waypoints']]) {
+    for (const [id, label, icon] of [['principi', t('Schede'), 'gem'], ['cronologia', t('Cronologia'), 'calendar-range'], ['mappa', t('Mappa'), 'waypoints']]) {
       const b = this.tabsEl.createEl('button', { cls: 'scrabb-tab', attr: { 'data-tab': id } });
       setIcon(b.createSpan(), icon);
       b.createSpan({ text: label });
@@ -285,10 +286,10 @@ class ScrabbView extends ItemView {
       });
     }
     const tools = head.createDiv('scrabb-head-tools');
-    const search = tools.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Cerca ovunque' } });
+    const search = tools.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': t('Cerca ovunque') } });
     setIcon(search, 'search');
     search.addEventListener('click', () => this.plugin.openSearch());
-    const plus = tools.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Nuova scheda' } });
+    const plus = tools.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': t('Nuova scheda') } });
     setIcon(plus, 'plus');
     plus.addEventListener('click', () => {
       const tipo = this.state.tab === 'principi' && SCRABB_TYPES[this.state.list] ? this.state.list : 'persona';
@@ -298,7 +299,7 @@ class ScrabbView extends ItemView {
     this.mainEl = body.createDiv('scrabb-main');
     autoHideBars(this, this.mainEl);
     this.cardEl = body.createDiv('scrabb-card');
-    this.mainEl.setText('Caricamento delle schede…');
+    this.mainEl.setText(t('Caricamento delle schede…'));
     this.registerEvent(this.app.workspace.on('lampada:scrabb-changed', () => this.requestRender()));
     // Trascinamento della cronologia col mouse (un solo ascoltatore per tutta la vita della vista).
     this.registerDomEvent(window, 'pointermove', (evt) => {
@@ -356,7 +357,7 @@ class ScrabbView extends ItemView {
         this.state.list = scrabbListOf(e.tipo);
         this.state.study = path;
       }
-      if (this.state.tab === 'cronologia' && e.anno == null) new Notice('Questa scheda non ha ancora una data (campo “anno”).');
+      if (this.state.tab === 'cronologia' && e.anno == null) new Notice(t('Questa scheda non ha ancora una data (campo “anno”).'));
       this.saveState();
       this.render();
       if (this.state.tab === 'cronologia') this.scrollTimelineTo(e);
@@ -394,7 +395,7 @@ class ScrabbView extends ItemView {
   }
 
   chip(parent, e, opts = {}) {
-    const c = parent.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'data-path': e.path, 'aria-label': [SCRABB_TYPES[e.tipo].label, scrabbDate(e)].filter(Boolean).join(' · ') } });
+    const c = parent.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'data-path': e.path, 'aria-label': [t(SCRABB_TYPES[e.tipo].label), scrabbDate(e)].filter(Boolean).join(' · ') } });
     c.createSpan('scrabb-dot');
     c.createSpan({ text: e.name });
     if (!opts.static) c.addEventListener('click', (evt) => (evt.metaKey || evt.ctrlKey ? this.openFile(e, evt) : this.select(e.path, opts.reveal)));
@@ -413,12 +414,12 @@ class ScrabbView extends ItemView {
     this.contentEl.toggleClass('has-card', !!e);
     if (!e) return;
     const head = el.createDiv(`scrabb-card-head scrabb-t-${e.tipo}`);
-    const close = head.createEl('button', { cls: 'clickable-icon scrabb-card-close', attr: { 'aria-label': 'Chiudi' } });
+    const close = head.createEl('button', { cls: 'clickable-icon scrabb-card-close', attr: { 'aria-label': t('Chiudi') } });
     setIcon(close, 'x');
     close.addEventListener('click', () => this.select(null));
     const type = head.createDiv('scrabb-card-type');
     setIcon(type.createSpan(), SCRABB_TYPES[e.tipo].icon);
-    type.createSpan({ text: [SCRABB_TYPES[e.tipo].label, e.corsia || e.categoria].filter(Boolean).join(' · ') });
+    type.createSpan({ text: [t(SCRABB_TYPES[e.tipo].label), e.corsia ? t(e.corsia) : e.categoria].filter(Boolean).join(' · ') });
     head.createDiv({ cls: 'scrabb-card-title', text: e.name });
     const date = scrabbDate(e);
     if (date || (e.data && e.anno != null)) head.createDiv({ cls: 'scrabb-card-date', text: [date, e.anno != null ? e.data : null].filter(Boolean).join(' · ') });
@@ -430,20 +431,20 @@ class ScrabbView extends ItemView {
       b.createSpan({ text: label });
       b.addEventListener('click', fn);
     };
-    act('file-text', 'Apri nota', (evt) => this.openFile(e, evt));
-    if (this.state.tab !== 'mappa') act('waypoints', 'Mappa', () => this.openTab('mappa', e.path));
-    if (e.anno != null && this.state.tab !== 'cronologia') act('calendar-range', 'Cronologia', () => this.openTab('cronologia', e.path));
+    act('file-text', t('Apri nota'), (evt) => this.openFile(e, evt));
+    if (this.state.tab !== 'mappa') act('waypoints', t('Mappa'), () => this.openTab('mappa', e.path));
+    if (e.anno != null && this.state.tab !== 'cronologia') act('calendar-range', t('Cronologia'), () => this.openTab('cronologia', e.path));
     if (e.perspicacia) {
-      act('library-big', 'Perspicacia', () => this.plugin.openPerspicacia(e));
+      act('library-big', t('Perspicacia'), () => this.plugin.openPerspicacia(e));
     }
-    act('link', 'Collega', () =>
-      new ScrabbPickModal(this.plugin, { placeholder: `Collega «${e.name}» a…`, allowCreate: true }, async (t) => {
-        if (t.create) {
-          new ScrabbNewModal(this.plugin, { name: t.name, tipo: 'persona', links: [e.name] }).open();
+    act('link', t('Collega'), () =>
+      new ScrabbPickModal(this.plugin, { placeholder: t('Collega «{nome}» a…', { nome: e.name }), allowCreate: true }, async (x) => {
+        if (x.create) {
+          new ScrabbNewModal(this.plugin, { name: x.name, tipo: 'persona', links: [e.name] }).open();
           return;
         }
-        await this.index.addToField(e, SCRABB_FIELD_FOR[t.tipo], `[[${t.name}]]`);
-        new Notice(`Collegato a ${t.name}`);
+        await this.index.addToField(e, SCRABB_FIELD_FOR[x.tipo], `[[${x.name}]]`);
+        new Notice(t('Collegato a {nome}', { nome: x.name }));
       }).open()
     );
 
@@ -461,19 +462,19 @@ class ScrabbView extends ItemView {
       const md = el.createDiv('scrabb-md markdown-rendered');
       await renderMd(this.app, body, md, e.path, this);
     } else if (!opts.hideEmpty) {
-      el.createDiv({ cls: 'scrabb-empty', text: 'Scheda ancora da scrivere. Apri la nota per aggiungere i tuoi appunti.' });
+      el.createDiv({ cls: 'scrabb-empty', text: t('Scheda ancora da scrivere. Apri la nota per aggiungere i tuoi appunti.') });
     }
 
     if (e.refs.length) {
-      const sec = this.sec(el, 'Versetti', e.refs.length);
+      const sec = this.sec(el, t('Versetti'), e.refs.length);
       for (const r of e.refs) await this.renderVerse(sec, r);
     } else if (e.versetti.length) {
-      const sec = this.sec(el, 'Versetti', e.versetti.length);
+      const sec = this.sec(el, t('Versetti'), e.versetti.length);
       for (const v of e.versetti) sec.createDiv({ cls: 'scrabb-verse-label', text: v });
     }
     if (!isCurrent()) return;
     if (e.fonti.length) {
-      const sec = this.sec(el, 'Fonti', e.fonti.length);
+      const sec = this.sec(el, t('Fonti'), e.fonti.length);
       await this.plugin.library.ensureLoaded().catch(() => null);
       for (const f of e.fonti) {
         const d = this.plugin.library.byFile && this.plugin.library.byFile.get(f.file);
@@ -491,16 +492,16 @@ class ScrabbView extends ItemView {
     const isTeacher = SCRABB_TEACHERS.includes(e.tipo);
     const usage = this.index.usageMap();
     if (!isTeacher) {
-      for (const t of SCRABB_TEACHERS) {
-        const list = related.filter((r) => r.tipo === t);
+      for (const tp of SCRABB_TEACHERS) {
+        const list = related.filter((r) => r.tipo === tp);
         if (!list.length) continue;
-        const sec = this.sec(el, SCRABB_TYPES[t].plural, list.length);
+        const sec = this.sec(el, t(SCRABB_TYPES[tp].plural), list.length);
         for (const x of list) await this.renderTeachCard(sec, x, usage);
       }
     } else {
       const teachings = related.filter((r) => SCRABB_TEACHINGS.includes(r.tipo));
       if (teachings.length) {
-        const sec = this.sec(el, e.tipo === 'illustrazione' ? 'Fa capire' : 'Insegna', teachings.length);
+        const sec = this.sec(el, e.tipo === 'illustrazione' ? t('Fa capire') : t('Insegna'), teachings.length);
         const chips = sec.createDiv('scrabb-chips');
         for (const p of teachings) this.chip(chips, p, { reveal: true });
       }
@@ -516,12 +517,12 @@ class ScrabbView extends ItemView {
     for (const tipo of Object.keys(SCRABB_TYPES)) {
       const list = groups.get(tipo);
       if (!list) continue;
-      const sec = this.sec(el, SCRABB_TYPES[tipo].plural, list.length);
+      const sec = this.sec(el, t(SCRABB_TYPES[tipo].plural), list.length);
       const chips = sec.createDiv('scrabb-chips');
-      for (const r of list.sort((a, b) => (a.anno ?? 1e9) - (b.anno ?? 1e9) || a.name.localeCompare(b.name, 'it'))) this.chip(chips, r);
+      for (const r of list.sort((a, b) => (a.anno ?? 1e9) - (b.anno ?? 1e9) || compare(a.name, b.name))) this.chip(chips, r);
     }
     if (e.missing.length) {
-      const sec = this.sec(el, 'Schede da creare', e.missing.length);
+      const sec = this.sec(el, t('Schede da creare'), e.missing.length);
       const chips = sec.createDiv('scrabb-chips');
       for (const m of e.missing) {
         const c = chips.createSpan({ cls: 'scrabb-chip scrabb-chip-missing', text: `+ ${m.name}` });
@@ -534,8 +535,8 @@ class ScrabbView extends ItemView {
     const usable = SCRABB_USABLE.includes(e.tipo);
     const occ = usable ? usage.get(e.path) || [] : this.index.occurrences(e.path);
     if (occ.length || usable) {
-      const sec = this.sec(el, usable ? 'Sentita / usata in' : 'Nelle mie note', occ.length);
-      if (!occ.length) sec.createDiv({ cls: 'scrabb-empty', text: 'Mai usata. Inseriscila in un discorso con “SCRABB: inserisci un’illustrazione…”.' });
+      const sec = this.sec(el, usable ? t('Sentita / usata in') : t('Nelle mie note'), occ.length);
+      if (!occ.length) sec.createDiv({ cls: 'scrabb-empty', text: t('Mai usata. Inseriscila in un discorso con “SCRABB: inserisci un’illustrazione…”.') });
       for (const o of occ.slice(0, 30)) {
         const lines = (await this.app.vault.cachedRead(o.file)).split('\n');
         if (!isCurrent()) return;
@@ -544,7 +545,7 @@ class ScrabbView extends ItemView {
         setIcon(h.createSpan(), o.source ? 'quote' : 'file-text');
         if (o.date) h.createSpan({ cls: 'scrabb-occ-date', text: scrabbFmtDate(o.date) });
         h.createSpan({ cls: 'scrabb-occ-name', text: o.file.basename });
-        if (o.source) h.createSpan({ cls: 'scrabb-occ-folder', text: 'fonte' });
+        if (o.source) h.createSpan({ cls: 'scrabb-occ-folder', text: t('fonte') });
         else if (o.file.parent && o.file.parent.path !== '/') h.createSpan({ cls: 'scrabb-occ-folder', text: o.file.parent.name });
         h.addEventListener('click', (evt) => this.plugin.openNoteAt(o.file, o.lines[0] || 0, evt));
         for (const ln of o.lines.slice(0, 3)) {
@@ -614,30 +615,30 @@ class ScrabbView extends ItemView {
 
   /** Gruppo di un principio nell'elenco: l'argomento (tema) a cui appartiene, altrimenti la categoria. */
   principleGroup(e) {
-    const t = this.index.related(e.path, ['tema', 'qualità']).find((x) => this.index.isStrong(e.path, x.path));
-    return (t && t.name) || e.categoria || 'Senza argomento';
+    const g = this.index.related(e.path, ['tema', 'qualità']).find((x) => this.index.isStrong(e.path, x.path));
+    return (g && g.name) || e.categoria || t('Senza argomento');
   }
 
   renderStudy(el) {
     const wrap = el.createDiv('scrabb-study');
     const side = wrap.createDiv('scrabb-study-side');
-    for (const [rowLabel, lists] of [['Studio', SCRABB_STUDY_LISTS], ['Bibbia', SCRABB_BIBLE_LISTS]]) {
+    for (const [rowLabel, lists] of [[t('Studio'), SCRABB_STUDY_LISTS], [t('Bibbia'), SCRABB_BIBLE_LISTS]]) {
     side.createDiv({ cls: 'scrabb-seg-label', text: rowLabel });
     const seg = side.createDiv('scrabb-seg');
-    for (const t of lists) {
-      const n = this.index.all(scrabbListTypes(t)).length;
-      const b = seg.createEl('button', { text: SCRABB_TYPES[t].plural });
+    for (const tp of lists) {
+      const n = this.index.all(scrabbListTypes(tp)).length;
+      const b = seg.createEl('button', { text: t(SCRABB_TYPES[tp].plural) });
       if (n) b.createSpan({ cls: 'scrabb-count', text: String(n) });
-      b.toggleClass('is-active', this.state.list === t);
+      b.toggleClass('is-active', this.state.list === tp);
       b.addEventListener('click', () => {
-        this.state.list = t;
+        this.state.list = tp;
         this.state.study = null;
         this.saveState();
         this.render();
       });
     }
     }
-    const filter = side.createEl('input', { cls: 'scrabb-filter', attr: { type: 'search', placeholder: 'Filtra…' } });
+    const filter = side.createEl('input', { cls: 'scrabb-filter', attr: { type: 'search', placeholder: t('Filtra…') } });
     const listEl = side.createDiv('scrabb-list');
     const list = SCRABB_TYPES[this.state.list] ? scrabbListOf(this.state.list) : 'principio';
     const items = this.index.all(scrabbListTypes(list));
@@ -651,13 +652,13 @@ class ScrabbView extends ItemView {
       for (const e of items) {
         if (q && !scrabbFold(e.name).includes(q)) continue;
         let g = e.categoria || '';
-        if (byYear) g = e.corsia || (e.anno == null ? 'Senza data' : '');
+        if (byYear) g = e.corsia ? t(e.corsia) : e.anno == null ? t('Senza data') : '';
         if (list === 'principio') g = this.principleGroup(e);
-        if (SCRABB_TEACHERS.includes(list)) g = (this.index.related(e.path, SCRABB_TEACHINGS)[0] || {}).name || 'Da collegare a un principio';
+        if (SCRABB_TEACHERS.includes(list)) g = (this.index.related(e.path, SCRABB_TEACHINGS)[0] || {}).name || t('Da collegare a un principio');
         if (!groups.has(g)) groups.set(g, []);
         groups.get(g).push(e);
       }
-      for (const g of [...groups.keys()].sort((a, b) => a.localeCompare(b, 'it'))) {
+      for (const g of [...groups.keys()].sort((a, b) => compare(a, b))) {
         const many = items.length > 80 && !q;
         const open = !many || (this.state.openGroups || []).includes(g) || groups.get(g).some((e) => e.path === this.state.study);
         if (g && groups.size > 1) {
@@ -677,8 +678,8 @@ class ScrabbView extends ItemView {
         }
         if (!open) continue;
         const sorter = byYear
-          ? (a, b) => (a.anno ?? 1e9) - (b.anno ?? 1e9) || a.name.localeCompare(b.name, 'it')
-          : (a, b) => (a.ordine ?? 1e9) - (b.ordine ?? 1e9) || a.name.localeCompare(b.name, 'it');
+          ? (a, b) => (a.anno ?? 1e9) - (b.anno ?? 1e9) || compare(a.name, b.name)
+          : (a, b) => (a.ordine ?? 1e9) - (b.ordine ?? 1e9) || compare(a.name, b.name);
         for (const e of groups.get(g).sort(sorter)) {
           const row = listEl.createDiv({ cls: `scrabb-list-item scrabb-t-${e.tipo}`, attr: { 'data-study': e.path } });
           row.toggleClass('is-active', e.path === this.state.study);
@@ -687,7 +688,7 @@ class ScrabbView extends ItemView {
           if (byYear && e.anno != null) row.createSpan({ cls: 'scrabb-usage', text: scrabbYear(e.anno) });
           else if (SCRABB_USABLE.includes(list)) {
             const used = usage.get(e.path) || [];
-            row.createSpan({ cls: 'scrabb-usage', text: used.length ? scrabbFmtDate(used[0].date) || `${used.length}×` : 'nuova' });
+            row.createSpan({ cls: 'scrabb-usage', text: used.length ? scrabbFmtDate(used[0].date) || `${used.length}×` : t('nuova') });
           } else if (list === 'situazione') {
             const n = this.index.related(e.path, ['principio']).length;
             if (n) row.createSpan({ cls: 'scrabb-count', text: String(n) });
@@ -702,19 +703,19 @@ class ScrabbView extends ItemView {
           });
         }
       }
-      if (!listEl.childElementCount) listEl.createDiv({ cls: 'scrabb-empty', text: 'Nessuna scheda.' });
+      if (!listEl.childElementCount) listEl.createDiv({ cls: 'scrabb-empty', text: t('Nessuna scheda.') });
     };
     filter.addEventListener('input', drawList);
     drawList();
-    const add = side.createEl('button', { cls: 'scrabb-btn scrabb-add', text: `+ ${SCRABB_TYPES[list].label}` });
+    const add = side.createEl('button', { cls: 'scrabb-btn scrabb-add', text: `+ ${t(SCRABB_TYPES[list].label)}` });
     add.addEventListener('click', () => new ScrabbNewModal(this.plugin, { tipo: list }, (f) => this.selectWhenIndexed(f.path)).open());
 
     const detail = wrap.createDiv('scrabb-study-detail');
     const e = this.state.study && this.index.get(this.state.study);
     if (!e) {
       const intro = detail.createDiv('scrabb-intro');
-      intro.createEl('h2', { text: SCRABB_TYPES[list].plural });
-      intro.createEl('p', { text: SCRABB_INTRO[list] || SCRABB_INTRO.principio });
+      intro.createEl('h2', { text: t(SCRABB_TYPES[list].plural) });
+      intro.createEl('p', { text: t(SCRABB_INTRO[list] || SCRABB_INTRO.principio) });
       return;
     }
     this.renderStudyDetail(detail, e);
@@ -724,7 +725,7 @@ class ScrabbView extends ItemView {
     const head = el.createDiv(`scrabb-study-head scrabb-t-${e.tipo}`);
     const type = head.createDiv('scrabb-card-type');
     setIcon(type.createSpan(), SCRABB_TYPES[e.tipo].icon);
-    type.createSpan({ text: [SCRABB_TYPES[e.tipo].label, e.categoria].filter(Boolean).join(' · ') });
+    type.createSpan({ text: [t(SCRABB_TYPES[e.tipo].label), e.categoria].filter(Boolean).join(' · ') });
     const title = head.createEl('h2', { text: e.name });
     title.addEventListener('click', (evt) => this.openFile(e, evt));
     if (e.domanda) head.createDiv({ cls: 'scrabb-domanda', text: e.domanda });
@@ -737,18 +738,18 @@ class ScrabbView extends ItemView {
     };
     const isTeacher = SCRABB_TEACHERS.includes(e.tipo) || e.tipo === 'situazione';
     if (!isTeacher) {
-      btn(SCRABB_TYPES.modello.icon, 'Aggiungi modello', () => new ScrabbNewModal(this.plugin, { tipo: 'modello', links: [e.name] }, (f) => this.select(f.path)).open(), true);
-      btn(SCRABB_TYPES.illustrazione.icon, 'Aggiungi illustrazione', () => new ScrabbNewModal(this.plugin, { tipo: 'illustrazione', links: [e.name] }, (f) => this.select(f.path)).open(), true);
-      btn(SCRABB_TYPES.esperienza.icon, 'Aggiungi esperienza', () => new ScrabbNewModal(this.plugin, { tipo: 'esperienza', links: [e.name] }, (f) => this.select(f.path)).open());
+      btn(SCRABB_TYPES.modello.icon, t('Aggiungi modello'), () => new ScrabbNewModal(this.plugin, { tipo: 'modello', links: [e.name] }, (f) => this.select(f.path)).open(), true);
+      btn(SCRABB_TYPES.illustrazione.icon, t('Aggiungi illustrazione'), () => new ScrabbNewModal(this.plugin, { tipo: 'illustrazione', links: [e.name] }, (f) => this.select(f.path)).open(), true);
+      btn(SCRABB_TYPES.esperienza.icon, t('Aggiungi esperienza'), () => new ScrabbNewModal(this.plugin, { tipo: 'esperienza', links: [e.name] }, (f) => this.select(f.path)).open());
     }
-    btn('file-text', 'Apri nota', (evt) => this.openFile(e, evt));
-    btn('waypoints', 'Mappa', () => this.openTab('mappa', e.path));
-    if (e.anno != null) btn('calendar-range', 'Cronologia', () => this.openTab('cronologia', e.path));
-    if (e.perspicacia) btn('library-big', 'Perspicacia', () => this.plugin.openPerspicacia(e));
+    btn('file-text', t('Apri nota'), (evt) => this.openFile(e, evt));
+    btn('waypoints', t('Mappa'), () => this.openTab('mappa', e.path));
+    if (e.anno != null) btn('calendar-range', t('Cronologia'), () => this.openTab('cronologia', e.path));
+    if (e.perspicacia) btn('library-big', t('Perspicacia'), () => this.plugin.openPerspicacia(e));
     const body = el.createDiv('scrabb-study-body');
     await this.renderEntityBody(body, e, null, { token: 'study' });
     if (!isTeacher && !this.index.related(e.path, SCRABB_TEACHERS).length) {
-      body.createDiv({ cls: 'scrabb-empty', text: 'Nessun modello o illustrazione ancora. Aggiungi un racconto biblico da imitare, oppure un paragone che faccia capire il concetto.' });
+      body.createDiv({ cls: 'scrabb-empty', text: t('Nessun modello o illustrazione ancora. Aggiungi un racconto biblico da imitare, oppure un paragone che faccia capire il concetto.') });
     }
   }
 
@@ -774,16 +775,16 @@ class ScrabbView extends ItemView {
       setIcon(b, icon);
       b.addEventListener('click', fn);
     };
-    zb('zoom-out', 'Riduci', () => zoom(1 / 1.6));
-    zb('zoom-in', 'Ingrandisci', () => zoom(1.6));
-    zb('maximize-2', 'Mostra tutto', () => {
+    zb('zoom-out', t('Riduci'), () => zoom(1 / 1.6));
+    zb('zoom-in', t('Ingrandisci'), () => zoom(1.6));
+    zb('maximize-2', t('Mostra tutto'), () => {
       this.state.ppy = 0;
       this.saveState();
       this.render();
     });
     const eras = bar.createDiv('scrabb-tl-eras');
     for (const [label, y] of SCRABB_ERAS) {
-      const b = eras.createEl('button', { cls: 'scrabb-era', text: label });
+      const b = eras.createEl('button', { cls: 'scrabb-era', text: t(label) });
       b.addEventListener('click', () => this.scrollTimelineToYear(y, true));
     }
 
@@ -791,7 +792,7 @@ class ScrabbView extends ItemView {
     lanesPresent.sort((a, b) => (SCRABB_LANES.indexOf(a) + 1 || 99) - (SCRABB_LANES.indexOf(b) + 1 || 99));
     const toggles = el.createDiv('scrabb-tl-lanes');
     for (const lane of lanesPresent) {
-      const c = toggles.createEl('button', { cls: 'scrabb-lane-toggle', text: lane });
+      const c = toggles.createEl('button', { cls: 'scrabb-lane-toggle', text: t(lane) });
       c.toggleClass('is-off', hidden.has(lane));
       c.addEventListener('click', () => {
         if (hidden.has(lane)) hidden.delete(lane);
@@ -805,7 +806,7 @@ class ScrabbView extends ItemView {
     const scroller = el.createDiv('scrabb-tl');
     this.tlScroller = scroller;
     if (!dated.length) {
-      scroller.createDiv({ cls: 'scrabb-empty', text: 'Nessuna scheda con data. Aggiungi “anno: -1513” (a.E.V. con il meno) nel frontmatter.' });
+      scroller.createDiv({ cls: 'scrabb-empty', text: t('Nessuna scheda con data. Aggiungi “anno: -1513” (a.E.V. con il meno) nel frontmatter.') });
       return;
     }
     const minY = Math.floor((Math.min(...dated.map((e) => e.anno)) - 80) / 100) * 100;
@@ -841,9 +842,9 @@ class ScrabbView extends ItemView {
     const axis = canvas.createDiv('scrabb-tl-axis');
     const step = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000].find((s) => s * ppy >= 70) || 1000;
     const tick = (y) => {
-      const t = axis.createDiv('scrabb-tl-tick');
-      t.style.left = `${x(y)}px`;
-      t.setText(y === 0 ? '' : y < 0 ? `${-y}` : `${y} E.V.`);
+      const tk = axis.createDiv('scrabb-tl-tick');
+      tk.style.left = `${x(y)}px`;
+      tk.setText(y === 0 ? '' : y < 0 ? `${-y}` : t('{n} E.V.', { n: y }));
     };
     for (let y = Math.ceil(minY / step) * step; y <= ancientMax; y += step) if (y !== 0) tick(y);
     if (modern.length) {
@@ -859,11 +860,11 @@ class ScrabbView extends ItemView {
     }
     const ad = axis.createDiv('scrabb-tl-era-mark');
     ad.style.left = `${x(0)}px`;
-    ad.setText('a.E.V. | E.V.');
+    ad.setText(t('a.E.V. | E.V.'));
     if (future.length) {
       const f = axis.createDiv('scrabb-tl-tick scrabb-tl-future');
       f.style.left = `${endX + 40}px`;
-      f.setText('Futuro');
+      f.setText(t('Futuro'));
     }
 
     const ROW = 26;
@@ -872,7 +873,7 @@ class ScrabbView extends ItemView {
       const items = dated.filter((e) => this.laneOf(e) === lane).sort((a, b) => a.anno - b.anno || (b.fine ?? b.anno) - (a.fine ?? a.anno));
       if (lane === 'Eventi') items.push(...future);
       const laneEl = canvas.createDiv('scrabb-tl-lane');
-      laneEl.createDiv({ cls: 'scrabb-tl-lane-label', text: lane });
+      laneEl.createDiv({ cls: 'scrabb-tl-lane-label', text: t(lane) });
       const rowsEnd = [];
       const area = laneEl.createDiv('scrabb-tl-items');
       for (const e of items) {
@@ -906,7 +907,7 @@ class ScrabbView extends ItemView {
     const undated = all.filter((e) => e.anno == null && !future.includes(e) && ['persona', 'evento', 'periodo'].includes(e.tipo));
     if (undated.length) {
       const u = el.createDiv('scrabb-tl-undated');
-      u.createSpan({ cls: 'scrabb-muted', text: `Senza data (${undated.length}): ` });
+      u.createSpan({ cls: 'scrabb-muted', text: t('Senza data ({n}): ', { n: undated.length }) });
       for (const e of undated.slice(0, 40)) this.chip(u, e);
     }
 
@@ -982,7 +983,7 @@ class ScrabbView extends ItemView {
     let focus = this.state.focus && idx.get(this.state.focus);
     if (!focus) focus = idx.byName('Gesù') || idx.all(['principio'])[0] || idx.all()[0];
     if (!focus) {
-      el.createDiv({ cls: 'scrabb-empty', text: 'Nessuna scheda.' });
+      el.createDiv({ cls: 'scrabb-empty', text: t('Nessuna scheda.') });
       return;
     }
     this.state.focus = focus.path;
@@ -990,10 +991,10 @@ class ScrabbView extends ItemView {
 
     const bar = el.createDiv('scrabb-tl-bar');
     const f = bar.createDiv('scrabb-graph-focus');
-    f.createSpan({ cls: 'scrabb-muted', text: 'Centro: ' });
+    f.createSpan({ cls: 'scrabb-muted', text: t('Centro: ') });
     this.chip(f, focus, { static: true }).addEventListener('click', () => new ScrabbPickModal(this.plugin, {}, (e) => this.openTab('mappa', e.path)).open());
     const seg = bar.createDiv('scrabb-seg scrabb-seg-small');
-    for (const [d, label] of [[1, 'Vicini'], [2, '2 livelli'], [9, 'Tutta la rete']]) {
+    for (const [d, label] of [[1, t('Vicini')], [2, t('2 livelli')], [9, t('Tutta la rete')]]) {
       const b = seg.createEl('button', { text: label });
       b.toggleClass('is-active', this.state.depth === d);
       b.addEventListener('click', () => {
@@ -1003,15 +1004,15 @@ class ScrabbView extends ItemView {
       });
     }
     const types = bar.createDiv('scrabb-graph-types');
-    for (const t of Object.keys(SCRABB_TYPES)) {
-      if (t === 'periodo') continue;
-      const c = types.createEl('button', { cls: `scrabb-lane-toggle scrabb-t-${t}` });
+    for (const tp of Object.keys(SCRABB_TYPES)) {
+      if (tp === 'periodo') continue;
+      const c = types.createEl('button', { cls: `scrabb-lane-toggle scrabb-t-${tp}` });
       c.createSpan('scrabb-dot');
-      c.createSpan({ text: SCRABB_TYPES[t].plural });
-      c.toggleClass('is-off', hidden.has(t));
+      c.createSpan({ text: t(SCRABB_TYPES[tp].plural) });
+      c.toggleClass('is-off', hidden.has(tp));
       c.addEventListener('click', () => {
-        if (hidden.has(t)) hidden.delete(t);
-        else hidden.add(t);
+        if (hidden.has(tp)) hidden.delete(tp);
+        else hidden.add(tp);
         this.state.hiddenTypes = [...hidden];
         this.render();
       });
@@ -1075,12 +1076,12 @@ class ScrabbView extends ItemView {
       const c = document.createElementNS(NS, 'circle');
       n.r = n === fixed ? 15 : 5 + Math.min(9, Math.sqrt(n.deg) * 1.8);
       c.setAttribute('r', n.r);
-      const t = document.createElementNS(NS, 'text');
-      t.textContent = n.e.name;
-      t.setAttribute('y', n.r + 12);
+      const lbl = document.createElementNS(NS, 'text');
+      lbl.textContent = n.e.name;
+      lbl.setAttribute('y', n.r + 12);
       const title = document.createElementNS(NS, 'title');
-      title.textContent = `${n.e.name} · ${SCRABB_TYPES[n.e.tipo].label}${scrabbDate(n.e) ? ' · ' + scrabbDate(n.e) : ''}`;
-      g.append(c, t, title);
+      title.textContent = `${n.e.name} · ${t(SCRABB_TYPES[n.e.tipo].label)}${scrabbDate(n.e) ? ' · ' + scrabbDate(n.e) : ''}`;
+      g.append(c, lbl, title);
       gNodes.appendChild(g);
       n.el = g;
     }
@@ -1232,7 +1233,7 @@ class ScrabbView extends ItemView {
       },
       { passive: false }
     );
-    el.createDiv({ cls: 'scrabb-graph-hint', text: 'Clic: scheda · doppio clic: metti al centro · trascina: sposta · ⌘-clic: apri la nota' });
+    el.createDiv({ cls: 'scrabb-graph-hint', text: t('Clic: scheda · doppio clic: metti al centro · trascina: sposta · ⌘-clic: apri la nota') });
   }
 
   highlightGraph(gNodes, edges, path) {
@@ -1247,13 +1248,13 @@ class ScrabbView extends ItemView {
 
 /** Collega un versetto (etichetta "Giovanni 3:16") a una scheda SCRABB, esistente o nuova; poi `refresh`. */
 function linkVerseToScrabb(plugin, label, refresh) {
-  new ScrabbPickModal(plugin, { placeholder: `Collega ${label} a…`, allowCreate: true }, async (e) => {
+  new ScrabbPickModal(plugin, { placeholder: t('Collega {ref} a…', { ref: label }), allowCreate: true }, async (e) => {
     if (e.create) {
       new ScrabbNewModal(plugin, { name: e.name, tipo: 'modello', versetti: label }, () => window.setTimeout(refresh, 1500)).open();
       return;
     }
     await plugin.scrabb.addToField(e, 'versetti', label);
-    new Notice(`${label} collegato a ${e.name}`);
+    new Notice(t('{ref} collegato a {nome}', { ref: label, nome: e.name }));
     window.setTimeout(refresh, 1500);
   }).open();
 }

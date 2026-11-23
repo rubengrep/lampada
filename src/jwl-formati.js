@@ -1,4 +1,5 @@
 import { jwlMarker } from './testo.js';
+import { t } from './lingua.js';
 
 /* ------------------------------------------------------------------ */
 /* Importazione di un backup JW Library (.jwlibrary)                   */
@@ -24,7 +25,7 @@ async function unzipEntries(src, only) {
       break;
     }
   }
-  if (eocd < 0) throw new Error('Il file non è un archivio valido.');
+  if (eocd < 0) throw new Error(t('Il file non è un archivio valido.'));
   const count = tv.getUint16(eocd + 10, true);
   const cdSize = tv.getUint32(eocd + 12, true);
   const cdOff = tv.getUint32(eocd + 16, true);
@@ -63,6 +64,28 @@ async function unzipEntries(src, only) {
   }
   return out;
 }
+
+// Lingue nel backup (Location.MepsLanguage): 4 = italiano, 0 = inglese (visti nei backup veri). La lingua della cartella
+// principale (base, costanti.js baseLang: di solito l'italiano) non ha `lang`, come i dati di prima; una lingua senza codice
+// qui diventa "meps<n>": resta nei dati e torna nel backup uguale.
+// ponytail: solo I ed E; per un'altra lingua aggiungi qui il suo numero MEPS.
+const MEPS = { I: 4, E: 0 };
+/** Numero MEPS → `lang` dei dati di Lampada (undefined = lingua base o senza lingua). */
+function langOfMeps(n, base = 'I') {
+  const l = n == null ? base : Object.keys(MEPS).find((k) => MEPS[k] === n) || `meps${n}`;
+  return l === base ? undefined : l;
+}
+/** `lang` dei dati di Lampada → numero MEPS. */
+function mepsOf(l, base = 'I') {
+  l = l || base;
+  if (l in MEPS) return MEPS[l];
+  const m = /^meps(\d+)$/.exec(l);
+  return m ? +m[1] : MEPS.I;
+}
+const withLang = (o, n, base) => {
+  const l = langOfMeps(n, base);
+  return l ? { ...o, lang: l } : o;
+};
 
 function jwlTag(name) {
   return String(name)
@@ -106,11 +129,11 @@ function buildJwlPlan(SQL, dbBytes, ctx) {
 
     const byGuid = new Map();
     for (const r of rows(`SELECT u.UserMarkGuid AS g, u.ColorIndex AS c, l.BookNumber AS b, l.ChapterNumber AS ch, br.Identifier AS v,
-          br.StartToken AS s, br.EndToken AS e
+          br.StartToken AS s, br.EndToken AS e, l.MepsLanguage AS lang
         FROM UserMark u JOIN Location l ON l.LocationId = u.LocationId JOIN BlockRange br ON br.UserMarkId = u.UserMarkId
         WHERE l.BookNumber IS NOT NULL AND br.BlockType = 2 ORDER BY u.UserMarkId, br.Identifier`)) {
       if (!JWL_COLORS[r.c] || !ctx.validCode(r.b, r.ch, r.v)) continue;
-      if (!byGuid.has(r.g)) byGuid.set(r.g, { id: r.g, b: r.b, c: r.ch, color: JWL_COLORS[r.c], ranges: [], src: 'jwl', mod: false });
+      if (!byGuid.has(r.g)) byGuid.set(r.g, withLang({ id: r.g, b: r.b, c: r.ch, color: JWL_COLORS[r.c], ranges: [], src: 'jwl', mod: false }, r.lang, ctx.base));
       byGuid.get(r.g).ranges.push({ v: r.v, s: r.s == null ? 0 : r.s, e: r.e == null ? -1 : r.e });
     }
     const marks = [...byGuid.values()];
@@ -122,9 +145,11 @@ function buildJwlPlan(SQL, dbBytes, ctx) {
             l.MepsLanguage AS lang, br.Identifier AS p, br.StartToken AS s, br.EndToken AS e
           FROM UserMark u JOIN Location l ON l.LocationId = u.LocationId JOIN BlockRange br ON br.UserMarkId = u.UserMarkId
           WHERE l.BookNumber IS NULL AND l.DocumentId IS NOT NULL AND br.BlockType = 1 ORDER BY u.UserMarkId, br.Identifier`)) {
-        if (!JWL_COLORS[r.c] || !ctx.hasDoc(r.d) || r.s == null || r.e == null) continue;
+        // hasDoc guarda la biblioteca della lingua aperta: le evidenziazioni delle altre lingue si tengono sempre.
+        if (!JWL_COLORS[r.c] || r.s == null || r.e == null) continue;
+        if (langOfMeps(r.lang, ctx.base) === ctx.lang && !ctx.hasDoc(r.d)) continue;
         if (!byGuidDoc.has(r.g))
-          byGuidDoc.set(r.g, { id: r.g, doc: String(r.d), loc: { k: r.k, i: r.i || 0, lang: r.lang }, color: JWL_COLORS[r.c], ranges: [], src: 'jwl', mod: false });
+          byGuidDoc.set(r.g, withLang({ id: r.g, doc: String(r.d), loc: { k: r.k, i: r.i || 0, lang: r.lang }, color: JWL_COLORS[r.c], ranges: [], src: 'jwl', mod: false }, r.lang, ctx.base));
         byGuidDoc.get(r.g).ranges.push({ v: r.p, s: r.s, e: r.e });
       }
     }
@@ -176,4 +201,4 @@ function jwlNoteBlock(n, extraLines) {
   return lines.join('\n');
 }
 
-export { JWL_COLORS, unzipEntries, jwlTag, formatIssue, safeFileName, buildJwlPlan, jwlNoteBlock };
+export { JWL_COLORS, MEPS, langOfMeps, mepsOf, unzipEntries, jwlTag, formatIssue, safeFileName, buildJwlPlan, jwlNoteBlock };

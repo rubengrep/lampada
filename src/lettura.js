@@ -1,5 +1,6 @@
 import { Modal, Platform, debounce } from 'obsidian';
 import { FONT_CHOICES } from './costanti.js';
+import { t } from './lingua.js';
 import { quickDefinition } from './studio.js';
 import { setBarsHidden } from './ui.js';
 
@@ -216,7 +217,7 @@ class Pager {
       const n = this.pages();
       const i = this.page;
       p = n > 1 ? i / (n - 1) : 1;
-      where = `Pagina ${i + 1} di ${n}`;
+      where = t('Pagina {i} di {n}', { i: i + 1, n });
     } else {
       p = el.scrollHeight > el.clientHeight + 4 ? el.scrollTop / (el.scrollHeight - el.clientHeight) : 1;
       where = `${Math.round(Math.min(1, p) * 100)}%`;
@@ -225,7 +226,7 @@ class Pager {
     const min = Math.ceil((this.words * (1 - p)) / WPM);
     this.foot.empty();
     this.foot.createSpan({ cls: 'lmp-foot-label', text: this.o.label() });
-    this.foot.createSpan({ text: `${where} · ${p > 0.99 ? 'fine' : min <= 1 ? 'meno di 1 min' : `${min} min`}` });
+    this.foot.createSpan({ text: `${where} · ${p > 0.99 ? t('fine') : min <= 1 ? t('meno di 1 min') : `${min} min`}` });
   }
 
   /** A pagine: tocco ai lati per girare, in alto (telefono e tablet) per le barre. */
@@ -281,7 +282,7 @@ function showDefinition(view, el, text, open, placed) {
   quickDefinition(view.plugin, word)
     .then((def) => {
       if (!def || token !== view.defToken || !view.selInfo) return;
-      el.createDiv({ cls: 'lmp-selbar-def-title', text: `${def.title} · ${def.source}` });
+      el.createDiv({ cls: 'lmp-selbar-def-title', text: `${def.title} · ${t(def.source)}` });
       if (def.text) el.createDiv({ cls: 'lmp-selbar-def-text', text: def.text });
       el.onclick = () => open(def);
       el.show();
@@ -291,7 +292,7 @@ function showDefinition(view, el, text, open, placed) {
     .catch(() => null);
 }
 
-/** Barra della selezione sotto il testo scelto (sopra se in fondo non c'è posto). */
+/** Barra della selezione: sotto il testo scelto; sul telefono in fondo, lontano dal menu di iOS. */
 function placeSelBar(view) {
   const info = view.selInfo;
   const bar = view.selBar;
@@ -301,9 +302,21 @@ function placeSelBar(view) {
   const h = bar.offsetHeight || 44;
   let left = info.rect.left - root.left + info.rect.width / 2 - w / 2;
   left = Math.max(8, Math.min(left, root.width - w - 8));
-  // Sotto la selezione: sopra c'è già il menu del sistema sul telefono.
-  let top = info.rect.bottom - root.top + 10;
-  if (top + h + 6 > root.height) top = info.rect.top - root.top - h - 10;
+  let top;
+  if (Platform.isPhone) {
+    // Telefono: il menu di iOS (Copia, Cerca info…) va sopra la selezione, o sotto se sopra non c'è posto, e copre
+    // qualsiasi cosa vicina. La barra sta in fondo, sopra il piè di pagina; in alto se la selezione arriva fin lì.
+    left = (root.width - w) / 2;
+    const foot = view.contentEl.querySelector('.lmp-foot');
+    const fr = foot && foot.offsetParent ? foot.getBoundingClientRect() : null;
+    const bottom = (fr && fr.height ? fr.top : root.bottom) - root.top;
+    top = bottom - h - 10;
+    if (info.rect.bottom - root.top > top - 8) top = 56;
+  } else {
+    // Sotto la selezione (sopra se in fondo non c'è posto).
+    top = info.rect.bottom - root.top + 10;
+    if (top + h + 6 > root.height) top = info.rect.top - root.top - h - 10;
+  }
   bar.style.left = `${left}px`;
   bar.style.top = `${Math.max(4, top)}px`;
 }
@@ -318,7 +331,7 @@ class ReadingModal extends Modal {
   onOpen() {
     this.containerEl.addClass('lmp-aa-container');
     this.modalEl.addClass('lmp-aa-modal');
-    this.titleEl.setText('Aspetto del testo');
+    this.titleEl.setText(t('Aspetto del testo'));
     this.draw();
   }
 
@@ -328,13 +341,13 @@ class ReadingModal extends Modal {
     el.empty();
     const row = (label) => {
       const r = el.createDiv('lmp-aa-row');
-      r.createDiv({ cls: 'lmp-aa-label', text: label });
+      r.createDiv({ cls: 'lmp-aa-label', text: t(label) });
       return r.createDiv('lmp-aa-seg');
     };
     const choice = (label, key, opts) => {
       const g = row(label);
       for (const [v, text, cls] of opts) {
-        const b = g.createEl('button', { cls: `lmp-aa-opt${s[key] === v ? ' is-active' : ''}${cls ? ` ${cls}` : ''}`, text });
+        const b = g.createEl('button', { cls: `lmp-aa-opt${s[key] === v ? ' is-active' : ''}${cls ? ` ${cls}` : ''}`, text: t(text) });
         b.addEventListener('click', async () => {
           s[key] = v;
           this.draw();
@@ -342,7 +355,7 @@ class ReadingModal extends Modal {
         });
       }
     };
-    choice('Carattere', 'fontFamily', FONT_CHOICES.map(([id, label]) => [id, label.replace(/\s*\(.*\)$/, ''), `lmp-aa-font-${id}`]));
+    choice('Carattere', 'fontFamily', FONT_CHOICES.map(([id, label]) => [id, t(label).replace(/\s*\(.*\)$/, ''), `lmp-aa-font-${id}`]));
     const size = row('Dimensione');
     for (const [d, text] of [[-1, 'A−'], [0, `${s.fontSize}`], [1, 'A+']]) {
       const b = size.createEl('button', { cls: d ? 'lmp-aa-opt' : 'lmp-aa-opt lmp-aa-val', text });

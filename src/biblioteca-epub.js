@@ -2,6 +2,7 @@ import { Modal, Notice, Platform, requestUrl } from 'obsidian';
 import { decode, epubInfo, jwLink, mb, q, slugify } from './bibbia-epub.js';
 import { jwDownload } from './scarica-jw.js';
 import { MONTHS, issueLabel, LIB_CATEGORIES } from './biblioteca-dati.js';
+import { t } from './lingua.js';
 import { epubExtras } from './epub-extra.js';
 import { writeBinary } from './file.js';
 import { unzipEntries } from './jwl-formati.js';
@@ -180,10 +181,13 @@ function docMd(html, ctx) {
   return { body: out, anchors, cites: st.cites, refs: [...st.refs] };
 }
 
-/** "La Torre di Guardia, gennaio 2026" → "202601" (titolo dell'EPUB, quando il nome del file non ha il numero). */
-function issueFromTitle(t) {
-  const m = new RegExp(`\\b(${MONTHS.join('|')})\\b[^\\d]*(\\d{4})`).exec(norm(t));
-  return m ? `${m[2]}${String(MONTHS.indexOf(m[1]) + 1).padStart(2, '0')}` : '';
+// Mesi inglesi, per i titoli delle pubblicazioni inglesi ("The Watchtower, January 2026").
+const MONTHS_EN = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+
+/** "La Torre di Guardia, gennaio 2026" o "The Watchtower, January 2026" → "202601" (titolo dell'EPUB, quando il nome del file non ha il numero). */
+function issueFromTitle(title) {
+  const m = new RegExp(`\\b(${[...MONTHS, ...MONTHS_EN].join('|')})\\b[^\\d]*(\\d{4})`).exec(norm(title));
+  return m ? `${m[2]}${String((MONTHS.indexOf(m[1]) + 1 || MONTHS_EN.indexOf(m[1]) + 1)).padStart(2, '0')}` : '';
 }
 
 /**
@@ -196,7 +200,7 @@ async function convertPubEpub(src, opts = {}) {
   const texts = {};
   for (const [n, d] of Object.entries(await unzipEntries(src, (n) => /\.(xhtml|opf)$/i.test(n)))) texts[n] = td.decode(d);
   const opfName = Object.keys(texts).find((n) => n.endsWith('.opf'));
-  if (!opfName) throw new Error('Il file non è un EPUB.');
+  if (!opfName) throw new Error(t('Il file non è un EPUB.'));
   const opf = texts[opfName];
   const dir = opfName.replace(/[^/]*$/, '');
   // Documenti nell'ordine di lettura: le xhtml che hanno come nome il docId.
@@ -209,11 +213,11 @@ async function convertPubEpub(src, opts = {}) {
       const id = h.slice(0, -6);
       return { id, html, title: decode((/<title>([^<]*)<\/title>/.exec(html) || [])[1] || id).trim(), cls: (/<body\b[^>]*class="([^"]*)"/.exec(html) || [])[1] || '' };
     });
-  if (!docs.length) throw new Error('Nell’EPUB non ci sono documenti da importare.');
+  if (!docs.length) throw new Error(t('Nell’EPUB non ci sono documenti da importare.'));
   const fromName = /^([a-z0-9-]+)_[a-z]+(?:_(\d{6,8}))?\.epub$/i.exec(opts.fileName || '') || [];
   // Simbolo dal sito come lo scrive lui (T-31, come le esportazioni .jwpub); ricavato dal file: minuscolo.
   const symbol = opts.symbol || ((/\bpub-(\S+)/.exec(docs[0].cls) || [])[1] || fromName[1] || '').toLowerCase();
-  if (!symbol) throw new Error('Non trovo il simbolo della pubblicazione.');
+  if (!symbol) throw new Error(t('Non trovo il simbolo della pubblicazione.'));
   const dcTitle = decode((/<dc:title[^>]*>([^<]*)</.exec(opf) || [])[1] || '').trim();
   const issue = opts.issue || fromName[2] || (CATEGORY[symbol] ? issueFromTitle(dcTitle) : '');
   const title = opts.title || dcTitle.replace(/,[^,]*\d{4}\s*$/, '').trim() || symbol;
@@ -288,11 +292,11 @@ async function saveEpub(plugin, res, src, progress) {
     if (old && old.rel !== d.rel) await a.remove(prefix + old.rel).catch(() => null);
     await put(d.rel, d.md);
     idx.docs[d.id] = { file: d.file, rel: d.rel, title: d.title, anchors: d.anchors, cites: d.cites };
-    progress(`Salvo… ${Math.round((++i * 100) / res.docs.length)}%`);
+    progress(t('Salvo… {n}%', { n: Math.round((++i * 100) / res.docs.length) }));
   }
   await put(...res.pubFile);
   if (res.images.length) {
-    progress('Salvo le immagini…');
+    progress(t('Salvo le immagini…'));
     const want = new Set(res.images);
     for (const [n, data] of Object.entries(await unzipEntries(src, (n) => want.has(n)))) await writeBinary(plugin.app, `${prefix}_media/${res.symbol}/${n.split('/').pop()}`, data.buffer);
   }
@@ -308,7 +312,7 @@ async function saveEpub(plugin, res, src, progress) {
 
 /** EPUB (ArrayBuffer o { size, read }) → pubblicazione nel vault. meta: { symbol, issue, title, fileName }. */
 async function importEpub(plugin, src, meta = {}, progress = () => {}) {
-  progress('Converto…');
+  progress(t('Converto…'));
   const bible = await plugin.bible.ensureLoaded().then(() => plugin.bible, () => null);
   const lib = await plugin.library.ensureLoaded().then(() => plugin.library, () => null);
   const res = await convertPubEpub(src, { ...meta, bible, findRef: lib ? refFinder(lib) : null });
@@ -324,7 +328,7 @@ const rangeSource = (url, size) => ({
   size,
   read: async (s, e) => {
     const r = await requestUrl({ url, headers: { Range: `bytes=${s}-${e - 1}` } });
-    if (r.status !== 206) throw new Error('Il sito non permette di scaricare solo una parte del file.');
+    if (r.status !== 206) throw new Error(t('Il sito non permette di scaricare solo una parte del file.'));
     return new Uint8Array(r.arrayBuffer);
   },
 });
@@ -345,7 +349,7 @@ async function importInfos(plugin, infos, progress) {
 
 const importInfo = async (plugin, info, progress) => (await importInfos(plugin, [info], progress))[0];
 
-const lang = (plugin) => plugin.settings.bibleLang || 'I';
+const siteLang = (plugin) => plugin.settings.bibleLang || 'I';
 
 /**
  * Nuovi numeri: per ogni periodico con un numero nell'ultimo anno prova i successivi all'ultimo, con il passo dei
@@ -364,8 +368,8 @@ async function newIssues(plugin, progress = () => {}) {
     const gaps = keys.slice(-5).map((k, i, l) => k - l[i - 1]).slice(1);
     const step = gaps.length ? Math.min(...gaps) : 1;
     for (let n = keys[keys.length - 1] + step; ; n += step) {
-      progress(`${p.title}, ${issueLabel(key(n))}: cerco…`);
-      const info = await epubInfo(lang(plugin), p.symbol, key(n));
+      progress(t('{title}, {issue}: cerco…', { title: p.title, issue: issueLabel(key(n)) }));
+      const info = await epubInfo(siteLang(plugin), p.symbol, key(n));
       if (!info) break;
       infos.push({ ...info, label: `${p.title}, ${issueLabel(key(n))}` });
     }
@@ -380,17 +384,18 @@ async function openImported(plugin, r) {
   await plugin.openLibraryAt(r.issue ? { mode: 'issue', sym: r.symbol, issue: r.issue } : { mode: 'pub', sym: r.symbol });
 }
 
-const skippedText = (r) => `«${r.title}${r.issue ? ` ${issueLabel(r.issue)}` : ''}» c’è già, da una fonte più completa: non lo sostituisco.`;
-const errText = (e) => `Non riuscito: ${(e && e.message) || e}`;
+const skippedText = (r) => t('«{title}» c’è già, da una fonte più completa: non lo sostituisco.', { title: `${r.title}${r.issue ? ` ${issueLabel(r.issue)}` : ''}` });
+const errText = (e) => t('Non riuscito: {why}', { why: (e && e.message) || e });
+const addedText = (list) => t('Aggiunti: {list}', { list: list.map((r) => `${r.symbol} ${issueLabel(r.issue)}`).join(', ') });
 
 /** Comando "Cerca nuovi numeri": avanzamento in un avviso. */
 async function runNewIssues(plugin) {
-  const n = new Notice('Cerco nuovi numeri…', 0);
+  const n = new Notice(t('Cerco nuovi numeri…'), 0);
   try {
     const found = await newIssues(plugin, (t) => n.setMessage(t));
     n.hide();
-    if (!found.length) return new Notice('Nessun numero nuovo.');
-    new Notice(`Aggiunti: ${found.map((r) => `${r.symbol} ${issueLabel(r.issue)}`).join(', ')}`);
+    if (!found.length) return new Notice(t('Nessun numero nuovo.'));
+    new Notice(addedText(found));
     await openImported(plugin, found[found.length - 1]);
   } catch (e) {
     n.hide();
@@ -414,11 +419,11 @@ class EpubImportModal extends Modal {
   onOpen() {
     const el = this.contentEl;
     const plugin = this.plugin;
-    this.titleEl.setText('Importa pubblicazioni');
+    this.titleEl.setText(t('Importa pubblicazioni'));
 
-    el.createEl('h4', { text: 'Da un file EPUB' });
+    el.createEl('h4', { text: t('Da un file EPUB') });
     const input = el.createEl('input', { type: 'file', attr: { accept: '.epub,application/epub+zip', style: 'display:none' } });
-    el.createEl('button', { cls: 'mod-cta', text: 'Scegli un EPUB…' }).addEventListener('click', () => input.click());
+    el.createEl('button', { cls: 'mod-cta', text: t('Scegli un EPUB…') }).addEventListener('click', () => input.click());
     input.addEventListener('change', () => {
       const f = input.files && input.files[0];
       input.value = '';
@@ -427,27 +432,27 @@ class EpubImportModal extends Modal {
       if (f) this.run(() => importEpub(plugin, src, { fileName: f.name }, this.say));
     });
 
-    el.createEl('h4', { text: 'Per simbolo' });
+    el.createEl('h4', { text: t('Per simbolo') });
     const row = el.createDiv('lmp-bible-dl-row');
-    const sym = row.createEl('input', { type: 'text', cls: 'lmp-epub-sym', attr: { placeholder: 'w26.01, mwb26.01, lff…', 'aria-label': 'Simbolo', autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' } });
-    const get = row.createEl('button', { text: 'Scarica da jw.org' });
-    el.createDiv({ cls: 'setting-item-description', text: 'Come nelle citazioni: simbolo, poi anno e mese del numero.' });
+    const sym = row.createEl('input', { type: 'text', cls: 'lmp-epub-sym', attr: { placeholder: 'w26.01, mwb26.01, lff…', 'aria-label': t('Simbolo'), autocapitalize: 'off', autocorrect: 'off', spellcheck: 'false' } });
+    const get = row.createEl('button', { text: t('Scarica da jw.org') });
+    el.createDiv({ cls: 'setting-item-description', text: t('Come nelle citazioni: simbolo, poi anno e mese del numero.') });
     const go = () => {
       const s = parseSymbol(sym.value);
-      if (!s) return this.say('Scrivi un simbolo, ad esempio w26.01 o lff.', true);
+      if (!s) return this.say(t('Scrivi un simbolo, ad esempio w26.01 o lff.'), true);
       this.run(async () => {
-        this.say('Cerco…');
-        const info = await epubInfo(lang(plugin), s.pub, s.issue);
-        if (!info) throw new Error(`«${sym.value.trim()}» non c’è: controlla il simbolo, o il numero non è ancora uscito.`);
+        this.say(t('Cerco…'));
+        const info = await epubInfo(siteLang(plugin), s.pub, s.issue);
+        if (!info) throw new Error(t('«{sym}» non c’è: controlla il simbolo, o il numero non è ancora uscito.', { sym: sym.value.trim() }));
         return importInfo(plugin, info, this.say);
       });
     };
     get.addEventListener('click', go);
     sym.addEventListener('keydown', (e) => e.key === 'Enter' && go());
 
-    el.createEl('h4', { text: 'Nuovi numeri' });
-    el.createDiv({ cls: 'setting-item-description', text: 'Cerca i numeri successivi dei periodici che hai già.' });
-    el.createEl('button', { text: 'Cerca nuovi numeri' }).addEventListener('click', () =>
+    el.createEl('h4', { text: t('Nuovi numeri') });
+    el.createDiv({ cls: 'setting-item-description', text: t('Cerca i numeri successivi dei periodici che hai già.') });
+    el.createEl('button', { text: t('Cerca nuovi numeri') }).addEventListener('click', () =>
       this.run(async () => {
         const found = await newIssues(plugin, this.say);
         if (!found.length) return { none: true };
@@ -462,9 +467,9 @@ class EpubImportModal extends Modal {
     ctrls.forEach((c) => (c.disabled = true));
     try {
       const r = await fn();
-      if (r.none) return this.say('Nessun numero nuovo.');
+      if (r.none) return this.say(t('Nessun numero nuovo.'));
       if (r.skipped) return this.say(skippedText(r));
-      new Notice(r.list ? `Aggiunti: ${r.list.map((x) => `${x.symbol} ${issueLabel(x.issue)}`).join(', ')}` : `Importato: ${r.title}`);
+      new Notice(r.list ? addedText(r.list) : t('Importato: {title}', { title: r.title }));
       this.close();
       await openImported(this.plugin, r);
     } catch (e) {

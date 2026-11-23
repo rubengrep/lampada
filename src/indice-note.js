@@ -38,7 +38,9 @@ class NoteIndex {
   }
 
   cacheKey() {
-    return `${this.bible.root}|${this.bible.symbol}|${this.plugin.settings.detectPlainRefs}`;
+    // La lingua della Bibbia cambia gli alias dei riferimenti scritti a mano (l'italiano resta com'era).
+    const bl = this.plugin.settings.bibleLang;
+    return `${this.bible.root}|${this.bible.symbol}|${this.plugin.settings.detectPlainRefs}${bl && bl !== 'I' ? `|${bl}` : ''}`;
   }
 
   async saveCache() {

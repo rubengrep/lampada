@@ -9,6 +9,11 @@ assert.strictEqual(stem('perdonati'), stem('perdono'));
 assert.strictEqual(stem('amico'), stem('amiche'));
 assert.deepStrictEqual(terms('La carità di Geova è grande, 12 volte nel 1914'), ['carit', 'geov', 'grand', 'volt', '1914']);
 
+// Inglese: parole vuote e desinenze inglesi; l'italiano resta com'era.
+assert.strictEqual(stem('forgiving', 'en'), stem('forgiveness', 'en'));
+assert.strictEqual(stem('families', 'en'), stem('family', 'en'));
+assert.deepStrictEqual(terms('The love of Jehovah is great, and his mercy endures', 'en'), ['lov', 'jehovah', 'great', 'merc', 'endur']);
+
 const nota = `# Titolo\n\n**1.** Perché perdonare? ^p1\n\nLa tua risposta ^p2\n\n**<sup>1</sup>** Geova ci [perdona](jwlibrary:///x) e anche noi perdoniamo gli altri di cuore. ^p3\n\nSenza codice\n\n![[img.jpg]]\n\nUn'altra riga su ansia e preoccupazioni della vita ^p5`;
 assert.deepStrictEqual(paragraphsOf(nota).map((p) => p.pid), [1, 2, 3, 5]);
 
@@ -34,6 +39,16 @@ const reader = new IndexReader(out.meta, out.pars, async (k) => out.shards.get(k
   assert.deepStrictEqual((await reader.search('preoccup*')).map((x) => `${x.doc}#${x.pid}`), ['a#5']);
   assert.deepStrictEqual((await reader.search('ansia', { docFilter: (d) => d === 'a' })).map((x) => x.pid), [5]);
   assert.deepStrictEqual(await reader.search('zzzz'), []);
+
+  // L'indice ricorda la lingua: un indice inglese cerca con le radici inglesi (senza lang = italiano, indici di prima).
+  assert.strictEqual(out.meta.lang, 'it');
+  const be = new IndexBuilder('en');
+  be.addDoc('e', 'Jehovah is willing to forgive us when we repent ^p1\n\nWorries and anxiety can weigh us down ^p2');
+  const oe = be.finish();
+  assert.strictEqual(oe.meta.lang, 'en');
+  const re = new IndexReader(oe.meta, oe.pars, async (k) => oe.shards.get(k) || null);
+  assert.deepStrictEqual((await re.search('forgiveness')).map((x) => x.pid), [1]);
+  assert.deepStrictEqual((await re.search('the worry')).map((x) => x.pid), [2]);
 
   // L'AI chiede una ricerca, riceve le fonti [F1]…, poi risponde citandole.
   const bodies = [];

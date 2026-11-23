@@ -1,12 +1,28 @@
 import { Notice, normalizePath } from 'obsidian';
-import { CITE_PERIODICALS } from './biblioteca-dati.js';
-import { BOOK_ABBR, EXTRA_ALIASES, INDEX_MIRROR } from './costanti.js';
+import { CITE_PERIODICALS, issueLabel } from './biblioteca-dati.js';
+import { BOOK_ABBR, EXTRA_ALIASES, INDEX_MIRROR, baseLang, langRoot, pubLang } from './costanti.js';
+import { compare, t } from './lingua.js';
 import { fileAt, fileMeta, linkDest, readFile, scanHidden } from './file.js';
 import { JWLIB_LINK_RE, codesFromJwUrl, extractBlock, jwLibraryUrl, nameKey, norm, parseChapterMarkdown, parseCode, parseVerseList, refFromCodes, stripFrontmatter, verseCode } from './testo.js';
 
 /* ------------------------------------------------------------------ */
 /* Dati della Bibbia                                                   */
 /* ------------------------------------------------------------------ */
+
+// Abbreviazioni inglesi comuni (per "Vai a…" e i riferimenti scritti a mano), con una Bibbia inglese: come EXTRA_ALIASES.
+const ENGLISH_ALIASES = {
+  gen: 1, ge: 1, ex: 2, exod: 2, lev: 3, le: 3, num: 4, nu: 4, deut: 5, de: 5, dt: 5, josh: 6, jos: 6, judg: 7, jg: 7, ru: 8,
+  '1sam': 9, '2sam': 10, '1sa': 9, '2sa': 10, '1ki': 11, '2ki': 12, '1kgs': 11, '2kgs': 12,
+  '1chron': 13, '2chron': 14, '1ch': 13, '2ch': 14, ezr: 15, neh: 16, ne: 16, esth: 17, es: 17,
+  ps: 19, psa: 19, psalm: 19, prov: 20, pr: 20, eccl: 21, eccles: 21, ec: 21, song: 22, songofsol: 22, sos: 22, ca: 22,
+  isa: 23, jer: 24, lam: 25, la: 25, ezek: 26, eze: 26, dan: 27, da: 27, hos: 28, ho: 28, joe: 29, am: 30, ob: 31, obad: 31,
+  jon: 32, mic: 33, nah: 34, na: 34, hab: 35, zeph: 36, zep: 36, hag: 37, zech: 38, zec: 38, mal: 39,
+  matt: 40, mt: 40, mr: 41, mk: 41, lu: 42, lk: 42, joh: 43, jn: 43, ac: 44, rom: 45, ro: 45,
+  '1cor': 46, '2cor': 47, '1co': 46, '2co': 47, gal: 48, ga: 48, eph: 49, phil: 50, php: 50, col: 51,
+  '1thess': 52, '2thess': 53, '1th': 52, '2th': 53, '1tim': 54, '2tim': 55, '1ti': 54, '2ti': 55, tit: 56, philem: 57, phm: 57,
+  heb: 58, jas: 59, '1pet': 60, '2pet': 61, '1pe': 60, '2pe': 61, '1jo': 62, '2jo': 63, '3jo': 64, '1jn': 62, '2jn': 63, '3jn': 64,
+  jude: 65, rev: 66, re: 66,
+};
 
 class BibleData {
   constructor(plugin) {
@@ -25,12 +41,23 @@ class BibleData {
     this.verseDataCache = new Map();
   }
 
+  /** Cartella delle pubblicazioni nella lingua scelta (costanti.js, langRoot). */
   get root() {
-    return normalizePath(this.plugin.settings.rootFolder || '');
+    return normalizePath(langRoot(this.plugin.settings));
   }
 
+  /** Bibbia in uso nella lingua scelta: settings.symbol per la lingua base (costanti.js baseLang), settings.symbols[lingua] per le altre. */
   get symbol() {
-    return this.plugin.settings.symbol;
+    const s = this.plugin.settings;
+    const l = pubLang(s);
+    return l === baseLang(s) ? s.symbol : (s.symbols && s.symbols[l]) || 'nwt';
+  }
+
+  setSymbol(sym) {
+    const s = this.plugin.settings;
+    const l = pubLang(s);
+    if (l === baseLang(s)) s.symbol = sym;
+    else s.symbols = { ...(s.symbols || {}), [l]: sym };
   }
 
   get prefix() {
@@ -46,7 +73,9 @@ class BibleData {
     return this.pubFolders.some((f) => path.startsWith(f));
   }
 
-  reset() {
+  /** rescan=false: non rielenca i file della cartella nascosta (già elencati, es. tornando a una lingua). */
+  reset(rescan = true) {
+    this.rescan = rescan;
     this.loadPromise = null;
     this.docPubs = null;
     this.bookInfo.clear();
@@ -71,13 +100,16 @@ class BibleData {
     const a = this.app.vault.adapter;
     const candidates = (prefix) => [INDEX_MIRROR, 'Indici'].map((d) => ({ prefix, dir: `${prefix}${d}` }));
     const prefixes = [this.prefix];
-    try {
-      const top = await a.list('');
-      for (const f of top.folders) if (!f.split('/').pop().startsWith('.')) prefixes.push(`${f}/`);
-    } catch (e) {
-      /* elenco non disponibile */
+    // Le altre lingue hanno solo la loro cartella: cercare nel vault troverebbe la Bibbia italiana.
+    if (pubLang(this.plugin.settings) === baseLang(this.plugin.settings)) {
+      try {
+        const top = await a.list('');
+        for (const f of top.folders) if (!f.split('/').pop().startsWith('.')) prefixes.push(`${f}/`);
+      } catch (e) {
+        /* elenco non disponibile */
+      }
+      prefixes.push('');
     }
-    prefixes.push('');
     // La Bibbia impostata, altrimenti quella per lo studio o quella dall'EPUB.
     const syms = [...new Set([this.symbol, 'nwtsty', 'nwt'].filter(Boolean))];
     for (const prefix of prefixes) {
@@ -89,29 +121,30 @@ class BibleData {
   async load() {
     const found = await this.findIndexDir();
     // noBible: le viste mostrano il pannello per scaricarla (bibbia-epub.js).
-    if (!found) throw Object.assign(new Error('Bibbia non trovata: scaricala o importala.'), { noBible: true });
+    if (!found) throw Object.assign(new Error(t('Bibbia non trovata: scaricala o importala.')), { noBible: true });
     if (found.sym !== this.symbol) {
-      this.plugin.settings.symbol = found.sym;
+      this.setSymbol(found.sym);
       await this.plugin.saveAll(false);
     }
-    if (found.prefix !== this.prefix) {
+    if (found.prefix !== this.prefix && pubLang(this.plugin.settings) === baseLang(this.plugin.settings)) {
       this.plugin.settings.rootFolder = found.prefix.replace(/\/$/, '');
       await this.plugin.saveAll(false);
-      new Notice(`Lampada: trovata la Bibbia in «${this.plugin.settings.rootFolder || '/'}»`);
+      new Notice(t('Lampada: trovata la Bibbia in «{folder}»', { folder: this.plugin.settings.rootFolder || '/' }));
     }
     // Pubblicazioni in una cartella nascosta (.lampada/…): Obsidian non le vede, se ne fa l'elenco.
-    await scanHidden(this.app, found.prefix);
+    await scanHidden(this.app, found.prefix, this.rescan !== false);
+    this.rescan = true;
     const path = `${found.dir}/${this.symbol}.json`;
     this.indexDir = found.dir;
     const idx = JSON.parse(await this.app.vault.adapter.read(path));
-    if (!idx.books) throw new Error(`${path} non contiene libri biblici.`);
+    if (!idx.books) throw new Error(t('{path} non contiene libri biblici.', { path }));
     this.folder = idx.folder || this.symbol;
 
     // Cartelle delle pubblicazioni (Bibbie, Glossario, Torre di Guardia, …): non sono note personali.
     const pubs = new Set([this.folder, '_media', INDEX_MIRROR]);
     try {
       // Gli indici secondari pesano ~15 MB: si leggono solo se cambiati, altrimenti basta la cartella memorizzata (per dispositivo).
-      const lsKey = `lampada:pub-folders:${this.app.vault.getName()}`;
+      const lsKey = `lampada:pub-folders:${this.app.vault.getName()}${this.root === '.lampada/markdown' ? '' : `:${this.root}`}`;
       let known = {};
       try {
         known = JSON.parse(window.localStorage.getItem(lsKey) || '{}');
@@ -150,9 +183,10 @@ class BibleData {
 
     this.title = idx.title || this.symbol;
     // Bibbie complete nel vault (per il selettore): quella in uso e le altre con i libri
-    this.bibles = [{ symbol: this.symbol, title: this.title }, ...(this.others || [])].sort((a, b) => a.title.localeCompare(b.title, 'it'));
-    // Bibbia in un'altra lingua (dall'EPUB): abbreviazioni dell'EPUB e niente alias italiani.
+    this.bibles = [{ symbol: this.symbol, title: this.title }, ...(this.others || [])].sort((a, b) => compare(a.title, b.title));
+    // Bibbia in un'altra lingua (dall'EPUB): abbreviazioni dell'EPUB e niente alias italiani (in inglese quelli inglesi).
     this.italian = !idx.lang || idx.lang === 'I';
+    this.aliases = this.italian ? EXTRA_ALIASES : idx.lang === 'E' ? ENGLISH_ALIASES : {};
     this.books = Object.entries(idx.books)
       .map(([num, b]) => ({
         num: +num,
@@ -178,7 +212,7 @@ class BibleData {
       addName(b.slug, b.num);
       addName(b.abbr, b.num);
     }
-    if (this.italian) for (const [k, num] of Object.entries(EXTRA_ALIASES)) addName(k, num);
+    for (const [k, num] of Object.entries(this.aliases)) addName(k, num);
 
     this.validCodes = new Set(Object.keys(idx.verses || {}));
     this.chapterMax = new Map();
@@ -207,7 +241,8 @@ class BibleData {
     const info = {};
     const file = this.getFile(this.bookPath(book));
     if (file) {
-      const keys = { Scrittore: 'writer', Scrittori: 'writer', 'Pronunciati da': 'writer', 'Luogo in cui fu scritto': 'place', Completato: 'completed', 'Tempo a cui si riferisce': 'period' };
+      const keys = { Scrittore: 'writer', Scrittori: 'writer', 'Pronunciati da': 'writer', 'Luogo in cui fu scritto': 'place', Completato: 'completed', 'Tempo a cui si riferisce': 'period',
+        Writer: 'writer', Writers: 'writer', 'Place Written': 'place', 'Writing Completed': 'completed', 'Time Covered': 'period' };
       for (const line of stripFrontmatter(await readFile(this.app, file)).split('\n')) {
         const m = /^([^:#\-\[][^:]*):\s*\*\*(.+)\*\*\s*$/.exec(line);
         if (m && keys[m[1].trim()]) info[keys[m[1].trim()]] = m[2].replace(/\u00a0/g, ' ').trim();
@@ -222,9 +257,9 @@ class BibleData {
     const cached = this.chapterCache.get(key);
     if (cached) return cached;
     const book = this.byNum.get(bookNum);
-    if (!book) throw new Error(`Libro ${bookNum} non trovato`);
+    if (!book) throw new Error(t('Libro {n} non trovato', { n: bookNum }));
     const file = this.getFile(this.chapterPath(book, ch));
-    if (!file) throw new Error(`File del capitolo non trovato: ${this.chapterPath(book, ch)}`);
+    if (!file) throw new Error(t('File del capitolo non trovato: {path}', { path: this.chapterPath(book, ch) }));
     const parsed = parseChapterMarkdown(await readFile(this.app, file));
     parsed.book = book;
     parsed.chapter = ch;
@@ -252,7 +287,6 @@ class BibleData {
     const map = new Map();
     const cats = new Map();
     const dates = new Map();
-    const months = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
     const a = this.app.vault.adapter;
     try {
       for (const f of await this.indexFiles()) {
@@ -269,14 +303,13 @@ class BibleData {
           // Periodici: data del numero dal nome del file (w20100301_…, wp201601_…, g19850622_…, mwb201601_…)
           const pd = CITE_PERIODICALS.has(cat) && /^[a-z]+(\d{4})(\d{2})(\d{2})?_/i.exec(d.file);
           if (pd) {
-            const day = pd[3] && pd[3] !== '00' ? `${+pd[3] === 1 ? '1°' : +pd[3]} ` : '';
-            const when = `${day}${months[+pd[2] - 1] || pd[2]} ${pd[1]}`;
-            dates.set(d.file, { key: `${pd[1]}${pd[2]}${pd[3] || '00'}`, label: sym === 'wp' ? `${when} · edizione per il pubblico` : when });
+            const when = issueLabel(`${pd[1]}${pd[2]}${pd[3] || ''}`);
+            dates.set(d.file, { key: `${pd[1]}${pd[2]}${pd[3] || '00'}`, label: sym === 'wp' ? t('{date} · edizione per il pubblico', { date: when }) : when });
           }
           let label = title;
           // La Torre di Guardia: un solo indice per tutti i numeri, il numero è nel nome del file.
           const w = idx.symbol === 'w' && /^w(\d{4})(\d{2})(\d{2})?_/.exec(d.file);
-          if (w) label = `La Torre di Guardia · ${w[3] && w[3] !== '00' ? `${+w[3] === 1 ? '1°' : +w[3]} ` : ''}${months[+w[2] - 1] || w[2]} ${w[1]}`;
+          if (w) label = `${t('La Torre di Guardia')} · ${issueLabel(`${w[1]}${w[2]}${w[3] || ''}`)}`;
           map.set(d.file, label);
         }
       }
@@ -426,7 +459,7 @@ class BibleData {
   bookName(book, withChapter) {
     if (!this.plugin.settings.expandBookName) return book.abbr;
     // Come in JW Library: "Salmo 23", ma il libro è "Salmi".
-    return withChapter && book.num === 19 ? book.chapterName || 'Salmo' : book.title;
+    return withChapter && book.num === 19 ? book.chapterName || (this.italian ? 'Salmo' : book.title) : book.title;
   }
 
   refLabel(ref, versesText) {
@@ -476,7 +509,7 @@ class BibleData {
       add(b.title, b.num);
       add(b.abbr, b.num);
     }
-    if (this.italian) for (const [k, n] of Object.entries(EXTRA_ALIASES)) add(k, n);
+    for (const [k, n] of Object.entries(this.aliases || {})) add(k, n);
     this.plainVariants = variants;
     const pat = [...variants.values()]
       .map((x) => x.v)

@@ -4,6 +4,7 @@ import { LibraryView } from './biblioteca-vista.js';
 import { LibraryChatView } from './chat-biblioteca.js';
 import { TodayView } from './oggi.js';
 import { ScrabbView } from './scrabb-vista.js';
+import { t } from './lingua.js';
 import { AREAS } from './ui.js';
 
 /* ------------------------------------------------------------------ */
@@ -73,6 +74,9 @@ class LampadaView extends ItemView {
     const root = this.contentEl;
     root.empty();
     root.addClass('lmp-shell');
+    // Telefono e tablet: un tocco che si sposta di poco (es. su un libro della colonna di sinistra) Obsidian lo prendeva per
+    // uno swipe e apriva la sua barra laterale. Qui i gesti orizzontali sono di Lampada (capitolo, pagina): Obsidian li salta.
+    root.dataset.ignoreSwipe = 'true';
     this.hostEl = root.createDiv('lmp-shell-host');
     // Linguette in basso: si vedono solo quando il guscio è stretto (telefono, Split View), lo decide il CSS.
     this.buildTabbar(root);
@@ -209,14 +213,14 @@ class LampadaView extends ItemView {
     const bar = (this.tabbarEl = root.createDiv('lmp-tabbar'));
     bar.dataset.ignoreSwipe = 'true'; // come la barra in alto (addViewSwitch): niente barra laterale per un tocco
     for (const [id, icon, text] of AREAS) {
-      const b = bar.createEl('button', { cls: 'lmp-tab', attr: { 'data-area': id, 'aria-label': text } });
+      const b = bar.createEl('button', { cls: 'lmp-tab', attr: { 'data-area': id, 'aria-label': t(text) } });
       setIcon(b.createSpan('lmp-tab-icon'), icon);
-      b.createSpan({ cls: 'lmp-tab-label', text });
+      b.createSpan({ cls: 'lmp-tab-label', text: t(text) });
       b.addEventListener('click', () => (id === this.area ? this.home(id) : this.go(id)));
     }
-    const app = bar.createEl('button', { cls: 'lmp-tab lmp-app-toggle', attr: { 'aria-label': 'Modalità app (nasconde Obsidian)' } });
+    const app = bar.createEl('button', { cls: 'lmp-tab lmp-app-toggle', attr: { 'aria-label': t('Modalità app (nasconde Obsidian)') } });
     setIcon(app.createSpan('lmp-tab-icon'), 'maximize-2');
-    app.createSpan({ cls: 'lmp-tab-label', text: 'App' });
+    app.createSpan({ cls: 'lmp-tab-label', text: t('App') });
     app.addEventListener('click', () => this.plugin.toggleAppMode());
   }
 }

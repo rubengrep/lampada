@@ -4,6 +4,8 @@ import SQLJS_CODE from '../vendor/sql-wasm.txt';
 import SQLJS_WASM from '../vendor/sql-wasm.wasm';
 import { buildJwlPlan, formatIssue, jwlNoteBlock, safeFileName, unzipEntries } from './jwl-formati.js';
 import { jwLibraryUrl, sleep, verseCode } from './testo.js';
+import { t } from './lingua.js';
+import { baseLang } from './costanti.js';
 
 class JwlImporter {
   constructor(plugin) {
@@ -87,10 +89,10 @@ class JwlImporter {
 
   async run(buffer, opts, progress, fileName) {
     await this.bible.ensureLoaded();
-    progress('Apro il backup…');
+    progress(t('Apro il backup…'));
     const entries = await unzipEntries(buffer);
     const dbName = Object.keys(entries).find((n) => n.endsWith('.db'));
-    if (!dbName) throw new Error('Nel backup non c’è il database delle note (userData.db).');
+    if (!dbName) throw new Error(t('Nel backup non c’è il database delle note (userData.db).'));
     // Il backup resta come base per l'esportazione: contiene anche tutto ciò che Obsidian non mostra.
     let manifest = {};
     try {
@@ -110,12 +112,14 @@ class JwlImporter {
     };
     this.plugin.tagNames = null;
     const SQL = await this.loadSqlJs(progress);
-    progress('Leggo note ed evidenziazioni…');
+    progress(t('Leggo note ed evidenziazioni…'));
     await this.plugin.library.ensureLoaded().catch(() => null);
     const lib = this.plugin.library;
     const plan = buildJwlPlan(SQL, entries[dbName], {
       validCode: (b, c, v) => this.bible.validCodes.has(verseCode(b, c, v)),
       hasDoc: (d) => lib.byDocId.has(String(d)),
+      lang: this.plugin.langField().lang, // lingua aperta (undefined = lingua base): hasDoc vale solo per quella
+      base: baseLang(this.plugin.settings),
     });
     const res = { highlights: 0, bookmarks: 0, bibleNotes: 0, bibleFiles: 0, pubNotes: 0, pubFiles: 0, skipped: 0 };
 
@@ -151,7 +155,7 @@ class JwlImporter {
         const book = this.bible.byNum.get(n.b);
         if (!book) continue;
         const path = n.verse
-          ? this.plugin.notePath(book, n.ch, n.verse)
+          ? this.plugin.verseNoteFile(book, n.ch, n.verse)?.path || this.plugin.notePath(book, n.ch, n.verse)
           : normalizePath(`${this.plugin.settings.notesFolder}/${book.title} ${n.ch}.md`);
         if (!byPath.has(path)) byPath.set(path, { book, chapter: n.ch, verse: n.verse, notes: [] });
         byPath.get(path).notes.push(n);
@@ -159,7 +163,7 @@ class JwlImporter {
       let i = 0;
       for (const [path, g] of byPath) {
         if (++i % 25 === 0) {
-          progress(`Note sulla Bibbia: ${i}/${byPath.size}…`);
+          progress(t('Note sulla Bibbia: {i}/{n}…', { i, n: byPath.size }));
           await sleep(0);
         }
         const label = g.verse ? `${g.book.title} ${g.chapter}:${g.verse}` : `${g.book.title} ${g.chapter}`;
@@ -203,7 +207,7 @@ class JwlImporter {
       let i = 0;
       for (const [path, g] of byFile) {
         if (++i % 10 === 0) {
-          progress(`Note sulle pubblicazioni: ${i}/${byFile.size}…`);
+          progress(t('Note sulle pubblicazioni: {i}/{n}…', { i, n: byFile.size }));
           await sleep(0);
         }
         const pubTitle = g.notes.map((n) => titles.get(String(n.doc))?.pub).find(Boolean);
@@ -244,26 +248,26 @@ class JwlImportModal extends Modal {
 
   onOpen() {
     const { contentEl } = this;
-    this.titleEl.setText('Importa backup JW Library');
+    this.titleEl.setText(t('Importa backup JW Library'));
     contentEl.createEl('p', {
-      text: 'Scegli un file .jwlibrary (in JW Library: Impostazioni → Backup e ripristino → Crea un backup). Puoi reimportare backup più recenti: le note già importate vengono saltate.',
+      text: t('Scegli un file .jwlibrary (in JW Library: Impostazioni → Backup e ripristino → Crea un backup). Puoi reimportare backup più recenti: le note già importate vengono saltate.'),
       cls: 'setting-item-description',
     });
     const opt = (key, name, desc) =>
       new Setting(contentEl)
-        .setName(name)
+        .setName(t(name))
         .setDesc(desc)
         .addToggle((t) => t.setValue(this.opts[key]).onChange((v) => (this.opts[key] = v)));
-    opt('bibleNotes', 'Note sulla Bibbia', `Nelle note personali dei versetti (${this.plugin.settings.notesFolder}).`);
-    opt('highlights', 'Evidenziazioni sulla Bibbia', 'Parola per parola, come in JW Library. Sostituiscono quelle importate prima; quelle create in Obsidian e non ancora esportate restano.');
-    opt('bookmarks', 'Segnalibri sulla Bibbia', 'Nei segnalibri del lettore.');
-    opt('pubNotes', 'Note sulle pubblicazioni', `Un file per pubblicazione in ${this.plugin.settings.notesFolder}/JW Library.`);
+    opt('bibleNotes', 'Note sulla Bibbia', t('Nelle note personali dei versetti ({folder}).', { folder: this.plugin.settings.notesFolder }));
+    opt('highlights', 'Evidenziazioni sulla Bibbia', t('Parola per parola, come in JW Library. Sostituiscono quelle importate prima; quelle create in Obsidian e non ancora esportate restano.'));
+    opt('bookmarks', 'Segnalibri sulla Bibbia', t('Nei segnalibri del lettore.'));
+    opt('pubNotes', 'Note sulle pubblicazioni', t('Un file per pubblicazione in {folder}.', { folder: `${this.plugin.settings.notesFolder}/JW Library` }));
 
     this.statusEl = contentEl.createDiv('lmp-import-status');
     const input = contentEl.createEl('input', { type: 'file', attr: { style: 'display:none' } });
     new Setting(contentEl).addButton((b) =>
       b
-        .setButtonText('Scegli il backup…')
+        .setButtonText(t('Scegli il backup…'))
         .setCta()
         .onClick(() => input.click())
     );
@@ -274,19 +278,19 @@ class JwlImportModal extends Modal {
       try {
         const res = await new JwlImporter(this.plugin).run(await file.arrayBuffer(), this.opts, (msg) => this.statusEl.setText(msg), file.name);
         this.statusEl.empty();
-        this.statusEl.createEl('p', { text: `Importazione completata da «${file.name}»:` });
+        this.statusEl.createEl('p', { text: t('Importazione completata da «{file}»:', { file: file.name }) });
         const ul = this.statusEl.createEl('ul');
-        ul.createEl('li', { text: `${res.bibleNotes} note sulla Bibbia (${res.bibleFiles} file)` });
-        ul.createEl('li', { text: `${res.highlights} evidenziazioni sulla Bibbia${res.localMarks ? ` (+${res.localMarks} create in Obsidian, mantenute)` : ''}` });
-        if (res.docHighlights) ul.createEl('li', { text: `${res.docHighlights} evidenziazioni sulle pubblicazioni presenti nel vault` });
-        ul.createEl('li', { text: `${res.bookmarks} segnalibri` });
-        ul.createEl('li', { text: `${res.pubNotes} note sulle pubblicazioni (${res.pubFiles} file)` });
-        if (res.skipped) ul.createEl('li', { text: `${res.skipped} note già presenti, saltate` });
+        ul.createEl('li', { text: t('{n} note sulla Bibbia ({files} file)', { n: res.bibleNotes, files: res.bibleFiles }) });
+        ul.createEl('li', { text: res.localMarks ? t('{n} evidenziazioni sulla Bibbia (+{local} create in Obsidian, mantenute)', { n: res.highlights, local: res.localMarks }) : t('{n} evidenziazioni sulla Bibbia', { n: res.highlights }) });
+        if (res.docHighlights) ul.createEl('li', { text: t('{n} evidenziazioni sulle pubblicazioni presenti nel vault', { n: res.docHighlights }) });
+        ul.createEl('li', { text: t('{n} segnalibri', { n: res.bookmarks }) });
+        ul.createEl('li', { text: t('{n} note sulle pubblicazioni ({files} file)', { n: res.pubNotes, files: res.pubFiles }) });
+        if (res.skipped) ul.createEl('li', { text: t('{n} note già presenti, saltate', { n: res.skipped }) });
         for (const v of this.plugin.views()) if (v.state.mode === 'reader') v.decorateVerses();
         this.plugin.noteIndex.build();
       } catch (e) {
         console.error('[lampada] importazione non riuscita', e);
-        this.statusEl.setText(`Errore: ${e.message}`);
+        this.statusEl.setText(t('Errore: {msg}', { msg: e.message }));
       }
     });
   }

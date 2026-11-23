@@ -18,8 +18,30 @@ const STOP = new Set(
 const SUFFIXES = ['amente', 'imente', 'mente', 'azioni', 'azione', 'izioni', 'izione', 'zioni', 'zione', 'menti', 'mento', 'avano', 'evano', 'ivano',
   'iamo', 'ando', 'endo', 'are', 'ere', 'ire', 'ato', 'ata', 'ati', 'ate', 'ito', 'ita', 'iti', 'ite', 'uto', 'uta', 'uti', 'ute', 'ava', 'eva', 'iva', 'oso', 'osa', 'osi', 'ose'];
 
-function stem(w) {
+// Inglese (contenuti in inglese): parole vuote e desinenze semplici.
+// ponytail: elenco corto e fisso, come per l'italiano; uno stemmer vero (Porter) se le ricerche in inglese sbagliano troppo.
+const STOP_EN = new Set(
+  `the and for are but not you all any can had her was one our out has him his how its may new now old see two who did get let say she too
+  use about above after again against also been before being below between both could does doing down during each from further have having
+  here hers herself himself into itself just more most myself nor off once only other ours ourselves over own same should some such than that
+  their theirs them themselves then there these they this those through under until very were what when where which while whom why will with
+  would yet your yours yourself yourselves upon shall etc page par note`.split(/\s+/)
+);
+const SUFFIXES_EN = ['ations', 'ation', 'iness', 'ness', 'ments', 'ment', 'ingly', 'ings', 'ing', 'edly', 'ies', 'ied', 'ers', 'er', 'ed', 'es', 'y', 's'];
+
+function stemEn(w) {
+  for (const s of SUFFIXES_EN) if (w.length - s.length >= 3 && w.endsWith(s) && !(s === 'y' && /[aeiou]y$/.test(w))) {
+    w = w.slice(0, -s.length);
+    break;
+  }
+  if (w.length >= 4 && w.endsWith('e')) w = w.slice(0, -1); // love, loved, loving → "lov"
+  if (/([bdgmnpt])\1$/.test(w)) w = w.slice(0, -1); // running → "run"
+  return w;
+}
+
+function stem(w, lang = 'it') {
   if (/^\d/.test(w)) return w;
+  if (lang === 'en') return stemEn(w);
   for (const s of SUFFIXES) if (w.length - s.length >= 4 && w.endsWith(s)) return w.slice(0, -s.length);
   if (w.length >= 4 && /[aeiou]$/.test(w)) {
     w = w.slice(0, -1);
@@ -42,14 +64,15 @@ function mdText(md) {
     .replace(/\*\*|__/g, '');
 }
 
-/** Testo → parole normalizzate (minuscole, senza accenti né parole vuote, con la radice). */
-function terms(text) {
+/** Testo → parole normalizzate (minuscole, senza accenti né parole vuote, con la radice). `lang`: 'it' o 'en'. */
+function terms(text, lang = 'it') {
+  const stop = lang === 'en' ? STOP_EN : STOP;
   const out = [];
   const s = String(text).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   for (const m of s.matchAll(/[a-z0-9]+/g)) {
     const w = m[0];
-    if (w.length < 3 || STOP.has(w)) continue;
-    out.push(stem(w));
+    if (w.length < 3 || stop.has(w)) continue;
+    out.push(stem(w, lang));
   }
   return out;
 }
@@ -96,7 +119,9 @@ const MIN_TERMS = 3; // "La tua risposta", "* * *", didascalie di una parola: no
  * Ogni parola → elenco di (paragrafo × 16 + ripetizioni, massimo 15).
  */
 class IndexBuilder {
-  constructor() {
+  /** `lang`: lingua dei testi (parole vuote e radici); resta nei metadati e la ricerca usa la stessa. */
+  constructor(lang = 'it') {
+    this.lang = lang;
     this.docs = [];
     this.pars = [];
     this.post = new Map();
@@ -108,7 +133,7 @@ class IndexBuilder {
     const d = this.docs.length;
     let added = 0;
     for (const p of plain ? notePars(body) : paragraphsOf(body)) {
-      const ts = terms(mdText(p.md));
+      const ts = terms(mdText(p.md), this.lang);
       if (ts.length < MIN_TERMS) continue;
       const n = this.pars.length / 3;
       this.pars.push(d, p.pid, Math.min(ts.length, 65535));
@@ -146,7 +171,8 @@ class IndexBuilder {
       shards.set(k, encodeShard(list.sort().map((t) => [t, this.post.get(t).a.subarray(0, this.post.get(t).n)])));
       for (const t of list) this.post.delete(t); // libera subito: il picco di memoria resta basso
     }
-    const meta = { v: 1, count, avgLen: count ? this.totalLen / count : 0, docs: this.docs, shards: [...shards.keys()].sort(), ...extra };
+    // Senza `lang` (indici di prima) = italiano.
+    const meta = { v: 1, lang: this.lang, count, avgLen: count ? this.totalLen / count : 0, docs: this.docs, shards: [...shards.keys()].sort(), ...extra };
     return { meta, pars: new Uint32Array(this.pars).buffer, shards };
   }
 }
@@ -207,7 +233,7 @@ class IndexReader {
     const out = [];
     for (const raw of String(query).split(/\s+/)) {
       const prefix = raw.endsWith('*');
-      for (const t of terms(raw.replace(/\*$/, ''))) {
+      for (const t of terms(raw.replace(/\*$/, ''), this.meta.lang || 'it')) {
         const sh = await this.shard(shardKey(t));
         if (!prefix) {
           if (sh.has(t)) out.push(sh.get(t));

@@ -1,6 +1,9 @@
-import { Menu, Modal, Scope, setIcon, Platform } from 'obsidian';
+import { Menu, Modal, Scope, setIcon, Platform, normalizePath } from 'obsidian';
 import { CITE_CATEGORIES, CITE_PERIODICALS } from './biblioteca-dati.js';
 import { renderMd } from './file.js';
+import { JW_LANGS, t } from './lingua.js';
+import { BIBLE_LANGS } from './bibbia-epub.js';
+import { langRoot } from './costanti.js';
 
 /**
  * Telefono e tablet: scorrendo in giù le barre si chiudono, in su (o in cima) tornano.
@@ -8,13 +11,17 @@ import { renderMd } from './file.js';
  */
 function autoHideBars(view, scroller) {
   if (!Platform.isMobile) return;
+  // Solo col dito sullo schermo: setBarsHidden corregge scrollTop, e su iOS farlo mentre la pagina scorre da sola la ferma.
+  let touching = false;
+  view.registerDomEvent(scroller, 'touchstart', () => (touching = true), { passive: true });
+  for (const ev of ['touchend', 'touchcancel']) view.registerDomEvent(scroller, ev, () => (touching = false), { passive: true });
   view.registerDomEvent(scroller, 'scroll', () => {
     if (view.plugin.settings.autoHideBars === false) return setBarsHidden(view, false);
     const top = scroller.scrollTop;
     const delta = top - (view.lastScrollTop || 0);
     view.lastScrollTop = top;
     // In fondo iOS "rimbalza": quel piccolo ritorno in su non deve riaprire le barre.
-    if (Math.abs(delta) < 6 || top + scroller.clientHeight >= scroller.scrollHeight - 2) return;
+    if (!touching || Math.abs(delta) < 6 || top + scroller.clientHeight >= scroller.scrollHeight - 2) return;
     setBarsHidden(view, delta > 0 && top > 80);
   }, { passive: true });
   view.registerEvent(view.app.workspace.on('active-leaf-change', (leaf) => leaf !== view.leaf && setBarsHidden(view, false)));
@@ -22,12 +29,22 @@ function autoHideBars(view, scroller) {
 
 function setBarsHidden(view, hidden) {
   if (hidden === !!view.barsHidden) return;
+  const sc = view.mainEl;
+  const y0 = sc && sc.isConnected ? sc.getBoundingClientRect().top : null;
   view.barsHidden = hidden;
   view.containerEl.toggleClass('lmp-bars-hidden', hidden);
   const tabs = view.containerEl.closest('.workspace-tabs');
   if (tabs) tabs.toggleClass('lmp-bars-hidden', hidden);
   // anche la barra in basso di Obsidian sul telefono
   document.body.toggleClass('lmp-immersive', hidden);
+  // Le barre in alto si chiudono senza animazione e il testo resta fermo: l'area che scorre si allunga verso l'alto, si
+  // toglie lo stesso tratto da scrollTop. Senza, il testo saltava su di colpo (sembrava scorrere più veloce del dito).
+  if (y0 == null) return;
+  const dy = y0 - sc.getBoundingClientRect().top;
+  if (dy) {
+    sc.scrollTop -= dy;
+    view.lastScrollTop = sc.scrollTop;
+  }
 }
 
 /** Chiave di un segnalibro: versetto della Bibbia o paragrafo di una pubblicazione. */
@@ -35,7 +52,7 @@ function bookmarkKey(b) {
   return b.doc ? `d:${b.doc}:${b.par || 0}` : `${b.book}:${b.chapter}:${b.verse}`;
 }
 
-/** Le aree del plugin, nello stesso ordine ovunque (con la vista unica sono le sezioni del guscio). */
+/** Le aree del plugin, nello stesso ordine ovunque (con la vista unica sono le sezioni del guscio). Nomi in italiano: t(nome) dove si mostrano. */
 const AREAS = [
   ['home', 'sun', 'Oggi', (p) => p.openToday()],
   ['bible', 'book-open', 'Bibbia', (p) => p.openReader()],
@@ -57,7 +74,7 @@ function viewKeys(view, keys) {
 
 /** Pulsante della modalità app (nasconde l'interfaccia di Obsidian intorno al guscio). */
 function addAppToggle(parent, plugin, cls = 'lmp-tb-btn clickable-icon') {
-  const b = parent.createEl('button', { cls: `${cls} lmp-app-toggle`, attr: { 'aria-label': 'Modalità app (nasconde Obsidian)' } });
+  const b = parent.createEl('button', { cls: `${cls} lmp-app-toggle`, attr: { 'aria-label': t('Modalità app (nasconde Obsidian)') } });
   setIcon(b, plugin.ui.appMode ? 'minimize-2' : 'maximize-2');
   b.toggleClass('is-active', !!plugin.ui.appMode);
   b.addEventListener('click', () => plugin.toggleAppMode());
@@ -69,8 +86,9 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
   // Sul tablet e sul telefono un tocco qui (vicino al bordo sinistro) apriva la barra laterale di Obsidian come uno swipe:
   // data-ignore-swipe è il segnale con cui Obsidian salta il gesto (lo usa anche lui per cursori e maniglie).
   tb.dataset.ignoreSwipe = 'true';
-  const sw = tb.createDiv({ cls: 'lmp-switch', attr: { role: 'group', 'aria-label': 'Bibbia, Biblioteca o SCRABB' } });
-  for (const [id, icon, text, open] of AREAS) {
+  const sw = tb.createDiv({ cls: 'lmp-switch', attr: { role: 'group', 'aria-label': t('Bibbia, Biblioteca o SCRABB') } });
+  for (const [id, icon, name, open] of AREAS) {
+    const text = t(name);
     const on = id === current;
     const b = sw.createEl('button', { cls: `lmp-switch-btn${on ? ' is-active' : ''}`, attr: { 'aria-pressed': String(on), 'aria-label': text } });
     setIcon(b.createSpan('lmp-switch-icon'), icon);
@@ -83,10 +101,11 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
 
 /** Sul telefono (barra nascosta): una sola azione "Vai a…" con lo stesso elenco del selettore. */
 function addGoToAction(view, current, goHome) {
-  view.addAction('compass', 'Vai a…', (evt) => {
+  view.addAction('compass', t('Vai a…'), (evt) => {
     const menu = new Menu();
-    for (const [id, icon, text, open] of AREAS) {
-      menu.addItem((it) => it.setTitle(id === current ? `${text} · inizio` : text).setIcon(icon).setChecked(id === current)
+    for (const [id, icon, name, open] of AREAS) {
+      const text = t(name);
+      menu.addItem((it) => it.setTitle(id === current ? `${text} · ${t('inizio')}` : text).setIcon(icon).setChecked(id === current)
         .onClick(id === current ? goHome : () => open(view.plugin)));
     }
     menu.showAtMouseEvent(evt);
@@ -103,10 +122,10 @@ class PlacesModal extends Modal {
   }
 
   onOpen() {
-    this.titleEl.setText({ bookmarks: 'Segnalibri', recent: 'Aperti di recente' }[this.kind] || 'Segnalibri e recenti');
+    this.titleEl.setText(t({ bookmarks: 'Segnalibri', recent: 'Aperti di recente' }[this.kind] || 'Segnalibri e recenti'));
     if (this.here && this.kind !== 'recent') {
       const has = this.plugin.findBookmark(this.here.place);
-      const b = this.contentEl.createEl('button', { cls: has ? 'lmp-place-here' : 'lmp-place-here mod-cta', text: `${has ? 'Rimuovi il segnalibro' : 'Aggiungi segnalibro'}: ${this.here.label}` });
+      const b = this.contentEl.createEl('button', { cls: has ? 'lmp-place-here' : 'lmp-place-here mod-cta', text: `${has ? t('Rimuovi il segnalibro') : t('Aggiungi segnalibro')}: ${this.here.label}` });
       setIcon(b.createSpan({ cls: 'lmp-place-here-icon', prepend: true }), has ? 'bookmark-minus' : 'bookmark-plus');
       b.addEventListener('click', () => {
         this.plugin.toggleBookmark(this.here.place);
@@ -115,7 +134,7 @@ class PlacesModal extends Modal {
     }
     const list = this.contentEl.createDiv();
     this.plugin.renderPlaces(list, () => this.close(), false, this.kind).then(() => {
-      if (!list.childElementCount) list.createDiv({ cls: 'lmp-empty', text: this.kind === 'recent' ? 'Ancora niente.' : 'Nessun segnalibro.' });
+      if (!list.childElementCount) list.createDiv({ cls: 'lmp-empty', text: this.kind === 'recent' ? t('Ancora niente.') : t('Nessun segnalibro.') });
     });
   }
 
@@ -155,7 +174,7 @@ async function renderCitedIn(plugin, el, md, sourcePath, comp) {
     const det = el.createEl('details', { cls: 'lmp-cite-cat' });
     det.open = keys.length === 1 || !!open[cat];
     const sum = det.createEl('summary');
-    sum.createSpan({ cls: 'lmp-cite-cat-name', text: labels.get(cat) || cat });
+    sum.createSpan({ cls: 'lmp-cite-cat-name', text: t(labels.get(cat) || cat) });
     sum.createSpan({ cls: 'lmp-cite-cat-n', text: String(items.length) });
     const body = det.createDiv('lmp-md lmp-cite-pub-list');
     let rendered = false;
@@ -169,7 +188,7 @@ async function renderCitedIn(plugin, el, md, sourcePath, comp) {
       if (many) lis.forEach((li, i) => items[i] && items[i].pub && li.prepend(createDiv({ cls: 'lmp-cite-src', text: items[i].pub })));
       if (lis.length > SHOW + 3) {
         lis.slice(SHOW).forEach((li) => li.hide());
-        const b = body.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: `Mostra tutti (${lis.length})` });
+        const b = body.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: t('Mostra tutti ({n})', { n: lis.length }) });
         b.addEventListener('click', () => {
           lis.forEach((li) => li.show());
           b.remove();
@@ -213,7 +232,7 @@ function renderNoteCites(plugin, sec, cites, openAt) {
     for (const e of list.slice(0, 6)) box.createDiv({ cls: 'lmp-cite-snippet', text: e.snippet || '…' }).addEventListener('click', (evt) => openAt(file, e.line, evt));
   });
   if (more.length) {
-    const b = sec.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: `Mostra tutte (${files.length})` });
+    const b = sec.createEl('button', { cls: 'lmp-small-btn lmp-show-more', text: t('Mostra tutte ({n})', { n: files.length }) });
     b.addEventListener('click', () => {
       more.forEach((x) => x.show());
       b.remove();
@@ -240,15 +259,15 @@ async function fillCitePreview(el, plugin, d, pars, open) {
   el.createDiv({ cls: 'lmp-pop-title', text: d.pub.title });
   el.createDiv({ cls: 'lmp-cite-pop-doc', text: d.title });
   pars.slice(0, MAX).forEach((p, i) => {
-    const b = el.createDiv({ cls: 'lmp-cite-pop-par', attr: { role: 'button', tabindex: '0', 'aria-label': `Apri al paragrafo ${p}` } });
+    const b = el.createDiv({ cls: 'lmp-cite-pop-par', attr: { role: 'button', tabindex: '0', 'aria-label': t('Apri al paragrafo {n}', { n: p }) } });
     b.createSpan({ cls: 'lmp-cite-pop-n', text: `¶${p} ` });
-    b.appendText((texts[i] || 'Testo del paragrafo non trovato.').replace(/`/g, '')); // i minuti dei video sono `00:14`
+    b.appendText((texts[i] || t('Testo del paragrafo non trovato.')).replace(/`/g, '')); // i minuti dei video sono `00:14`
     b.addEventListener('click', () => open(p));
     b.addEventListener('keydown', (e) => (e.key === 'Enter' || e.key === ' ') && (e.preventDefault(), open(p)));
   });
-  if (pars.length > MAX) el.createDiv({ cls: 'lmp-cite-pop-more', text: `e altri ${pars.length - MAX} paragrafi` });
+  if (pars.length > MAX) el.createDiv({ cls: 'lmp-cite-pop-more', text: t('e altri {n} paragrafi', { n: pars.length - MAX }) });
   const bar = el.createDiv('lmp-cite-pop-actions');
-  bar.createEl('button', { cls: 'mod-cta', text: 'Apri la pubblicazione' }).addEventListener('click', () => open(pars[0]));
+  bar.createEl('button', { cls: 'mod-cta', text: t('Apri la pubblicazione') }).addEventListener('click', () => open(pars[0]));
 }
 
 /** La stessa anteprima in una finestra (Biblioteca, dove non c'è il popup della Bibbia). */
@@ -269,4 +288,40 @@ class CitePreviewModal extends Modal {
   }
 }
 
-export { AREAS, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
+/** In quella lingua c'è già il file indice (index/<nome>.json) di una di queste pubblicazioni? */
+async function hasInLang(plugin, code, names) {
+  const root = normalizePath(langRoot(plugin.settings, code));
+  const pre = root && root !== '/' ? `${root}/index/` : 'index/';
+  const a = plugin.app.vault.adapter;
+  return (await Promise.all(names.map((n) => a.exists(`${pre}${n}.json`)))).some(Boolean);
+}
+const hasBibleIn = (plugin, code) => hasInLang(plugin, code, ['nwtsty', 'nwt']);
+const langName = (code) => (BIBLE_LANGS.find(([c]) => c === code) || [code, code])[1];
+
+/**
+ * Lingua delle pubblicazioni: un pulsantino "IT" che apre un menu con le lingue. Ogni lingua è una biblioteca a parte
+ * (plugin.setPubLang); quella senza Bibbia si apre sul pannello per scaricarla. onClick: un menu diverso (es. della pubblicazione).
+ */
+function pubLangButton(plugin, parent, onClick) {
+  const cur = plugin.settings.bibleLang || 'I';
+  const b = parent.createEl('button', { cls: 'lmp-lang-btn', attr: { 'aria-label': t('Lingua delle pubblicazioni: {lingua}', { lingua: langName(cur) }) } });
+  setIcon(b.createSpan('lmp-lang-btn-icon'), 'languages');
+  b.createSpan({ text: (JW_LANGS[cur] || cur).toUpperCase() });
+  if (onClick) {
+    b.addEventListener('click', onClick);
+    return b;
+  }
+  b.addEventListener('click', async (evt) => {
+    const ready = await Promise.all(BIBLE_LANGS.map(([code]) => (code === cur ? true : hasBibleIn(plugin, code))));
+    const menu = new Menu();
+    BIBLE_LANGS.forEach(([code, name], i) =>
+      menu.addItem((it) =>
+        it.setTitle(ready[i] ? name : t('{lingua} · da scaricare', { lingua: name })).setChecked(code === cur).onClick(() => plugin.setPubLang(code))
+      )
+    );
+    menu.showAtMouseEvent(evt);
+  });
+  return b;
+}
+
+export { AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };

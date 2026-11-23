@@ -1,7 +1,9 @@
 import { Modal, Setting, normalizePath } from 'obsidian';
-import { JWL_COLORS, unzipEntries } from './jwl-formati.js';
+import { JWL_COLORS, langOfMeps, mepsOf, unzipEntries } from './jwl-formati.js';
+import { baseLang } from './costanti.js';
 import { JwlImportModal, JwlImporter } from './jwl-importa.js';
 import { JWL_MARKER_RE, jwTokenCount, parseCode } from './testo.js';
+import { t } from './lingua.js';
 
 /* ------------------------------------------------------------------ */
 /* Esportazione di un backup JW Library (.jwlibrary)                   */
@@ -141,10 +143,10 @@ class JwlExporter {
     const a = this.app.vault.adapter;
     const base = this.plugin.jwlBase;
     if (!base || !(await a.exists(this.plugin.jwlBasePath))) {
-      throw new Error('Prima importa un backup di JW Library: l’esportazione parte da quello, così nel nuovo backup non si perde nulla.');
+      throw new Error(t('Prima importa un backup di JW Library: l’esportazione parte da quello, così nel nuovo backup non si perde nulla.'));
     }
     await this.bible.ensureLoaded();
-    progress('Leggo il backup di partenza…');
+    progress(t('Leggo il backup di partenza…'));
     const entries = await unzipEntries(await a.readBinary(this.plugin.jwlBasePath));
     const dbName = Object.keys(entries).find((n) => n.endsWith('.db'));
     const manifest = JSON.parse(new TextDecoder().decode(entries['manifest.json']));
@@ -165,15 +167,28 @@ class JwlExporter {
 
       const loc = one(`SELECT KeySymbol AS k, MepsLanguage AS m FROM Location WHERE BookNumber IS NOT NULL AND ChapterNumber IS NOT NULL
           GROUP BY KeySymbol, MepsLanguage ORDER BY COUNT(*) DESC LIMIT 1`) || { k: this.bible.symbol, m: 4 };
-      const locationId = (b, c) => {
-        const r = one('SELECT LocationId AS id FROM Location WHERE BookNumber = ? AND ChapterNumber = ? AND KeySymbol = ? AND MepsLanguage = ? AND Type = 0', [b, c, loc.k, loc.m]);
+      // Bibbia di ogni lingua nel backup: quella più usata in quella lingua, altrimenti la Bibbia di Lampada in quella lingua.
+      const bibleLocs = new Map();
+      const bibleLoc = (meps) => {
+        if (meps === loc.m) return loc;
+        if (!bibleLocs.has(meps)) {
+          const r = one(`SELECT KeySymbol AS k FROM Location WHERE BookNumber IS NOT NULL AND MepsLanguage = ? GROUP BY KeySymbol ORDER BY COUNT(*) DESC LIMIT 1`, [meps]);
+          const s = this.plugin.settings;
+          const l = langOfMeps(meps, baseLang(s));
+          bibleLocs.set(meps, { k: r ? r.k : (l ? (s.symbols || {})[l] : s.symbol) || 'nwt', m: meps });
+        }
+        return bibleLocs.get(meps);
+      };
+      const locationId = (b, c, meps = loc.m) => {
+        const bl = bibleLoc(meps);
+        const r = one('SELECT LocationId AS id FROM Location WHERE BookNumber = ? AND ChapterNumber = ? AND KeySymbol = ? AND MepsLanguage = ? AND Type = 0', [b, c, bl.k, bl.m]);
         if (r) return r.id;
-        const book = this.bible.byNum.get(b);
+        const book = meps === loc.m ? this.bible.byNum.get(b) : null;
         exec('INSERT INTO Location (BookNumber, ChapterNumber, KeySymbol, MepsLanguage, Type, Title, IssueTagNumber) VALUES (?, ?, ?, ?, 0, ?, 0)', [
           b,
           c,
-          loc.k,
-          loc.m,
+          bl.k,
+          bl.m,
           book ? `${book.title} ${c}` : null,
         ]);
         return lastId();
@@ -183,7 +198,7 @@ class JwlExporter {
         return Math.max(0, jwTokenCount(this.bible.verseText(data, v)) - 1);
       };
 
-      progress('Evidenziazioni…');
+      progress(t('Evidenziazioni…'));
       for (const g of this.plugin.deletedJwl) {
         const r = one('SELECT UserMarkId AS id FROM UserMark WHERE UserMarkGuid = ?', [g]);
         if (!r) continue;
@@ -200,7 +215,7 @@ class JwlExporter {
         const k = (m.loc && m.loc.k) || (d && d.pub.symbol);
         let i = m.loc ? m.loc.i : 0;
         if (!m.loc && d && d.issue && /^\d{6,8}$/.test(d.issue)) i = +d.issue.padEnd(8, '0');
-        const lang = (m.loc && m.loc.lang) || (loc && loc.m) || 4;
+        const lang = m.loc && m.loc.lang != null ? m.loc.lang : mepsOf(m.lang, baseLang(this.plugin.settings));
         const r =
           one('SELECT LocationId AS id FROM Location WHERE DocumentId = ? AND KeySymbol = ? AND IssueTagNumber = ? AND MepsLanguage = ? AND Type = 0', [+m.doc, k, i, lang]) ||
           one('SELECT LocationId AS id FROM Location WHERE DocumentId = ? AND MepsLanguage = ? AND Type = 0', [+m.doc, lang]);
@@ -214,6 +229,8 @@ class JwlExporter {
         const ranges = [];
         for (const r of m.ranges) {
           if (m.doc && r.e < 0) continue; // nei documenti gli intervalli sono sempre espliciti
+          // ponytail: "fino alla fine del versetto" si conta sulla Bibbia aperta; per un'altra lingua si salta quel pezzo.
+          if (r.e < 0 && (m.lang || undefined) !== this.plugin.langField().lang) continue;
           ranges.push({ v: r.v, s: r.s, e: r.e < 0 ? await lastToken(m.b, m.c, r.v) : r.e });
         }
         if (!ranges.length) continue;
@@ -226,7 +243,7 @@ class JwlExporter {
         } else {
           exec('INSERT INTO UserMark (ColorIndex, LocationId, StyleIndex, UserMarkGuid, Version) VALUES (?, ?, 0, ?, 1)', [
             JWL_COLOR_INDEX[m.color],
-            m.doc ? docLocationId(m) : locationId(m.b, m.c),
+            m.doc ? docLocationId(m) : locationId(m.b, m.c, mepsOf(m.lang, baseLang(this.plugin.settings))),
             m.id,
           ]);
           id = lastId();
@@ -239,15 +256,27 @@ class JwlExporter {
 
       // Risposte scritte in Obsidian nei campi delle pubblicazioni ("La tua risposta")
       res.answers = 0;
+      // In JW Library le risposte non hanno lingua (Location con MepsLanguage vuoto): valgono per il documento in ogni lingua.
+      const answerLocationId = (doc) => {
+        const r =
+          one('SELECT f.LocationId AS id FROM InputField f JOIN Location l ON l.LocationId = f.LocationId WHERE l.DocumentId = ? LIMIT 1', [+doc]) ||
+          one('SELECT LocationId AS id FROM Location WHERE DocumentId = ? AND MepsLanguage IS NULL AND Type = 0', [+doc]);
+        if (r) return r.id;
+        const d = lib.byDocId.get(String(doc));
+        if (!d) return null;
+        const i = d.issue && /^\d{6,8}$/.test(d.issue) ? +d.issue.padEnd(8, '0') : 0;
+        exec('INSERT INTO Location (DocumentId, IssueTagNumber, KeySymbol, MepsLanguage, Type, Title) VALUES (?, ?, ?, NULL, 0, ?)', [+doc, i, d.pub.symbol, d.title]);
+        return lastId();
+      };
       for (const ans of Object.values(this.plugin.answers || {})) {
-        if (!lib.byDocId.has(String(ans.doc))) continue;
-        const locId = docLocationId({ doc: ans.doc });
+        const locId = answerLocationId(ans.doc);
+        if (!locId) continue;
         if ((ans.v || '').trim()) exec('INSERT OR REPLACE INTO InputField (LocationId, TextTag, Value) VALUES (?, ?, ?)', [locId, ans.tag, ans.v]);
         else exec('DELETE FROM InputField WHERE LocationId = ? AND TextTag = ?', [locId, ans.tag]);
         res.answers++;
       }
 
-      progress('Note…');
+      progress(t('Note…'));
       const folder = normalizePath(this.plugin.settings.notesFolder);
       for (const f of this.app.vault.getMarkdownFiles().filter((x) => x.path.startsWith(`${folder}/`))) {
         const text = await this.app.vault.cachedRead(f);
@@ -285,7 +314,7 @@ class JwlExporter {
       db.close();
     }
 
-    progress('Creo il file…');
+    progress(t('Creo il file…'));
     const stamp = jwlStamp();
     const name = `UserdataBackup_${stamp.slice(0, 10)}_Obsidian.jwlibrary`;
     manifest.name = name;
@@ -325,12 +354,12 @@ class JwlExportModal extends Modal {
   onOpen() {
     const { contentEl } = this;
     const base = this.plugin.jwlBase;
-    this.titleEl.setText('Esporta backup JW Library');
+    this.titleEl.setText(t('Esporta backup JW Library'));
     if (!base) {
-      contentEl.createEl('p', { text: 'Prima importa un backup di JW Library: l’esportazione parte da quello e ci aggiunge le modifiche fatte in Obsidian.' });
+      contentEl.createEl('p', { text: t('Prima importa un backup di JW Library: l’esportazione parte da quello e ci aggiunge le modifiche fatte in Obsidian.') });
       new Setting(contentEl).addButton((b) =>
         b
-          .setButtonText('Importa un backup…')
+          .setButtonText(t('Importa un backup…'))
           .setCta()
           .onClick(() => {
             this.close();
@@ -341,35 +370,35 @@ class JwlExportModal extends Modal {
     }
     const pending = this.plugin.marks.filter((m) => m.mod).length + this.plugin.deletedJwl.length;
     contentEl.createEl('p', {
-      text: `Crea un nuovo file .jwlibrary partendo da «${base.name}»${base.device ? ` (${base.device})` : ''} e aggiungendo le modifiche fatte in Obsidian: evidenziazioni (${pending} da esportare) e note scritte o modificate nei blocchi JW Library.`,
+      text: t('Crea un nuovo file .jwlibrary partendo da «{name}»{device} e aggiungendo le modifiche fatte in Obsidian: evidenziazioni ({n} da esportare) e note scritte o modificate nei blocchi JW Library.', { name: base.name, device: base.device ? ` (${base.device})` : '', n: pending }),
     });
     const warn = contentEl.createDiv('lmp-export-warning');
-    warn.createEl('strong', { text: 'Attenzione: ' });
+    warn.createEl('strong', { text: t('Attenzione: ') });
     warn.appendText(
-      'ripristinare un backup in JW Library sostituisce tutti i dati del dispositivo. Ciò che hai fatto in JW Library dopo il backup di partenza andrebbe perso: prima di esportare, importa un backup recente.'
+      t('ripristinare un backup in JW Library sostituisce tutti i dati del dispositivo. Ciò che hai fatto in JW Library dopo il backup di partenza andrebbe perso: prima di esportare, importa un backup recente.')
     );
     this.statusEl = contentEl.createDiv('lmp-import-status');
     new Setting(contentEl).addButton((b) =>
       b
-        .setButtonText('Crea backup')
+        .setButtonText(t('Crea backup'))
         .setCta()
         .onClick(async () => {
           b.setDisabled(true);
           try {
             const res = await new JwlExporter(this.plugin).run((msg) => this.statusEl.setText(msg));
             this.statusEl.empty();
-            this.statusEl.createEl('p', { text: 'Backup creato:' });
+            this.statusEl.createEl('p', { text: t('Backup creato:') });
             const ul = this.statusEl.createEl('ul');
-            ul.createEl('li', { text: `Evidenziazioni: ${res.added} nuove, ${res.updated} modificate, ${res.deleted} cancellate` });
-            ul.createEl('li', { text: `Note: ${res.notesAdded} nuove, ${res.notesUpdated} modificate` });
-            if (res.answers) ul.createEl('li', { text: `Risposte nelle pubblicazioni: ${res.answers}` });
+            ul.createEl('li', { text: t('Evidenziazioni: {added} nuove, {updated} modificate, {deleted} cancellate', { added: res.added, updated: res.updated, deleted: res.deleted }) });
+            ul.createEl('li', { text: t('Note: {added} nuove, {updated} modificate', { added: res.notesAdded, updated: res.notesUpdated }) });
+            if (res.answers) ul.createEl('li', { text: t('Risposte nelle pubblicazioni: {n}', { n: res.answers }) });
             ul.createEl('li', { text: res.path });
             const p = this.statusEl.createEl('p', { cls: 'setting-item-description' });
-            p.setText('Aprilo con JW Library (sul telefono dall’app File, sul Mac con AirDrop o dalla cartella) e scegli «Ripristina».');
+            p.setText(t('Aprilo con JW Library (sul telefono dall’app File, sul Mac con AirDrop o dalla cartella) e scegli «Ripristina».'));
             if (this.app.showInFolder) this.app.showInFolder(res.path);
           } catch (e) {
             console.error('[lampada] esportazione non riuscita', e);
-            this.statusEl.setText(`Errore: ${e.message}`);
+            this.statusEl.setText(t('Errore: {msg}', { msg: e.message }));
             b.setDisabled(false);
           }
         })

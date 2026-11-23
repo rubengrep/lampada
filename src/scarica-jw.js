@@ -1,10 +1,13 @@
 // Finestra "Scarica da jw.org": mostra da dove arriva ogni file, chiede conferma (con le condizioni d'uso del sito)
 // e scarica con la barra di avanzamento.
 import { Modal, Platform, requestUrl } from 'obsidian';
+import { lang, t } from './lingua.js';
 
 const TERMS_URL = 'https://www.jw.org/it/condizioni-uso/';
+// Condizioni d'uso nella lingua dell'interfaccia.
+const termsUrl = () => (lang() === 'it' ? TERMS_URL : 'https://www.jw.org/en/terms-of-use/');
 const CHUNK = 1e6;
-const mb = (n) => `${(n / 1e6).toFixed(1).replace('.', ',')} MB`;
+const mb = (n) => `${(n / 1e6).toLocaleString(lang(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })} MB`;
 
 /** Sul telefono, sopra 40 MB, non si scarica tutto: si leggono solo le parti che servono (richieste Range). Con `full` sì. */
 const partial = (info) => !info.full && Platform.isMobile && info.size > 40e6;
@@ -33,23 +36,23 @@ class JwDownloadModal extends Modal {
 
   onOpen() {
     const el = this.contentEl;
-    this.titleEl.setText('Scarica da jw.org');
+    this.titleEl.setText(t('Scarica da jw.org'));
     const total = this.infos.reduce((s, i) => s + (i.size || 0), 0);
     for (const i of this.infos) {
       const f = el.createDiv('lmp-jw-file');
       f.createDiv({ cls: 'lmp-jw-name', text: `${nameOf(i)}${i.size ? ` · ${mb(i.size)}` : ''}` });
       f.createEl('code', { cls: 'lmp-jw-url', text: i.url });
     }
-    const terms = el.createEl('p', { cls: 'lmp-jw-terms', text: 'Il file arriva direttamente da jw.org. Scaricandolo accetti le ' });
-    terms.createEl('a', { text: 'condizioni d’uso di jw.org', href: TERMS_URL });
+    const terms = el.createEl('p', { cls: 'lmp-jw-terms', text: t('Il file arriva direttamente da jw.org. Scaricandolo accetti le ') });
+    terms.createEl('a', { text: t('condizioni d’uso di jw.org'), href: termsUrl() });
     terms.appendText('.');
     this.bar = el.createEl('progress', { cls: 'lmp-jw-bar', attr: { max: String(total || 1), value: '0' } });
     this.bar.hide();
     this.status = el.createDiv({ cls: 'lmp-bible-dl-status', attr: { 'aria-live': 'polite' } });
     const row = el.createDiv('modal-button-container');
-    this.cancelBtn = row.createEl('button', { text: 'Annulla' });
+    this.cancelBtn = row.createEl('button', { text: t('Annulla') });
     this.cancelBtn.addEventListener('click', () => this.close());
-    this.okBtn = row.createEl('button', { cls: 'mod-cta', text: total ? `Scarica (${mb(total)})` : 'Scarica' });
+    this.okBtn = row.createEl('button', { cls: 'mod-cta', text: total ? t('Scarica ({size})', { size: mb(total) }) : t('Scarica') });
     this.okBtn.addEventListener('click', () => this.start(total));
     if (this.auto) this.start(total);
   }
@@ -63,12 +66,13 @@ class JwDownloadModal extends Modal {
     try {
       for (const i of this.infos) {
         let buf = null;
-        if (partial(i)) say(`${nameOf(i)}: leggo solo le parti che servono…`);
+        if (partial(i)) say(t('{name}: leggo solo le parti che servono…', { name: nameOf(i) }));
         else {
-          say(`Scarico ${nameOf(i)}…`);
+          say(t('Scarico {name}…', { name: nameOf(i) }));
           buf = await fetchWithProgress(i.url, i.size, (n) => {
             this.bar.value = before + n;
-            say(`Scarico ${nameOf(i)}: ${mb(before + n)}${total ? ` di ${mb(total)}` : ''}`);
+            const vars = { name: nameOf(i), done: mb(before + n), total: mb(total) };
+            say(total ? t('Scarico {name}: {done} di {total}', vars) : t('Scarico {name}: {done}', vars));
           });
         }
         before += i.size || 0;
@@ -88,7 +92,7 @@ class JwDownloadModal extends Modal {
   onClose() {
     this.contentEl.empty();
     // Chiusa senza scaricare: annullato (chi chiama non mostra errori).
-    if (!this.busy && !this.finished) this.done.reject(Object.assign(new Error('Annullato.'), { cancelled: true }));
+    if (!this.busy && !this.finished) this.done.reject(Object.assign(new Error(t('Annullato.')), { cancelled: true }));
   }
 }
 

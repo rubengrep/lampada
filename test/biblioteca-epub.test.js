@@ -155,6 +155,13 @@ const epub = {
   assert.strictEqual(book.docs[1].rel, 'lff/lff_sete-di-verita_2026240.md');
   assert.strictEqual(book.pubFile[0], 'lff/lff.md');
   assert.ok(!book.docs[1].md.includes('issue:'));
+  // Periodico inglese senza nome del file: numero dal titolo ("The Watchtower, January 2026").
+  const zipEn = await zipFiles(Object.entries({ ...epub, 'OEBPS/content.opf': epub['OEBPS/content.opf'].replace('La Torre di Guardia, gennaio 2026', 'The Watchtower, January 2026') }).map(([name, s]) => ({ name, data: enc.encode(s) })));
+  const wEn = await convertPubEpub(zipEn.buffer.slice(zipEn.byteOffset, zipEn.byteOffset + zipEn.byteLength));
+  assert.strictEqual(wEn.issue, '202601');
+  assert.strictEqual(wEn.title, 'The Watchtower');
+  const wIt = await convertPubEpub(buf);
+  assert.strictEqual(wIt.issue, '202601', 'titolo italiano');
   console.log('OK pubblicazioni dall’EPUB');
 })().catch((e) => {
   console.error(e);

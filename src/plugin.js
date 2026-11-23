@@ -9,8 +9,9 @@ import { LibraryView } from './biblioteca-vista.js';
 import { CHAT_VIEW_TYPE, LibraryChatView, LibrarySearch } from './chat-biblioteca.js';
 import { APP_VIEW_TYPE, LampadaView } from './guscio.js';
 import { TODAY_VIEW_TYPE, TodayView } from './oggi.js';
-import { DATA_DIR, DEFAULT_SETTINGS, INDEX_MIRROR, VIEW_TYPE } from './costanti.js';
+import { DATA_DIR, DEFAULT_SETTINGS, INDEX_MIRROR, VIEW_TYPE, baseLang, dataDir, pubLang } from './costanti.js';
 import { fileSrc, linkDest, writeBinary } from './file.js';
+import { contentLang, setLang, t } from './lingua.js';
 
 // Impostazioni di lettura salvate per dispositivo (computer e telefono di solito le vogliono diverse).
 const DEVICE_KEY = 'lampada-lettura';
@@ -35,6 +36,7 @@ class LampadaPlugin extends Plugin {
     // Estensioni: fornitori di dati e azioni (vedi "API per estensioni" in CLAUDE.md).
     this.providers = [];
     await this.loadAll();
+    await this.detectBaseLang();
     await this.moveDerivedData();
     this.bible = new BibleData(this);
     this.lastMarkdownView = null;
@@ -55,24 +57,24 @@ class LampadaPlugin extends Plugin {
     // Vista unica: Bibbia, Biblioteca, SCRABB e Chiedi dentro un solo guscio, con una cronologia sola.
     this.registerView(APP_VIEW_TYPE, (leaf) => new LampadaView(leaf, this));
     this.registerView(TODAY_VIEW_TYPE, (leaf) => new TodayView(leaf, this));
-    this.addCommand({ id: 'open-today', name: 'Oggi (settimana, riprendi, segnalibri)', callback: () => this.openToday() });
+    this.addCommand({ id: 'open-today', name: t('Oggi (settimana, riprendi, segnalibri)'), callback: () => this.openToday() });
     const ribbon = (icon, title, fn) => !this.settings.appShell && this.addRibbonIcon(icon, title, fn);
-    if (this.settings.appShell) this.addRibbonIcon('lamp', 'Apri Lampada', () => this.openApp());
+    if (this.settings.appShell) this.addRibbonIcon('lamp', t('Apri Lampada'), () => this.openApp());
     this.addCommand({
       id: 'refresh',
-      name: 'Ricarica le pubblicazioni',
-      callback: () => this.refresh().then(() => new Notice('Pubblicazioni ricaricate'), (e) => new Notice(`Ricarica non riuscita: ${e.message}`)),
+      name: t('Ricarica le pubblicazioni'),
+      callback: () => this.refresh().then(() => new Notice(t('Pubblicazioni ricaricate')), (e) => new Notice(t('Ricarica non riuscita: {err}', { err: e.message }))),
     });
-    this.addCommand({ id: 'download-bible', name: 'Scarica la Bibbia', callback: () => new BibleDownloadModal(this).open() });
-    this.addCommand({ id: 'import-epub', name: 'Importa un EPUB…', callback: () => new EpubImportModal(this).open() });
-    this.addCommand({ id: 'new-issues', name: 'Cerca nuovi numeri', callback: () => runNewIssues(this) });
-    this.addCommand({ id: 'open-app', name: 'Apri Lampada (Bibbia, Biblioteca, SCRABB, Chiedi)', callback: () => this.openApp() });
-    this.addCommand({ id: 'app-mode', name: 'Modalità app: nascondi Obsidian intorno a Lampada (sì/no)', icon: 'maximize-2', callback: () => this.toggleAppMode() });
-    ribbon('library-big', 'Apri la biblioteca', () => this.openLibrary());
+    this.addCommand({ id: 'download-bible', name: t('Scarica la Bibbia'), callback: () => new BibleDownloadModal(this).open() });
+    this.addCommand({ id: 'import-epub', name: t('Importa un EPUB…'), callback: () => new EpubImportModal(this).open() });
+    this.addCommand({ id: 'new-issues', name: t('Cerca nuovi numeri'), callback: () => runNewIssues(this) });
+    this.addCommand({ id: 'open-app', name: t('Apri Lampada (Bibbia, Biblioteca, SCRABB, Chiedi)'), callback: () => this.openApp() });
+    this.addCommand({ id: 'app-mode', name: t('Modalità app: nascondi Obsidian intorno a Lampada (sì/no)'), icon: 'maximize-2', callback: () => this.toggleAppMode() });
+    ribbon('library-big', t('Apri la biblioteca'), () => this.openLibrary());
     // Da mettere nella barra degli strumenti del telefono: piegando l'iPhone Duo si passa a due pagine con un tocco.
     this.addCommand({
       id: 'two-pages',
-      name: 'Lettura: due pagine affiancate (sì/no)',
+      name: t('Lettura: due pagine affiancate (sì/no)'),
       icon: 'book-open',
       callback: async () => {
         const s = this.settings;
@@ -84,33 +86,33 @@ class LampadaPlugin extends Plugin {
         await this.settingsChanged();
       },
     });
-    this.addCommand({ id: 'open-library', name: 'Apri la biblioteca (pubblicazioni)', callback: () => this.openLibrary() });
-    this.addCommand({ id: 'open-week', name: 'Adunanze della settimana', callback: () => this.openLibraryAt({ mode: 'week' }) });
+    this.addCommand({ id: 'open-library', name: t('Apri la biblioteca (pubblicazioni)'), callback: () => this.openLibrary() });
+    this.addCommand({ id: 'open-week', name: t('Adunanze della settimana'), callback: () => this.openLibraryAt({ mode: 'week' }) });
     // Chiedi alla biblioteca: l'AI cerca nei paragrafi delle pubblicazioni (indice in .lampada/data/search) e risponde con le fonti.
     this.librarySearch = new LibrarySearch(this);
     this.registerView(CHAT_VIEW_TYPE, (leaf) => new LibraryChatView(leaf, this));
-    ribbon('messages-square', 'Chiedi alla biblioteca', () => this.openLibraryChat());
-    this.addCommand({ id: 'library-chat', name: 'Chiedi alla biblioteca (AI)', callback: () => this.openLibraryChat() });
+    ribbon('messages-square', t('Chiedi alla biblioteca'), () => this.openLibraryChat());
+    this.addCommand({ id: 'library-chat', name: t('Chiedi alla biblioteca (AI)'), callback: () => this.openLibraryChat() });
     this.addCommand({
       id: 'library-covers',
-      name: 'Scarica le copertine mancanti delle pubblicazioni',
+      name: t('Scarica le copertine mancanti delle pubblicazioni'),
       checkCallback: (checking) => {
         if (!this.has('downloadCovers')) return false;
         if (!checking)
           this.ask('downloadCovers').then(
-            (got) => new Notice(got ? `${got} copertine aggiunte` : 'Nessuna nuova copertina trovata'),
-            (e) => new Notice(`Copertine non scaricate: ${e.message}`)
+            (got) => new Notice(got ? t('{n} copertine aggiunte', { n: got }) : t('Nessuna nuova copertina trovata')),
+            (e) => new Notice(t('Copertine non scaricate: {err}', { err: e.message }))
           );
         return true;
       },
     });
     this.scrabb = new ScrabbIndex(this);
     this.registerView(SCRABB_VIEW_TYPE, (leaf) => new ScrabbView(leaf, this));
-    ribbon('waypoints', 'Apri SCRABB', () => this.openScrabb());
-    this.addCommand({ id: 'scrabb-open', name: 'SCRABB: apri', callback: () => this.openScrabb() });
+    ribbon('waypoints', t('Apri SCRABB'), () => this.openScrabb());
+    this.addCommand({ id: 'scrabb-open', name: t('SCRABB: apri'), callback: () => this.openScrabb() });
     this.addCommand({
       id: 'scrabb-open-card',
-      name: 'SCRABB: apri la scheda di questa nota',
+      name: t('SCRABB: apri la scheda di questa nota'),
       checkCallback: (checking) => {
         const f = this.app.workspace.getActiveFile();
         const ok = !!(f && this.scrabb && this.scrabb.get(f.path));
@@ -121,10 +123,10 @@ class LampadaPlugin extends Plugin {
     this.registerEvent(this.app.workspace.on('file-open', () => this.updateScrabbAction(this.app.workspace.getMostRecentLeaf())));
     this.registerEvent(this.app.workspace.on('active-leaf-change', (leaf) => this.updateScrabbAction(leaf)));
     this.registerEvent(this.app.workspace.on('lampada:scrabb-changed', () => this.app.workspace.iterateAllLeaves((l) => this.updateScrabbAction(l))));
-    this.addCommand({ id: 'scrabb-link', name: 'SCRABB: collega a una scheda…', editorCallback: (editor) => this.scrabbLink(editor) });
+    this.addCommand({ id: 'scrabb-link', name: t('SCRABB: collega a una scheda…'), editorCallback: (editor) => this.scrabbLink(editor) });
     for (const [id, tipo, name] of [
-      ['scrabb-example', 'modello', 'SCRABB: crea un modello dalla selezione…'],
-      ['scrabb-illustration', 'illustrazione', 'SCRABB: salva la selezione come illustrazione…'],
+      ['scrabb-example', 'modello', t('SCRABB: crea un modello dalla selezione…')],
+      ['scrabb-illustration', 'illustrazione', t('SCRABB: salva la selezione come illustrazione…')],
     ]) {
       this.addCommand({
         id,
@@ -136,10 +138,10 @@ class LampadaPlugin extends Plugin {
         },
       });
     }
-    this.addCommand({ id: 'scrabb-insert-illustration', name: 'SCRABB: inserisci un’illustrazione…', editorCallback: (editor) => this.scrabbInsertIllustration(editor) });
+    this.addCommand({ id: 'scrabb-insert-illustration', name: t('SCRABB: inserisci un’illustrazione…'), editorCallback: (editor) => this.scrabbInsertIllustration(editor) });
     this.addCommand({
       id: 'scrabb-show',
-      name: 'SCRABB: mostra la nota corrente',
+      name: t('SCRABB: mostra la nota corrente'),
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         const fm = file && this.app.metadataCache.getFileCache(file)?.frontmatter;
@@ -153,28 +155,30 @@ class LampadaPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on('editor-menu', (menu, editor, info) => {
         const sel = editor.somethingSelected();
-        menu.addItem((i) => i.setTitle(sel ? 'SCRABB: collega la selezione a una scheda…' : 'SCRABB: collega a una scheda…').setIcon('waypoints').onClick(() => this.scrabbLink(editor)));
+        menu.addItem((i) => i.setTitle(sel ? t('SCRABB: collega la selezione a una scheda…') : t('SCRABB: collega a una scheda…')).setIcon('waypoints').onClick(() => this.scrabbLink(editor)));
         if (sel && info.file) {
-          menu.addItem((i) => i.setTitle('SCRABB: crea un modello dalla selezione…').setIcon(SCRABB_TYPES.modello.icon).onClick(() => this.scrabbFromSelection(editor, info.file, 'modello')));
-          menu.addItem((i) => i.setTitle('SCRABB: salva come illustrazione…').setIcon(SCRABB_TYPES.illustrazione.icon).onClick(() => this.scrabbFromSelection(editor, info.file, 'illustrazione')));
-        } else menu.addItem((i) => i.setTitle('SCRABB: inserisci un’illustrazione…').setIcon(SCRABB_TYPES.illustrazione.icon).onClick(() => this.scrabbInsertIllustration(editor)));
+          menu.addItem((i) => i.setTitle(t('SCRABB: crea un modello dalla selezione…')).setIcon(SCRABB_TYPES.modello.icon).onClick(() => this.scrabbFromSelection(editor, info.file, 'modello')));
+          menu.addItem((i) => i.setTitle(t('SCRABB: salva come illustrazione…')).setIcon(SCRABB_TYPES.illustrazione.icon).onClick(() => this.scrabbFromSelection(editor, info.file, 'illustrazione')));
+        } else menu.addItem((i) => i.setTitle(t('SCRABB: inserisci un’illustrazione…')).setIcon(SCRABB_TYPES.illustrazione.icon).onClick(() => this.scrabbInsertIllustration(editor)));
       })
     );
     this.registerEditorSuggest(new RefSuggest(this));
     this.registerHoverLinkSource(VIEW_TYPE, { display: 'Lampada', defaultMod: true });
-    ribbon('book-open', 'Apri la Bibbia', () => this.openReader());
+    ribbon('book-open', t('Apri la Bibbia'), () => this.openReader());
     this.addSettingTab(new BibleSettingTab(this.app, this));
+    // Lingua cambiata nelle impostazioni: le viste aperte si ricreano coi testi nuovi (i comandi cambiano al prossimo avvio).
+    this.registerEvent(this.app.workspace.on('lampada:language', () => this.reopenViews()));
 
-    this.addCommand({ id: 'open', name: 'Apri la Bibbia', callback: () => this.openReader() });
-    this.addCommand({ id: 'open-tab', name: 'Apri la Bibbia in una scheda', callback: () => this.openReader(null, 'tab') });
-    this.addCommand({ id: 'open-sidebar', name: 'Apri la Bibbia nella barra laterale destra', callback: () => this.openReader(null, 'right') });
-    this.addCommand({ id: 'open-left', name: 'Apri la Bibbia nella barra laterale sinistra', callback: () => this.openReader(null, 'left') });
+    this.addCommand({ id: 'open', name: t('Apri la Bibbia'), callback: () => this.openReader() });
+    this.addCommand({ id: 'open-tab', name: t('Apri la Bibbia in una scheda'), callback: () => this.openReader(null, 'tab') });
+    this.addCommand({ id: 'open-sidebar', name: t('Apri la Bibbia nella barra laterale destra'), callback: () => this.openReader(null, 'right') });
+    this.addCommand({ id: 'open-left', name: t('Apri la Bibbia nella barra laterale sinistra'), callback: () => this.openReader(null, 'left') });
     this.addCommand({
       id: 'goto',
-      name: 'Vai a riferimento…',
+      name: t('Vai a riferimento…'),
       callback: () => new GotoModal(this, (ref) => this.openReader(ref)).open(),
     });
-    this.addCommand({ id: 'search', name: 'Cerca o chiedi (Bibbia, pubblicazioni, paragrafi, SCRABB, note, AI)…', callback: () => this.openSearch() });
+    this.addCommand({ id: 'search', name: t('Cerca o chiedi (Bibbia, pubblicazioni, paragrafi, SCRABB, note, AI)…'), callback: () => this.openSearch() });
     const viewCmd = (id, name, fn) =>
       this.addCommand({
         id,
@@ -186,11 +190,11 @@ class LampadaPlugin extends Plugin {
           return true;
         },
       });
-    viewCmd('next-chapter', 'Capitolo successivo', (v) => v.stepChapter(1));
-    viewCmd('prev-chapter', 'Capitolo precedente', (v) => v.stepChapter(-1));
+    viewCmd('next-chapter', t('Capitolo successivo'), (v) => v.stepChapter(1));
+    viewCmd('prev-chapter', t('Capitolo precedente'), (v) => v.stepChapter(-1));
     this.addCommand({
       id: 'back',
-      name: 'Indietro',
+      name: t('Indietro'),
       checkCallback: (checking) => {
         const shell = this.app.workspace.getActiveViewOfType(LampadaView);
         const view = shell || this.activeBible();
@@ -201,7 +205,7 @@ class LampadaPlugin extends Plugin {
     });
     this.addCommand({
       id: 'open-current-file',
-      name: 'Apri il file corrente nel lettore',
+      name: t('Apri il file corrente nel lettore'),
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         const ref = file && this.bible.loadPromise ? this.bible.refFromFile(file) : null;
@@ -213,17 +217,17 @@ class LampadaPlugin extends Plugin {
 
     this.addCommand({
       id: 'convert-refs',
-      name: 'Converti i riferimenti biblici in link (riga o selezione)',
+      name: t('Converti i riferimenti biblici in link (riga o selezione)'),
       editorCallback: (editor) => this.convertRefs(editor, false),
     });
     this.addCommand({
       id: 'convert-refs-note',
-      name: 'Converti tutti i riferimenti biblici della nota in link',
+      name: t('Converti tutti i riferimenti biblici della nota in link'),
       editorCallback: (editor) => this.convertRefs(editor, true),
     });
     this.addCommand({
       id: 'insert-verse',
-      name: 'Inserisci versetto…',
+      name: t('Inserisci versetto…'),
       editorCallback: (editor) =>
         new GotoModal(this, async (ref) => {
           if (!ref.chapter) return;
@@ -237,21 +241,21 @@ class LampadaPlugin extends Plugin {
     });
     this.addCommand({
       id: 'open-ref-at-cursor',
-      name: 'Apri nel lettore il riferimento sotto il cursore',
+      name: t('Apri nel lettore il riferimento sotto il cursore'),
       editorCallback: async (editor) => {
         await this.bible.ensureLoaded();
         const cur = editor.getCursor();
         const hits = this.bible.scanLine(editor.getLine(cur.line), true);
         const hit = hits.find((h) => cur.ch >= h.start && cur.ch <= h.end) || hits[0];
         if (hit) this.openReader(hit.ref);
-        else new Notice('Nessun riferimento biblico in questa riga.');
+        else new Notice(t('Nessun riferimento biblico in questa riga.'));
       },
     });
-    this.addCommand({ id: 'import-jwlibrary', name: 'Importa backup JW Library…', callback: () => new JwlImportModal(this).open() });
-    this.addCommand({ id: 'export-jwlibrary', name: 'Esporta backup JW Library…', callback: () => new JwlExportModal(this).open() });
+    this.addCommand({ id: 'import-jwlibrary', name: t('Importa backup JW Library…'), callback: () => new JwlImportModal(this).open() });
+    this.addCommand({ id: 'export-jwlibrary', name: t('Esporta backup JW Library…'), callback: () => new JwlExportModal(this).open() });
     this.addCommand({
       id: 'note-refs',
-      name: 'Mostra i versetti citati in questa nota',
+      name: t('Mostra i versetti citati in questa nota'),
       checkCallback: (checking) => {
         const file = this.app.workspace.getActiveFile();
         if (!file || file.extension !== 'md') return false;
@@ -268,9 +272,9 @@ class LampadaPlugin extends Plugin {
       for (const leaf of this.app.workspace.getLeavesOfType('empty')) {
         const list = leaf.view.containerEl.querySelector('.empty-state-action-list');
         if (!list || list.querySelector('.lmp-empty-open')) continue;
-        const b = createDiv({ cls: 'text-icon-button tappable mod-pill empty-state-action lmp-empty-open', attr: { role: 'button', tabindex: '0', 'aria-label': 'Apri Lampada' } });
+        const b = createDiv({ cls: 'text-icon-button tappable mod-pill empty-state-action lmp-empty-open', attr: { role: 'button', tabindex: '0', 'aria-label': t('Apri Lampada') } });
         setIcon(b.createSpan('text-button-icon'), 'lamp');
-        b.createSpan({ cls: 'text-button-label', text: 'Apri Lampada' });
+        b.createSpan({ cls: 'text-button-label', text: t('Apri Lampada') });
         const open = async () => {
           await this.openApp();
           if (leaf.view.getViewType() === 'empty') leaf.detach(); // Lampada era già aperta in un'altra scheda
@@ -309,6 +313,8 @@ class LampadaPlugin extends Plugin {
       await this.noteIndex.build();
       this.registerEvent(this.app.vault.on('modify', (f) => this.noteIndex.schedule(f)));
       for (const ev of ['modify', 'create', 'delete', 'rename']) this.registerEvent(this.app.vault.on(ev, (f) => this.onPubNoteFileChange(f)));
+      for (const ev of ['delete', 'rename']) this.registerEvent(this.app.vault.on(ev, () => (this.verseNoteIdx = null)));
+      this.registerEvent(this.app.metadataCache.on('changed', () => (this.verseNoteIdx = null)));
       this.registerEvent(this.app.vault.on('create', (f) => this.noteIndex.schedule(f)));
       this.registerEvent(this.app.vault.on('delete', (f) => this.noteIndex.removeFile(f.path)));
       this.registerEvent(
@@ -329,7 +335,7 @@ class LampadaPlugin extends Plugin {
         if (!(file instanceof TFile) || !file.path.startsWith(this.bible.bibleFolder + '/')) return;
         menu.addItem((item) =>
           item
-            .setTitle('Apri nel lettore Bibbia')
+            .setTitle(t('Apri nel lettore Bibbia'))
             .setIcon('book-open')
             .onClick(async () => {
               await this.bible.ensureLoaded();
@@ -375,6 +381,17 @@ class LampadaPlugin extends Plugin {
   }
 
   /* ---------------- vista unica e modalità app ---------------- */
+
+  /** Ricrea le viste aperte di Lampada nello stesso stato (con lo stesso tipo setViewState non le ridisegnerebbe). */
+  async reopenViews() {
+    for (const type of [APP_VIEW_TYPE, VIEW_TYPE, LIB_VIEW_TYPE, TODAY_VIEW_TYPE, CHAT_VIEW_TYPE, SCRABB_VIEW_TYPE]) {
+      for (const leaf of this.app.workspace.getLeavesOfType(type)) {
+        const st = leaf.getViewState();
+        await leaf.setViewState({ type: 'empty' });
+        await leaf.setViewState(st);
+      }
+    }
+  }
 
   /** Il guscio aperto (quello nell'area principale, se ce n'è più d'uno). */
   shellLeaf() {
@@ -507,6 +524,7 @@ class LampadaPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, d.settings || {});
     // Aspetto della lettura: ogni dispositivo ha il suo (data.json si sincronizza, questo no).
     Object.assign(this.settings, this.app.loadLocalStorage?.(DEVICE_KEY) || this.app.loadLocalStorage?.('jw-' + DEVICE_KEY) || {});
+    setLang(this.settings.uiLang);
     this.last = d.last || null;
     this.ui = d.ui || {};
     // Evidenziazioni, segnalibri e stato JW Library: file condiviso nel vault (vedi loadUserData).
@@ -526,16 +544,49 @@ class LampadaPlugin extends Plugin {
    * Una volta: nomi in inglese, e i dati ricavati passano da <note>/JW Library e Indici/ a .lampada/data. I dati
    * dell'utente (highlights.json, position.json, backup) restano nella cartella delle note, che si sincronizza sempre.
    */
+  /**
+   * Una volta: lingua della cartella principale. Prima delle biblioteche per lingua la Bibbia di un'altra lingua (es. inglese)
+   * si scaricava lì: allora quella cartella resta di quella lingua (le sue evidenziazioni non hanno `lang`) e l'italiano va
+   * in .lampada/I/. Altrimenti è l'italiano.
+   */
+  async detectBaseLang() {
+    const s = this.settings;
+    if (s.baseLang) return;
+    let base = 'I';
+    const l = pubLang(s);
+    if (l !== 'I') {
+      const a = this.app.vault.adapter;
+      const root = s.rootFolder && s.rootFolder !== '/' ? `${normalizePath(s.rootFolder)}/` : '';
+      for (const p of [INDEX_MIRROR, 'Indici'].flatMap((d) => ['nwtsty', 'nwt'].map((sym) => `${root}${d}/${sym}.json`))) {
+        const idx = (await a.exists(p)) && (await this.readJson(p));
+        if (!idx) continue;
+        if (idx.lang && idx.lang !== 'I') base = idx.lang;
+        break;
+      }
+    }
+    s.baseLang = base;
+    await this.saveAll(false);
+  }
+
+  /** Cartella dei dati della lingua scelta (.lampada/<lingua>/data): chi ci scrive (anche le estensioni) la trova già. */
+  async ensureDataDir() {
+    const a = this.app.vault.adapter;
+    const d = dataDir(this.settings);
+    if (!(await a.exists(d))) await a.mkdir(d);
+  }
+
   async moveDerivedData() {
     const a = this.app.vault.adapter;
     if (!(await a.exists(DATA_DIR))) await a.mkdir(DATA_DIR);
+    await this.ensureDataDir();
     const notes = normalizePath(`${this.settings.notesFolder}/JW Library`);
     const idx = normalizePath(`${this.settings.rootFolder}/Indici`);
+    // I file vecchi erano tutti in italiano: vanno nella cartella italiana anche se ora la lingua è un'altra.
     const moves = [
-      [`${notes}/campi-risposta.json`, this.answerFieldsPath],
-      [`${notes}/immagini.json`, this.imageAltsPath],
-      [`${notes}/adunanze.json`, this.meetingsPath],
-      [`${notes}/Bibbia con riferimenti`, this.rbi8Dir],
+      [`${notes}/campi-risposta.json`, `${DATA_DIR}/answer-fields.json`],
+      [`${notes}/immagini.json`, `${DATA_DIR}/image-alts.json`],
+      [`${notes}/adunanze.json`, `${DATA_DIR}/meetings.json`],
+      [`${notes}/Bibbia con riferimenti`, `${DATA_DIR}/reference-bible`],
       [`${idx}/copertine`, `${DATA_DIR}/covers`],
       [`${idx}/ricerca`, `${DATA_DIR}/search`],
       [idx, normalizePath(`${this.settings.rootFolder}/${INDEX_MIRROR}`)],
@@ -654,11 +705,11 @@ class LampadaPlugin extends Plugin {
   }
 
   get answerFieldsPath() {
-    return `${DATA_DIR}/answer-fields.json`;
+    return `${dataDir(this.settings)}/answer-fields.json`;
   }
 
   get imageAltsPath() {
-    return `${DATA_DIR}/image-alts.json`;
+    return `${dataDir(this.settings)}/image-alts.json`;
   }
 
   /** Campi di risposta di un documento della biblioteca: { paragrafo: [tt12, …] }, o null se non si sanno. */
@@ -682,7 +733,7 @@ class LampadaPlugin extends Plugin {
   }
 
   get rbi8Dir() {
-    return `${DATA_DIR}/reference-bible`;
+    return `${dataDir(this.settings)}/reference-bible`;
   }
 
   /** Versetto della Bibbia con riferimenti: dati, null se manca in quell'edizione, undefined se non è ancora scaricata. */
@@ -701,7 +752,7 @@ class LampadaPlugin extends Plugin {
   }
 
   get meetingsPath() {
-    return `${DATA_DIR}/meetings.json`;
+    return `${dataDir(this.settings)}/meetings.json`;
   }
 
   /**
@@ -756,6 +807,7 @@ class LampadaPlugin extends Plugin {
     return ta;
   }
 
+  /** Risposta di un campo: come in JW Library vale per il documento in tutte le lingue (stesso DocumentId e tag). */
   setAnswer(doc, tag, v) {
     this.answers[`${doc}|${tag}`] = { doc: String(doc), tag, v, t: Date.now() };
     this.requestSave(true);
@@ -897,7 +949,7 @@ class LampadaPlugin extends Plugin {
   /** Cambia la Bibbia in uso (simbolo di un indice con i libri) e ricarica: le viste restano sullo stesso capitolo. */
   async setBible(symbol) {
     if (symbol === this.bible.symbol) return;
-    this.settings.symbol = symbol;
+    this.bible.setSymbol(symbol);
     await this.saveAll(false);
     for (const v of this.views()) v.chapterData = null; // altrimenti resta il testo della Bibbia di prima
     await this.refresh();
@@ -924,6 +976,32 @@ class LampadaPlugin extends Plugin {
    * Rilegge pubblicazioni e indici dal disco (anche le cartelle nascoste) e aggiorna le viste aperte.
    * Da chiamare dopo aver aggiunto o cambiato file in .lampada/, es. da un importatore: plugins.lampada.refresh().
    */
+  /**
+   * Lingua delle pubblicazioni (codice del sito: I, E…): ogni lingua ha la sua biblioteca (costanti.js, langRoot). Le viste
+   * restano aperte e si ridisegnano sulla stessa pagina (la cronologia resta); evidenziazioni della nuova lingua.
+   */
+  async setPubLang(code) {
+    if (code === pubLang(this.settings)) return;
+    this.settings.bibleLang = code;
+    await this.saveAll(false);
+    await this.ensureDataDir();
+    this.bible.reset(false);
+    this.library.reset();
+    this.rbi8Cache = null;
+    this.librarySearch.reader = null;
+    this.rebuildMarkIndex();
+    this.app.workspace.trigger('lampada:publang', code);
+    // Senza Bibbia in quella lingua le viste mostrano il pannello per scaricarla (noBible).
+    await this.bible.ensureLoaded().catch(() => null);
+    for (const v of this.views()) {
+      v.chapterData = null;
+      v.navigate({ mode: v.state.mode, book: v.state.book, chapter: v.state.chapter }, { push: false });
+    }
+    for (const v of this.viewsOf(LIB_VIEW_TYPE, 'lib')) if (v.navigate) v.navigate({ ...v.state }, { push: false });
+    for (const v of this.viewsOf(TODAY_VIEW_TYPE, 'home')) if (v.render) v.render();
+    this.noteIndex.build().catch(() => {});
+  }
+
   async refresh() {
     this.bible.reset();
     this.library.reset();
@@ -1035,7 +1113,7 @@ class LampadaPlugin extends Plugin {
     await this.scrabb.ensure();
     const sel = editor.getSelection();
     const insert = (name) => editor.replaceSelection(sel ? `[[${name}|${sel}]]` : `[[${name}]]`);
-    new ScrabbPickModal(this, { placeholder: sel ? `Collega «${sel.slice(0, 40)}» a…` : 'Collega a una scheda SCRABB…', allowCreate: true }, (e) => {
+    new ScrabbPickModal(this, { placeholder: sel ? t('Collega «{testo}» a…', { testo: sel.slice(0, 40) }) : t('Collega a una scheda SCRABB…'), allowCreate: true }, (e) => {
       if (e.create) new ScrabbNewModal(this, { name: e.name, tipo: 'principio' }, (f) => insert(f.basename)).open();
       else insert(e.name);
     }).open();
@@ -1069,7 +1147,7 @@ class LampadaPlugin extends Plugin {
       const body = `${sel.split('\n').map((l) => `> ${l}`).join('\n')}\n\nFonte: ${source}`;
       new ScrabbNewModal(this, { tipo, links: [principle, ...people], versetti: versetti.join('; '), body }).open();
     };
-    const question = tipo === 'illustrazione' ? 'Quale principio fa capire questa illustrazione?' : 'Quale principio mostra questo modello?';
+    const question = tipo === 'illustrazione' ? t('Quale principio fa capire questa illustrazione?') : t('Quale principio mostra questo modello?');
     new ScrabbPickModal(this, { types: SCRABB_TEACHINGS, placeholder: question, allowCreate: true }, async (e) => {
       if (e.create) await this.scrabb.create({ name: e.name, tipo: 'principio' });
       make(e.name);
@@ -1089,7 +1167,7 @@ class LampadaPlugin extends Plugin {
       const lines = [`> [!tip] Illustrazione: [[${name}]]`, ...(text ? text.split('\n').map((l) => `> ${l}`) : [])];
       editor.replaceSelection(`${lines.join('\n')}\n`);
     };
-    new ScrabbPickModal(this, { types: ['illustrazione'], placeholder: 'Quale illustrazione? (accanto: quante volte e quando l’hai usata)', allowCreate: true }, (e) => {
+    new ScrabbPickModal(this, { types: ['illustrazione'], placeholder: t('Quale illustrazione? (accanto: quante volte e quando l’hai usata)'), allowCreate: true }, (e) => {
       if (e.create) new ScrabbNewModal(this, { name: e.name, tipo: 'illustrazione' }, (f) => insert(f.basename, null)).open();
       else insert(e.name, e.file);
     }).open();
@@ -1160,7 +1238,7 @@ class LampadaPlugin extends Plugin {
     const path = view.file && view.file.path;
     const isCard = !!(path && this.scrabb && this.scrabb.ready && this.scrabb.get(path));
     if (isCard && !view.lmpScrabbAction) {
-      view.lmpScrabbAction = view.addAction('waypoints', 'Apri la scheda in SCRABB', () => view.file && this.showInScrabb(view.file.path));
+      view.lmpScrabbAction = view.addAction('waypoints', t('Apri la scheda in SCRABB'), () => view.file && this.showInScrabb(view.file.path));
       view.lmpScrabbAction.addClass('lmp-scrabb-action');
     }
     if (view.lmpScrabbAction) view.lmpScrabbAction.toggle(isCard);
@@ -1198,7 +1276,7 @@ class LampadaPlugin extends Plugin {
     el.style.setProperty('--lmp-measure', `${MEASURES[s.margins] || 720}px`);
     el.dataset.font = s.fontFamily;
     el.toggleClass('lmp-justify', !!s.justify);
-    el.lang = 'it';
+    el.lang = contentLang(this.settings);
     const host = el.parentElement || el;
     for (const t of READING_THEMES) host.toggleClass(`lmp-theme-${t}`, s.readingTheme === t);
   }
@@ -1262,7 +1340,7 @@ class LampadaPlugin extends Plugin {
       const par = /\^p(\d+)/.exec(subpath || '');
       if (d) return this.openLibraryDoc(d, par ? +par[1] : undefined);
       if (file.extension !== 'md') return window.open(fileSrc(this.app, file));
-      return new Notice('Questo file si apre solo dentro Lampada');
+      return new Notice(t('Questo file si apre solo dentro Lampada'));
     }
     const leaf = this.app.workspace.getLeaf(mode === 'split' ? 'split' : 'tab');
     await leaf.openFile(file, subpath ? { eState: { subpath } } : undefined);
@@ -1345,7 +1423,11 @@ class LampadaPlugin extends Plugin {
   rebuildMarkIndex() {
     this.marksByCh = new Map();
     this.marksByDoc = new Map();
+    // Le parole cambiano con la lingua: si vedono solo le evidenziazioni della lingua scelta (senza lang = lingua base).
+    const l = pubLang(this.settings);
+    const base = baseLang(this.settings);
     for (const m of this.marks) {
+      if ((m.lang || base) !== l) continue;
       const map = m.doc ? this.marksByDoc : this.marksByCh;
       const k = m.doc ? String(m.doc) : `${m.b}:${m.c}`;
       if (!map.has(k)) map.set(k, []);
@@ -1359,7 +1441,7 @@ class LampadaPlugin extends Plugin {
   }
 
   addDocMark(doc, color, ranges) {
-    const m = { id: newGuid(), doc: String(doc), color, ranges: ranges.map((r) => ({ v: r.v, s: r.s, e: r.e })), src: 'local', mod: true, t: Date.now() };
+    const m = { id: newGuid(), doc: String(doc), ...this.langField(), color, ranges: ranges.map((r) => ({ v: r.v, s: r.s, e: r.e })), src: 'local', mod: true, t: Date.now() };
     this.marks.push(m);
     this.rebuildMarkIndex();
     this.requestSave(true);
@@ -1374,6 +1456,12 @@ class LampadaPlugin extends Plugin {
     return (this.marksByCh && this.marksByCh.get(`${b}:${c}`)) || [];
   }
 
+  /** { lang } per le evidenziazioni in una lingua diversa da quella base (le parole cambiano con la lingua). */
+  langField() {
+    const l = pubLang(this.settings);
+    return l === baseLang(this.settings) ? {} : { lang: l };
+  }
+
   markColorAt(b, c, v) {
     let color = null;
     for (const m of this.marksFor(b, c)) if (m.ranges.some((r) => r.v === v)) color = m.color;
@@ -1381,7 +1469,7 @@ class LampadaPlugin extends Plugin {
   }
 
   addMark(b, c, color, ranges) {
-    const m = { id: newGuid(), b, c, color, ranges: ranges.map((r) => ({ v: r.v, s: r.s, e: r.e })), src: 'local', mod: true, t: Date.now() };
+    const m = { id: newGuid(), b, c, ...this.langField(), color, ranges: ranges.map((r) => ({ v: r.v, s: r.s, e: r.e })), src: 'local', mod: true, t: Date.now() };
     this.marks.push(m);
     this.rebuildMarkIndex();
     this.requestSave(true);
@@ -1424,7 +1512,7 @@ class LampadaPlugin extends Plugin {
         m.mod = true;
         m.t = Date.now();
       } else this.deleteMark(m);
-      if (extra.length) this.marks.push({ id: newGuid(), ...base, color: m.color, ranges: extra, src: 'local', mod: true, t: Date.now() });
+      if (extra.length) this.marks.push({ id: newGuid(), ...base, ...this.langField(), color: m.color, ranges: extra, src: 'local', mod: true, t: Date.now() });
     }
     this.rebuildMarkIndex();
     this.requestSave(true);
@@ -1443,7 +1531,7 @@ class LampadaPlugin extends Plugin {
       this.bmTomb[bookmarkKey(place)] = Date.now();
     } else this.bookmarks.push({ ...place, created: Date.now(), t: Date.now() });
     this.requestSave(true);
-    new Notice(existing ? 'Segnalibro rimosso' : 'Segnalibro aggiunto');
+    new Notice(existing ? t('Segnalibro rimosso') : t('Segnalibro aggiunto'));
   }
 
   /** Aperti di recente (capitoli della Bibbia e documenti), su questo dispositivo. */
@@ -1470,14 +1558,14 @@ class LampadaPlugin extends Plugin {
       return this.bible.byNum && this.bible.byNum.get(p.book) && {
         icon: 'book-open',
         title: this.bible.refLabel(p),
-        sub: 'Bibbia',
+        sub: t('Bibbia'),
         open: () => this.openReader({ book: p.book, chapter: p.chapter, verse: p.verse }),
       };
     };
     const strip = (title, items, kind) => {
       const head = el.createDiv('lmp-strip-head');
       head.createEl('h4', { cls: 'lmp-section-title', text: title });
-      const all = head.createEl('button', { cls: 'lmp-strip-all', text: 'Tutti' });
+      const all = head.createEl('button', { cls: 'lmp-strip-all', text: t('Tutti') });
       all.addEventListener('click', () => new PlacesModal(this, null, kind).open());
       const row = el.createDiv('lmp-strip');
       for (const [, x] of items) {
@@ -1505,7 +1593,7 @@ class LampadaPlugin extends Plugin {
           x.open();
         });
         if (!removable) continue;
-        const del = row.createEl('button', { cls: 'clickable-icon lmp-place-remove', attr: { 'aria-label': 'Rimuovi segnalibro' } });
+        const del = row.createEl('button', { cls: 'clickable-icon lmp-place-remove', attr: { 'aria-label': t('Rimuovi segnalibro') } });
         setIcon(del, 'x');
         del.addEventListener('click', (evt) => {
           evt.stopPropagation();
@@ -1514,17 +1602,41 @@ class LampadaPlugin extends Plugin {
         });
       }
     };
-    section('Segnalibri', [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true, 'bookmarks');
-    section('Aperti di recente', this.ui.recent || [], false, 'recent');
+    section(t('Segnalibri'), [...this.bookmarks].sort((a, b) => (b.created || 0) - (a.created || 0)), true, 'bookmarks');
+    section(t('Aperti di recente'), this.ui.recent || [], false, 'recent');
   }
 
   notePath(book, chapter, verse) {
     return normalizePath(`${this.settings.notesFolder}/${book.title} ${chapter}-${verse}.md`);
   }
 
+  /**
+   * File delle note di un versetto: col nome nella lingua della Bibbia aperta, altrimenti per codice ("codice" nelle
+   * proprietà, testo.js verseCode). Come in JW Library la nota resta sul versetto in ogni lingua: "Giovanni 3-16.md"
+   * si trova anche leggendo John 3.
+   */
+  verseNoteFile(book, chapter, verse) {
+    return this.bible.getFile(this.notePath(book, chapter, verse)) || this.verseNotesByCode().get(verseCode(book.num, chapter, verse)) || null;
+  }
+
+  /** codice del versetto → file delle note (cartella delle note). Si ricostruisce quando quei file cambiano. */
+  verseNotesByCode() {
+    if (!this.verseNoteIdx) {
+      const folder = this.settings.notesFolder ? `${normalizePath(this.settings.notesFolder)}/` : '';
+      const map = new Map();
+      for (const f of this.app.vault.getMarkdownFiles()) {
+        if (!f.path.startsWith(folder)) continue;
+        const code = this.app.metadataCache.getFileCache(f)?.frontmatter?.codice;
+        if (code && !map.has(String(code))) map.set(String(code), f);
+      }
+      this.verseNoteIdx = map;
+    }
+    return this.verseNoteIdx;
+  }
+
   async ensureNoteFile(book, chapter, verse, text) {
     const path = this.notePath(book, chapter, verse);
-    let file = this.bible.getFile(path);
+    let file = this.verseNoteFile(book, chapter, verse);
     if (!file) {
       const folder = normalizePath(this.settings.notesFolder);
       if (folder && !this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
@@ -1677,11 +1789,11 @@ class LampadaPlugin extends Plugin {
         return line;
       });
     if (!count) {
-      new Notice('Nessun riferimento da convertire.');
+      new Notice(t('Nessun riferimento da convertire.'));
       return;
     }
     editor.replaceRange(out.join('\n'), from, to);
-    new Notice(`${count} riferiment${count === 1 ? 'o convertito' : 'i convertiti'} in link`);
+    new Notice(count === 1 ? t('1 riferimento convertito in link') : t('{n} riferimenti convertiti in link', { n: count }));
   }
 
   async showNoteRefs(file) {
@@ -1819,7 +1931,7 @@ class LampadaPlugin extends Plugin {
         fn();
       });
     };
-    act('Apri nel lettore', () => this.openReader(info.ref));
+    act(t('Apri nel lettore'), () => this.openReader(info.ref));
     act('JW Library', () => this.openInJwLibrary(info.ref));
 
     const r = info.el.getBoundingClientRect();
@@ -1838,7 +1950,7 @@ class LampadaPlugin extends Plugin {
       const text = verses.map((v) => (verses.length > 1 ? `${v} ` : '') + this.bible.verseText(data, v)).join(' ');
       body.setText(text.length > 900 ? text.slice(0, 900) + '…' : text);
     } catch (e) {
-      body.setText('Testo non disponibile.');
+      body.setText(t('Testo non disponibile.'));
     }
     const h = card.offsetHeight;
     if (below + h > window.innerHeight - 8) card.style.top = `${Math.max(8, r.top - h - 8)}px`;
@@ -1848,11 +1960,11 @@ class LampadaPlugin extends Plugin {
     const view = this.lastMarkdownView;
     const stillOpen = view && this.app.workspace.getLeavesOfType('markdown').some((l) => l.view === view);
     if (!stillOpen || !view.editor) {
-      new Notice('Apri prima una nota in cui inserire il versetto.');
+      new Notice(t('Apri prima una nota in cui inserire il versetto.'));
       return;
     }
     view.editor.replaceSelection(this.fillTemplate(info));
-    new Notice(`Inserito in ${view.file ? view.file.basename : 'nota'}`);
+    new Notice(t('Inserito in {nota}', { nota: view.file ? view.file.basename : t('nota') }));
   }
 }
 

@@ -1,20 +1,21 @@
-import { ItemView, Component, Modal, Notice, setIcon, debounce, Platform } from 'obsidian';
+import { ItemView, Component, Menu, Modal, Notice, setIcon, debounce, Platform } from 'obsidian';
 import { LIB_VIEW_TYPE, findDocLabel, isoDate, issueLabel, mondayOf, weekLabel } from './biblioteca-dati.js';
-import { renderBibleDownload } from './bibbia-epub.js';
+import { BIBLE_LANGS, epubInfo, renderBibleDownload } from './bibbia-epub.js';
 import { EpubImportModal } from './biblioteca-epub.js';
-import { HIGHLIGHTS, paneLabel } from './costanti.js';
+import { HIGHLIGHTS, paneLabel, pubLang } from './costanti.js';
+import { compare, lang, t } from './lingua.js';
 import { fileAt, fileMeta, fileSrc, linkDest, readFile, renderMd } from './file.js';
 import { SCRABB_TYPES } from './scrabb-dati.js';
 import { ScrabbNewModal, ScrabbPickModal, linkVerseToScrabb } from './scrabb-vista.js';
 import { codesFromJwUrl, norm, noteFreeText, parseCode, parseNoteFile, parseRefLinks, refFromCodes, splitJwTokens, stripFrontmatter } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { SourceList, addScriptureSources, aiMenu, renderAskBox, renderRbi8Verse, showAiSuggestions, verseAiCtx } from './studio.js';
-import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
+import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, hasBibleIn, hasInLang, pubLangButton, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
 const blockText = (b) => b.innerText.replace(/\s+/g, ' ').trim();
 /** Domanda stampata: "4. …", "5, 6. …". */
 const isQuestionBlock = (b) => /^\d+(\s*[-–,]\s*\d+)*\.\s/.test(blockText(b));
-const isLabelBlock = (b) => /^(la tua risposta|le tue risposte)$/i.test(blockText(b));
+const isLabelBlock = (b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(blockText(b));
 
 class LibraryView extends ItemView {
   constructor(leaf, plugin) {
@@ -38,13 +39,13 @@ class LibraryView extends ItemView {
   getDisplayText() {
     const s = this.state;
     const pub = s.sym && this.lib.bySym.get(s.sym);
-    if (s.mode === 'doc' && s.doc) return this.lib.byDocId.get(s.doc)?.title || 'Biblioteca';
-    if (s.mode === 'week') return 'Adunanze della settimana';
-    if (s.mode === 'ext') return s.title || 'Biblioteca';
-    if (s.mode === 'cat') return (this.lib.categories().find((c) => c.id === s.cat) || {}).label || 'Biblioteca';
+    if (s.mode === 'doc' && s.doc) return this.lib.byDocId.get(s.doc)?.title || t('Biblioteca');
+    if (s.mode === 'week') return t('Adunanze della settimana');
+    if (s.mode === 'ext') return s.title || t('Biblioteca');
+    if (s.mode === 'cat') return t((this.lib.categories().find((c) => c.id === s.cat) || {}).label || 'Biblioteca');
     if (s.mode === 'issue' && pub) return `${pub.title.replace(/\s*\(\d{4}\)$/, '')} · ${issueLabel(s.issue)}`;
     if (pub) return pub.title;
-    return 'Biblioteca';
+    return t('Biblioteca');
   }
 
   /** Titolo nella barra: niente nella home (lo dice il selettore), il percorso dentro una pubblicazione. */
@@ -72,6 +73,9 @@ class LibraryView extends ItemView {
     const root = this.contentEl;
     root.empty();
     root.addClass('lmp-lib');
+    // Telefono e tablet: un tocco che si sposta di poco (es. su un libro della colonna di sinistra) Obsidian lo prendeva per
+    // uno swipe e apriva la sua barra laterale. Qui i gesti orizzontali sono di Lampada (capitolo, pagina): Obsidian li salta.
+    root.dataset.ignoreSwipe = 'true';
     this.plugin.applyFont(root);
     this.toolbarEl = root.createDiv('lmp-toolbar');
     this.bodyEl = root.createDiv('lmp-body');
@@ -101,23 +105,23 @@ class LibraryView extends ItemView {
       b.addEventListener('click', fn);
       return b;
     };
-    this.backBtn = btn('arrow-left', 'Indietro', () => this.goBack());
+    this.backBtn = btn('arrow-left', t('Indietro'), () => this.goBack());
     addViewSwitch(this.toolbarEl, this.plugin, 'lib', () => this.navigate({ mode: 'home' }), this.inShell);
     this.titleEl2 = this.toolbarEl.createDiv('lmp-tb-title lmp-lib-title');
     this.toolbarEl.createDiv('lmp-tb-spacer');
-    this.prevBtn = btn('chevron-left', 'Documento precedente', () => this.stepDoc(-1));
-    this.nextBtn = btn('chevron-right', 'Documento successivo', () => this.stepDoc(1));
-    btn('search', 'Cerca ovunque', () => this.plugin.openSearch());
-    btn('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
-    btn('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
-    btn('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open());
+    this.prevBtn = btn('chevron-left', t('Documento precedente'), () => this.stepDoc(-1));
+    this.nextBtn = btn('chevron-right', t('Documento successivo'), () => this.stepDoc(1));
+    btn('search', t('Cerca ovunque'), () => this.plugin.openSearch());
+    btn('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open());
+    btn('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
+    btn('type', t('Aspetto del testo'), () => new ReadingModal(this.plugin).open());
     if (Platform.isPhone && this.addAction && !this.inShell) {
-      this.addAction('type', 'Aspetto del testo', () => new ReadingModal(this.plugin).open());
-      this.addAction('chevron-right', 'Documento successivo', () => this.stepDoc(1));
-      this.addAction('chevron-left', 'Documento precedente', () => this.stepDoc(-1));
-      this.addAction('bookmark', 'Segnalibri', () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
-      this.addAction('history', 'Aperti di recente', () => new PlacesModal(this.plugin, null, 'recent').open());
-      this.addAction('search', 'Cerca ovunque', () => this.plugin.openSearch());
+      this.addAction('type', t('Aspetto del testo'), () => new ReadingModal(this.plugin).open());
+      this.addAction('chevron-right', t('Documento successivo'), () => this.stepDoc(1));
+      this.addAction('chevron-left', t('Documento precedente'), () => this.stepDoc(-1));
+      this.addAction('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open());
+      this.addAction('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open());
+      this.addAction('search', t('Cerca ovunque'), () => this.plugin.openSearch());
       addGoToAction(this, 'lib', () => this.navigate({ mode: 'home' }));
       root.addClass('lmp-native-header');
     }
@@ -190,8 +194,11 @@ class LibraryView extends ItemView {
     } catch (e) {
       this.mainEl.empty();
       // Senza Bibbia la biblioteca non si apre: il pannello per scaricarla.
-      if (e && e.noBible) renderBibleDownload(this.plugin, this.mainEl.createDiv('lmp-error'), { onDone: () => this.plugin.openReader({ book: 1, chapter: 1 }) });
-      else this.mainEl.createDiv({ cls: 'lmp-empty', text: `Biblioteca non disponibile: ${e.message}` });
+      if (e && e.noBible) {
+        pubLangButton(this.plugin, this.mainEl.createDiv('lmp-pub-lang-row'));
+        renderBibleDownload(this.plugin, this.mainEl.createDiv('lmp-error'), { onDone: () => this.plugin.openReader({ book: 1, chapter: 1 }) });
+      }
+      else this.mainEl.createDiv({ cls: 'lmp-empty', text: t('Biblioteca non disponibile: {msg}', { msg: e.message }) });
       return;
     }
     if (token !== this.renderToken) return;
@@ -252,7 +259,9 @@ class LibraryView extends ItemView {
 
   renderHome() {
     const wrap = this.mainEl.createDiv('lmp-lib-home');
-    const search = wrap.createEl('input', { type: 'search', cls: 'lmp-lib-search', attr: { placeholder: 'Cerca una pubblicazione o un titolo…' } });
+    const top = wrap.createDiv('lmp-lib-top');
+    const search = top.createEl('input', { type: 'search', cls: 'lmp-lib-search', attr: { placeholder: t('Cerca una pubblicazione o un titolo…') } });
+    pubLangButton(this.plugin, top);
     const results = wrap.createDiv('lmp-lib-results');
     const sections = wrap.createDiv();
     // Con la vista unica settimana, segnalibri e recenti sono in "Oggi": qui solo il catalogo.
@@ -271,10 +280,10 @@ class LibraryView extends ItemView {
         if (cover) art.createEl('img', { attr: { src: fileSrc(this.app, cover), loading: 'lazy', alt: '' } });
         else art.addClass('is-fake');
       }
-      const t = row.createDiv('lmp-lib-cat-text');
-      t.createDiv({ cls: 'lmp-lib-cat-title', text: cat.label });
+      const tx = row.createDiv('lmp-lib-cat-text');
+      tx.createDiv({ cls: 'lmp-lib-cat-title', text: t(cat.label) });
       const one = cat.pubs.length === 1 && cat.pubs[0];
-      t.createDiv({ cls: 'lmp-lib-cat-meta', text: one ? (one.issues ? `${one.issues.length} numeri` : `${one.docs.length} documenti`) : `${cat.pubs.length} pubblicazioni` });
+      tx.createDiv({ cls: 'lmp-lib-cat-meta', text: one ? (one.issues ? t('{n} numeri', { n: one.issues.length }) : t('{n} documenti', { n: one.docs.length })) : t('{n} pubblicazioni', { n: cat.pubs.length }) });
       setIcon(row.createSpan('lmp-lib-cat-go'), 'chevron-right');
       row.addEventListener('click', () => this.navigate(one ? { mode: 'pub', sym: one.symbol } : { mode: 'cat', cat: cat.id }));
     }
@@ -284,28 +293,28 @@ class LibraryView extends ItemView {
       if (!b) continue;
       const row = cats.createEl('button', { cls: 'lmp-lib-cat lmp-lib-ext' });
       setIcon(row.createDiv('lmp-lib-cat-covers'), b.icon || 'globe');
-      const t = row.createDiv('lmp-lib-cat-text');
-      t.createDiv({ cls: 'lmp-lib-cat-title', text: b.text });
-      if (b.meta) t.createDiv({ cls: 'lmp-lib-cat-meta', text: b.meta });
+      const tx = row.createDiv('lmp-lib-cat-text');
+      tx.createDiv({ cls: 'lmp-lib-cat-title', text: b.text });
+      if (b.meta) tx.createDiv({ cls: 'lmp-lib-cat-meta', text: b.meta });
       setIcon(row.createSpan('lmp-lib-cat-go'), 'chevron-right');
       row.addEventListener('click', () => this.navigate({ mode: 'ext', url: b.url, title: b.text }));
     }
     const tools = sections.createDiv('lmp-lib-tools');
-    tools.createEl('button', { cls: 'lmp-small-btn', text: 'Importa…' }).addEventListener('click', () => new EpubImportModal(this.plugin).open());
+    tools.createEl('button', { cls: 'lmp-small-btn', text: t('Importa…') }).addEventListener('click', () => new EpubImportModal(this.plugin).open());
     // Azioni delle estensioni (fornitori).
     for (const p of this.plugin.providers) {
       if (typeof p.libraryActions !== 'function') continue;
       for (const { text, run } of p.libraryActions() || []) tools.createEl('button', { cls: 'lmp-small-btn', text }).addEventListener('click', () => run());
     }
     if (this.plugin.has('downloadCovers')) {
-      const more = tools.createEl('button', { cls: 'lmp-small-btn', text: 'Cerca copertine mancanti' });
+      const more = tools.createEl('button', { cls: 'lmp-small-btn', text: t('Cerca copertine mancanti') });
       more.addEventListener('click', async () => {
         more.disabled = true;
         try {
           const got = await this.plugin.ask('downloadCovers', (t) => more.setText(t));
-          new Notice(got ? `${got} copertine aggiunte` : 'Nessuna nuova copertina trovata');
+          new Notice(got ? t('{n} copertine aggiunte', { n: got }) : t('Nessuna nuova copertina trovata'));
         } catch (e) {
-          new Notice(`Copertine non scaricate: ${e.message}`);
+          new Notice(t('Copertine non scaricate: {msg}', { msg: e.message }));
         }
         this.navigate({ mode: 'home' }, { push: false });
       });
@@ -329,7 +338,7 @@ class LibraryView extends ItemView {
       }
       const pubs = this.lib.pubs.filter((p) => norm(p.title).includes(q) || norm(p.symbol) === q);
       if (pubs.length) {
-        results.createEl('h4', { cls: 'lmp-section-title', text: 'Pubblicazioni' });
+        results.createEl('h4', { cls: 'lmp-section-title', text: t('Pubblicazioni') });
         const grid = results.createDiv('lmp-lib-grid');
         for (const p of pubs.slice(0, 24)) this.pubTile(grid, p);
       }
@@ -342,11 +351,11 @@ class LibraryView extends ItemView {
         if (docs.length >= 80) break;
       }
       if (docs.length) {
-        results.createEl('h4', { cls: 'lmp-section-title', text: 'Titoli' });
+        results.createEl('h4', { cls: 'lmp-section-title', text: t('Titoli') });
         const list = results.createDiv('lmp-lib-doclist');
         for (const d of docs) this.docRow(list, d, true);
       }
-      if (!pubs.length && !docs.length) results.createDiv({ cls: 'lmp-empty', text: 'Nessun risultato.' });
+      if (!pubs.length && !docs.length) results.createDiv({ cls: 'lmp-empty', text: t('Nessun risultato.') });
       this.fillLabels(this.renderToken);
     });
   }
@@ -364,7 +373,7 @@ class LibraryView extends ItemView {
     try {
       await this.plugin.ask('libraryPage', this.state.url, wrap, ctx);
     } catch (e) {
-      wrap.createDiv({ cls: 'lmp-empty', text: `Pagina non caricata: ${e.message || e}` });
+      wrap.createDiv({ cls: 'lmp-empty', text: t('Pagina non caricata: {msg}', { msg: e.message || e }) });
     }
   }
 
@@ -372,8 +381,8 @@ class LibraryView extends ItemView {
     const cat = this.lib.categories().find((c) => c.id === this.state.cat);
     if (!cat) return this.renderHome();
     const wrap = this.mainEl.createDiv('lmp-lib-page');
-    wrap.createEl('h2', { cls: 'lmp-lib-cat-heading', text: cat.label });
-    const filter = cat.pubs.length > 12 ? wrap.createEl('input', { type: 'search', cls: 'lmp-lib-search', attr: { placeholder: `Cerca in ${cat.label.toLowerCase()}…` } }) : null;
+    wrap.createEl('h2', { cls: 'lmp-lib-cat-heading', text: t(cat.label) });
+    const filter = cat.pubs.length > 12 ? wrap.createEl('input', { type: 'search', cls: 'lmp-lib-search', attr: { placeholder: t('Cerca in {nome}…', { nome: lang() === 'it' ? t(cat.label).toLowerCase() : t(cat.label) }) } }) : null;
     const grid = wrap.createDiv('lmp-lib-grid');
     const draw = () => {
       grid.empty();
@@ -409,14 +418,14 @@ class LibraryView extends ItemView {
       setIcon(b, icon);
       b.addEventListener('click', fn);
     };
-    navBtn('chevron-left', 'Settimana precedente', () => shift(-1));
+    navBtn('chevron-left', t('Settimana precedente'), () => shift(-1));
     const head = nav.createDiv('lmp-week-head');
     head.createEl('h2', { text: weekLabel(k) });
     if (k !== today) {
-      const t = head.createEl('button', { cls: 'lmp-small-btn', text: 'Torna a questa settimana' });
-      t.addEventListener('click', () => this.navigate({ mode: 'week' }, { push: false }));
-    } else head.createDiv({ cls: 'lmp-week-now', text: 'Questa settimana' });
-    navBtn('chevron-right', 'Settimana successiva', () => shift(1));
+      const back = head.createEl('button', { cls: 'lmp-small-btn', text: t('Torna a questa settimana') });
+      back.addEventListener('click', () => this.navigate({ mode: 'week' }, { push: false }));
+    } else head.createDiv({ cls: 'lmp-week-now', text: t('Questa settimana') });
+    navBtn('chevron-right', t('Settimana successiva'), () => shift(1));
 
     // Prima le cose brevi (lettura, articolo di studio), poi il programma completo.
     const readingEl = wrap.createDiv();
@@ -425,19 +434,19 @@ class LibraryView extends ItemView {
   }
 
   async weekMeeting(readingEl, el, k, token) {
-    const status = el.createDiv({ cls: 'lmp-empty', text: 'Carico il programma…' });
+    const status = el.createDiv({ cls: 'lmp-empty', text: t('Carico il programma…') });
     const [res, base] = await Promise.all([this.plugin.meetingWeek(k).catch((e) => ({ error: e })), this.plugin.baseAnswers()]);
     if (token !== this.renderToken) return;
     status.remove();
     if (!res || res.error) {
       const box = el.createDiv('lmp-week-card');
-      box.createEl('h3', { text: 'Adunanza infrasettimanale' });
+      box.createEl('h3', { text: t('Adunanza infrasettimanale') });
       box.createDiv({
         cls: 'lmp-empty',
         text:
-          !res || /non disponibile per/.test(res.error.message)
-            ? 'Programma non disponibile per questa settimana.'
-            : `Programma non disponibile (${res.error.message}). Se sei offline, riprova quando sei connesso.`,
+          !res || /non disponibile per|not available for/.test(res.error.message)
+            ? t('Programma non disponibile per questa settimana.')
+            : t('Programma non disponibile ({msg}). Se sei offline, riprova quando sei connesso.', { msg: res.error.message }),
       });
       return;
     }
@@ -449,7 +458,7 @@ class LibraryView extends ItemView {
     const ri = items.findIndex((x) => x.k === 'h2' && !x.s && x.x.some((t) => Array.isArray(t)));
     if (ri >= 0) {
       const box = readingEl.createDiv('lmp-week-card lmp-week-reading');
-      box.createEl('h3', { text: 'Lettura biblica' });
+      box.createEl('h3', { text: t('Lettura biblica') });
       const link = items[ri].x.find((t) => Array.isArray(t));
       const a = parseCode(link[1]);
       const b = parseCode(link[2] || link[1]);
@@ -462,7 +471,7 @@ class LibraryView extends ItemView {
       if (!chips.childElementCount) chips.createEl('button', { cls: 'lmp-week-chip', text: link[0] }).addEventListener('click', () => this.plugin.openReader(refOf(link)));
     }
     const box = el.createDiv('lmp-week-card lmp-week-meeting');
-    box.createEl('h3', { text: 'Adunanza infrasettimanale' });
+    box.createEl('h3', { text: t('Adunanza infrasettimanale') });
     const body = box.createDiv('lmp-week-body');
     for (const [i, it] of items.entries()) {
       if (i === ri || it.k === 'h1') continue;
@@ -472,7 +481,7 @@ class LibraryView extends ItemView {
       }
       if (it.k === 'f') {
         for (const tag of it.f) {
-          const ta = body.appendChild(this.plugin.answerBox(id, tag, 'La tua risposta', base));
+          const ta = body.appendChild(this.plugin.answerBox(id, tag, t('La tua risposta'), base));
           this.aiField(ta, () => this.weekAiCtx(items, i, k));
         }
         continue;
@@ -502,7 +511,7 @@ class LibraryView extends ItemView {
           if (seg.url) return window.open(seg.url);
           const doc = !Array.isArray(seg) && this.lib.byDocId.get(seg.doc);
           // Pubblicazione che non è nel vault (cantici, opuscoli…): sul sito, dal numero del documento.
-          if (!Array.isArray(seg) && !doc && !seg.ex) return window.open(`https://www.jw.org/finder?wtlocale=I&docid=${seg.doc}`);
+          if (!Array.isArray(seg) && !doc && !seg.ex) return window.open(`https://www.jw.org/finder?wtlocale=${this.plugin.settings.bibleLang || 'I'}&docid=${seg.doc}`);
           const key = Array.isArray(seg) ? seg[1] + seg[2] : `${seg.doc || seg.t}:${seg.a}`;
           const open = line.nextElementSibling && line.nextElementSibling.dataset.code === key;
           body.querySelectorAll('.lmp-week-verse').forEach((e) => e.remove());
@@ -520,7 +529,7 @@ class LibraryView extends ItemView {
       }
     }
     if (d) {
-      const b = box.createEl('button', { cls: 'lmp-small-btn', text: 'Apri nella biblioteca' });
+      const b = box.createEl('button', { cls: 'lmp-small-btn', text: t('Apri nella biblioteca') });
       b.addEventListener('click', () => this.navigate({ mode: 'doc', sym: d.pub.symbol, doc: d.id }));
     }
   }
@@ -565,7 +574,7 @@ class LibraryView extends ItemView {
     const txt = card.createDiv({ cls: 'lmp-ref-text', text: '…' });
     card.addEventListener('click', () => this.plugin.openReader(ref));
     const r = await bible.previewRef(ref, bible.refLabel(ref)).catch(() => null);
-    txt.setText(r ? r.text : 'Testo non trovato: tocca per aprire la Bibbia.');
+    txt.setText(r ? r.text : t('Testo non trovato: tocca per aprire la Bibbia.'));
   }
 
   /** Rimando a una pubblicazione del vault: i paragrafi citati (al massimo 4), tocca per aprirla lì. */
@@ -575,21 +584,21 @@ class LibraryView extends ItemView {
     for (let p = seg.a; p && p <= seg.b && pars.length < 4; p++) pars.push(p);
     card.addEventListener('click', () => this.navigate({ mode: 'doc', sym: d.pub.symbol, doc: d.id, par: seg.a || undefined }));
     if (!pars.length) {
-      card.createDiv({ cls: 'lmp-ref-text', text: 'Tocca per aprire.' });
+      card.createDiv({ cls: 'lmp-ref-text', text: t('Tocca per aprire.') });
       return;
     }
     const texts = await Promise.all(pars.map((p) => this.lib.paragraphText(d, p).catch(() => '')));
     for (const t of texts.filter(Boolean)) card.createDiv({ cls: 'lmp-ref-text', text: t });
-    if (!texts.some(Boolean)) card.createDiv({ cls: 'lmp-ref-text', text: 'Tocca per aprire.' });
-    if (seg.b - seg.a + 1 > pars.length) card.createDiv({ cls: 'lmp-ref-text lmp-week-more', text: 'Continua nella pubblicazione…' });
+    if (!texts.some(Boolean)) card.createDiv({ cls: 'lmp-ref-text', text: t('Tocca per aprire.') });
+    if (seg.b - seg.a + 1 > pars.length) card.createDiv({ cls: 'lmp-ref-text lmp-week-more', text: t('Continua nella pubblicazione…') });
   }
 
   weekStudyCard(el, d) {
     const box = el.createDiv('lmp-week-card lmp-week-study');
-    box.createEl('h3', { text: 'Studio Torre di Guardia' });
+    box.createEl('h3', { text: t('Studio Torre di Guardia') });
     const row = box.createDiv({ cls: 'lmp-week-article', attr: { role: 'button', tabindex: '0' } });
     row.createDiv({ cls: 'lmp-week-article-title', text: d.title });
-    row.createDiv({ cls: 'lmp-week-article-sub', text: `La Torre di Guardia · ${issueLabel(d.issue)}` });
+    row.createDiv({ cls: 'lmp-week-article-sub', text: `${t('La Torre di Guardia')} · ${issueLabel(d.issue)}` });
     const go = () => this.navigate({ mode: 'doc', sym: d.pub.symbol, doc: d.id });
     row.addEventListener('click', go);
     row.addEventListener('keydown', (e) => e.key === 'Enter' && go());
@@ -602,7 +611,7 @@ class LibraryView extends ItemView {
     if (cover) art.createEl('img', { attr: { src: fileSrc(this.app, cover), loading: 'lazy', alt: '' } });
     else this.fakeCover(art, p);
     tile.createDiv({ cls: 'lmp-lib-tile-title', text: p.title });
-    tile.createDiv({ cls: 'lmp-lib-tile-meta', text: p.issues ? `${p.issues.length} numeri` : `${p.docs.length} ${p.docs.length === 1 ? 'documento' : 'documenti'}` });
+    tile.createDiv({ cls: 'lmp-lib-tile-meta', text: p.issues ? t('{n} numeri', { n: p.issues.length }) : p.docs.length === 1 ? t('1 documento') : t('{n} documenti', { n: p.docs.length }) });
     tile.addEventListener('click', () => this.navigate({ mode: 'pub', sym: p.symbol }));
   }
 
@@ -625,7 +634,7 @@ class LibraryView extends ItemView {
       if (!label || !num.isConnected) return;
       num.setText(String(label.num));
       list.addClass('has-numbers');
-      if (label.kind !== 'Capitolo') kind.setText(label.kind);
+      if (label.kind !== 'Capitolo') kind.setText(t(label.kind));
     };
     if (d.label !== undefined) fill(d.label);
     else (this.pendingLabels = this.pendingLabels || []).push([d, fill]);
@@ -653,13 +662,75 @@ class LibraryView extends ItemView {
     txt.createEl('h2', { text: p.title });
     txt.createDiv({ cls: 'lmp-lib-head-meta', text: subtitle });
     if (!(p.issues && !issue) && this.plugin.has('pubSource')) this.pubSource(txt.createDiv('lmp-lib-head-src'), p, issue, docs);
-    const del = head.createEl('button', { cls: 'clickable-icon lmp-lib-del', attr: { 'aria-label': issue ? 'Togli questo numero' : 'Togli la pubblicazione' } });
+    pubLangButton(this.plugin, head, (evt) => this.pubLangMenu(evt, p, issue));
+    const del = head.createEl('button', { cls: 'clickable-icon lmp-lib-del', attr: { 'aria-label': issue ? t('Togli questo numero') : t('Togli la pubblicazione') } });
     setIcon(del, 'trash-2');
     del.addEventListener('click', () => new RemovePubModal(this.app, issue ? `${p.title} · ${issueLabel(issue)}` : p.title, async () => {
       await this.lib.remove(p.symbol, issue);
-      new Notice(`Tolto: ${issue ? issueLabel(issue) : p.title}`);
+      new Notice(t('Tolto: {nome}', { nome: issue ? issueLabel(issue) : p.title }));
       this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: 'pub', sym: p.symbol } : { mode: 'home' }, { push: false });
     }).open());
+  }
+
+  /** Lingue (codici) in cui c'è questa pubblicazione, oltre a quella attuale. */
+  async pubLangsOf(p) {
+    const cur = pubLang(this.plugin.settings);
+    const others = BIBLE_LANGS.filter(([code]) => code !== cur);
+    const there = await Promise.all(others.map(([code]) => hasInLang(this.plugin, code, ['', '.epub', '.wol'].map((x) => p.symbol + x))));
+    return others.filter((_, i) => there[i]).map(([code]) => code);
+  }
+
+  /**
+   * Menu delle lingue della pubblicazione (ogni lingua è una biblioteca a parte): ✓ quella attuale, il nome se lì c'è già
+   * (apre lo stesso documento, numero o pubblicazione), "Scarica in English" (EPUB da jw.org) se lì c'è la Bibbia,
+   * altrimenti si passa a quella lingua e si scarica prima la Bibbia. d: il documento aperto, se c'è.
+   */
+  async pubLangMenu(evt, p, issue, d) {
+    const cur = pubLang(this.plugin.settings);
+    const [have, bibles] = await Promise.all([this.pubLangsOf(p), Promise.all(BIBLE_LANGS.map(([code]) => hasBibleIn(this.plugin, code)))]);
+    const menu = new Menu();
+    BIBLE_LANGS.forEach(([code, name], i) => {
+      menu.addItem((it) => {
+        if (code === cur) return it.setTitle(name).setChecked(true);
+        if (have.includes(code)) return it.setTitle(name).onClick(() => this.openInLang(code, p, issue, d));
+        if (!bibles[i]) return it.setTitle(t('{lingua} · prima scarica la Bibbia', { lingua: name })).onClick(() => this.plugin.setPubLang(code));
+        it.setTitle(t('Scarica in {lingua}', { lingua: name })).setIcon('download').onClick(() => this.downloadInLang(code, name, p, issue));
+      });
+    });
+    menu.showAtMouseEvent(evt);
+  }
+
+  /**
+   * Passa alla lingua code e apre lì la stessa pagina. Il documento: stesso id (l'id dei documenti di JW è uguale in tutte le
+   * lingue), altrimenti (EPUB, id diversi) quello nella stessa posizione del numero, se i documenti sono tanti quanti.
+   */
+  async openInLang(code, p, issue, d) {
+    const listOf = (pub) => (issue ? (pub.issues || []).find((x) => x.key === issue)?.docs : pub.docs) || [];
+    const oldList = listOf(p);
+    await this.plugin.setPubLang(code);
+    await this.lib.ensureLoaded();
+    const np = this.lib.bySym.get(p.symbol);
+    if (!np) return this.navigate({ mode: 'home' }, { push: false });
+    const list = listOf(np);
+    let target = issue && list.length ? { mode: 'issue', sym: np.symbol, issue } : { mode: 'pub', sym: np.symbol };
+    if (d) {
+      const same = this.lib.byDocId.get(d.id);
+      const nd = same && same.pub === np ? same : list.length === oldList.length ? list[oldList.indexOf(d)] : null;
+      if (nd) target = { mode: 'doc', doc: nd.id };
+    }
+    this.navigate(target, { push: false });
+  }
+
+  async downloadInLang(code, name, p, issue) {
+    try {
+      if (!(await epubInfo(code, p.symbol, issue || ''))) return new Notice(t('Su jw.org non c’è un EPUB in {lingua} di questa pubblicazione.', { lingua: name }));
+      await this.plugin.setPubLang(code);
+      if (await this.plugin.importFromJw(p.symbol, issue || '', () => {}, p.category)) {
+        await this.plugin.openLibraryAt(issue ? { mode: 'issue', sym: p.symbol, issue } : { mode: 'pub', sym: p.symbol });
+      }
+    } catch (e) {
+      if (!e.cancelled) new Notice(`${t('Scarica in {lingua}', { lingua: name })}: ${e.message || e}`);
+    }
   }
 
   /** Da dove arriva la pubblicazione (o il numero), dai fornitori: { text, action?: { label, run } }. */
@@ -686,14 +757,14 @@ class LibraryView extends ItemView {
     if (!p) return this.renderHome();
     const wrap = this.mainEl.createDiv('lmp-lib-page');
     if (p.issues) {
-      this.pubHeader(wrap, p, p.issues[0].docs, `${p.issues.length} numeri · ${p.docs.length} articoli`);
+      this.pubHeader(wrap, p, p.issues[0].docs, t('{n} numeri · {m} articoli', { n: p.issues.length, m: p.docs.length }));
       let year = '';
       let grid = null;
       for (const iss of p.issues) {
         const y = iss.key.slice(0, 4);
         if (y !== year) {
           year = y;
-          wrap.createEl('h4', { cls: 'lmp-section-title', text: /^\d{4}$/.test(y) ? y : 'Altro' });
+          wrap.createEl('h4', { cls: 'lmp-section-title', text: /^\d{4}$/.test(y) ? y : t('Altro') });
           grid = wrap.createDiv('lmp-lib-grid lmp-lib-grid-issues');
         }
         const tile = grid.createDiv('lmp-lib-tile');
@@ -702,12 +773,12 @@ class LibraryView extends ItemView {
         if (cover) art.createEl('img', { attr: { src: fileSrc(this.app, cover), loading: 'lazy', alt: '' } });
         else this.fakeCover(art, p, issueLabel(iss.key));
         tile.createDiv({ cls: 'lmp-lib-tile-title', text: issueLabel(iss.key) });
-        tile.createDiv({ cls: 'lmp-lib-tile-meta', text: `${iss.docs.length} articoli` });
+        tile.createDiv({ cls: 'lmp-lib-tile-meta', text: t('{n} articoli', { n: iss.docs.length }) });
         tile.addEventListener('click', () => this.navigate({ mode: 'issue', sym: p.symbol, issue: iss.key }));
       }
       return;
     }
-    this.pubHeader(wrap, p, p.docs, `${p.docs.length} ${p.docs.length === 1 ? 'documento' : 'documenti'}`);
+    this.pubHeader(wrap, p, p.docs, p.docs.length === 1 ? t('1 documento') : t('{n} documenti', { n: p.docs.length }));
     let docs = p.docs;
     // Opere molto grandi (es. Perspicacia): indice alfabetico
     if (docs.length > 300) {
@@ -718,13 +789,13 @@ class LibraryView extends ItemView {
         const b = bar.createEl('button', { cls: `lmp-lib-letter${l === letter ? ' is-active' : ''}`, text: l });
         b.addEventListener('click', () => this.navigate({ mode: 'pub', sym: p.symbol, letter: l }, { push: false }));
       }
-      const filter = wrap.createEl('input', { type: 'search', cls: 'lmp-lib-search', attr: { placeholder: `Cerca in ${p.title}…` } });
+      const filter = wrap.createEl('input', { type: 'search', cls: 'lmp-lib-search', attr: { placeholder: t('Cerca in {nome}…', { nome: p.title }) } });
       const list = wrap.createDiv('lmp-lib-doclist');
       const draw = () => {
         list.empty();
         const q = norm(filter.value).trim();
         const shown = q ? docs.filter((d) => norm(d.title).includes(q)).slice(0, 200) : docs.filter((d) => norm(d.title).replace(/[^a-z]/g, '').charAt(0).toUpperCase() === letter);
-        for (const d of shown.sort((a, b) => a.title.localeCompare(b.title, 'it', { sensitivity: 'base' }))) this.docRow(list, d);
+        for (const d of shown.sort((a, b) => compare(a.title, b.title))) this.docRow(list, d);
       };
       filter.addEventListener('input', draw);
       draw();
@@ -739,7 +810,7 @@ class LibraryView extends ItemView {
     const iss = p && p.issues && p.issues.find((i) => i.key === this.state.issue);
     if (!iss) return this.renderPub();
     const wrap = this.mainEl.createDiv('lmp-lib-page');
-    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} · ${iss.docs.length} articoli`, iss.key);
+    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} · ${t('{n} articoli', { n: iss.docs.length })}`, iss.key);
     const list = wrap.createDiv('lmp-lib-doclist');
     for (const d of iss.docs) this.docRow(list, d);
   }
@@ -764,7 +835,12 @@ class LibraryView extends ItemView {
     if (!d) return this.renderHome();
     const file = fileAt(this.app, `${d.pub.prefix}${d.rel}`);
     const wrap = this.mainEl.createDiv('lmp-lib-doc');
-    const crumbs = wrap.createDiv('lmp-lib-crumbs');
+    const top = wrap.createDiv('lmp-lib-doc-top');
+    const crumbs = top.createDiv('lmp-lib-crumbs');
+    // Lingua: solo se il documento c'è anche in un'altra lingua.
+    this.pubLangsOf(d.pub).then((have) => {
+      if (have.length && token === this.renderToken) pubLangButton(this.plugin, top, (evt) => this.pubLangMenu(evt, d.pub, d.issue !== 'altro' ? d.issue : '', d));
+    });
     const pubLink = crumbs.createSpan({ cls: 'lmp-lib-crumb', text: d.pub.title });
     pubLink.addEventListener('click', () => this.navigate({ mode: 'pub', sym: d.pub.symbol }));
     if (d.issue && d.issue !== 'altro') {
@@ -773,7 +849,7 @@ class LibraryView extends ItemView {
       il.addEventListener('click', () => this.navigate({ mode: 'issue', sym: d.pub.symbol, issue: d.issue }));
     }
     if (!file) {
-      wrap.createDiv({ cls: 'lmp-empty', text: 'File del documento non trovato.' });
+      wrap.createDiv({ cls: 'lmp-empty', text: t('File del documento non trovato.') });
       return;
     }
     const text = await readFile(this.app, file);
@@ -788,7 +864,7 @@ class LibraryView extends ItemView {
       const lines = body.split('\n');
       lines.splice(label.line, 1);
       body = lines.join('\n');
-      wrap.createDiv({ cls: 'lmp-lib-doc-kicker', text: `${label.kind} ${label.num}` });
+      wrap.createDiv({ cls: 'lmp-lib-doc-kicker', text: `${t(label.kind)} ${label.num}` });
     }
     const titleEl = wrap.createEl('h1', { cls: 'lmp-lib-doc-title', text: d.title });
     // Il titolo lo mostriamo noi: togli il primo titolo del documento se è lo stesso.
@@ -929,7 +1005,7 @@ class LibraryView extends ItemView {
 
   /** Campi "La tua risposta" come in JW Library: la risposta del backup o quella scritta qui, modificabile. */
   async renderAnswerFields(d, wrap, token) {
-    const labels = [...wrap.querySelectorAll('[data-pid]')].filter((b) => /^(la tua risposta|le tue risposte)$/i.test(b.textContent.trim()));
+    const labels = [...wrap.querySelectorAll('[data-pid]')].filter((b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(b.textContent.trim()));
     if (!labels.length) return;
     const [fields, base] = await Promise.all([this.plugin.docAnswerFields(d), this.plugin.baseAnswers()]);
     if (token !== this.renderToken || !fields) return;
@@ -955,7 +1031,7 @@ class LibraryView extends ItemView {
     const wrap = createDiv('lmp-answer-wrap');
     ta.before(wrap);
     wrap.appendChild(ta);
-    const btn = wrap.createEl('button', { cls: 'clickable-icon lmp-ai-btn', attr: { 'aria-label': 'Spunti per il commento' } });
+    const btn = wrap.createEl('button', { cls: 'clickable-icon lmp-ai-btn', attr: { 'aria-label': t('Spunti per il commento') } });
     setIcon(btn, 'lightbulb');
     btn.addEventListener('click', (evt) =>
       aiMenu(this.plugin, evt, (preset) =>
@@ -1043,8 +1119,8 @@ class LibraryView extends ItemView {
     for (const el of this.docWrap.querySelectorAll('.lmp-img-alt, p.lmp-img-caption')) {
       const prev = blocks.filter((b) => b.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING).pop();
       const pid = prev ? +prev.dataset.pid : null;
-      const where = pid ? this.parLabel(pid) : 'Paragrafo';
-      sources.add(where === 'Paragrafo' ? 'Immagine' : `Immagine dopo ${where}`, blockText(el), pid ? { par: pid } : {});
+      const where = pid ? this.parLabel(pid) : t('Paragrafo');
+      sources.add(where === t('Paragrafo') ? t('Immagine') : t('Immagine dopo {where}', { where }), blockText(el), pid ? { par: pid } : {});
     }
     const refs = new Map();
     for (const b of [q, ...used].filter(Boolean))
@@ -1086,7 +1162,7 @@ class LibraryView extends ItemView {
     const last = part.filter((it) => it.k === 'p').pop();
     const q = last ? last.x.map(segText).join('').replace(/^\(\d+\s+min\)\s*/, '') : '';
     // "Quali gemme spirituali avete trovato?": il contesto è la lettura biblica della settimana, non il programma.
-    if (/gemme spirituali/i.test(q) && /lettura/i.test(q)) {
+    if (/gemme spirituali|spiritual gems/i.test(q) && /lettura|reading/i.test(q)) {
       const reading = items.find((x) => x.k === 'h2' && !x.s && x.x.some((t) => Array.isArray(t)));
       const link = reading && reading.x.find((t) => Array.isArray(t));
       const ctx = link && (await this.readingAiCtx(link, q));
@@ -1094,7 +1170,7 @@ class LibraryView extends ItemView {
     }
     const sources = new SourceList();
     const text = (it) => (it.k === 'img' ? [it.cap, it.alt].filter(Boolean).join(' — ') : it.x.map(segText).join(''));
-    const label = (it) => (it.k === 'h3' ? 'Parte del programma' : it.k === 'img' ? 'Immagine del programma' : 'Guida per l’adunanza');
+    const label = (it) => (it.k === 'h3' ? t('Parte del programma') : it.k === 'img' ? t('Immagine del programma') : t('Guida per l’adunanza'));
     const ids = part.map((it) => sources.add(label(it), text(it), {})).filter(Boolean);
     const refs = [];
     for (const it of part)
@@ -1113,7 +1189,7 @@ class LibraryView extends ItemView {
         }
       }
     await addScriptureSources(this.plugin, refs, sources, '');
-    return { title: `Guida per l’adunanza, ${weekLabel(k)}`, question: q, paragraphIds: ids, sources, notes: [] };
+    return { title: t('Guida per l’adunanza, {settimana}', { settimana: weekLabel(k) }), question: q, paragraphIds: ids, sources, notes: [] };
   }
 
   /**
@@ -1148,12 +1224,12 @@ class LibraryView extends ItemView {
         const key = `${e.path}:${e.line}`;
         if (seen.has(key) || seen.size >= 30) continue;
         seen.add(key);
-        sources.add(`Mia nota «${e.path.split('/').pop().replace(/\.md$/, '')}» (cita ${bible.refLabel(r)})`, e.snippet, { note: e.path, line: e.line });
+        sources.add(t('Mia nota «{nome}» (cita {ref})', { nome: e.path.split('/').pop().replace(/\.md$/, ''), ref: bible.refLabel(r) }), e.snippet, { note: e.path, line: e.line });
       }
     await addScriptureSources(this.plugin, refs, sources, '', { maxVerses: Infinity, citesFirst: true });
     return {
-      title: `Lettura biblica della settimana: ${bible.refLabel({ book: a.book, chapter: a.chapter })}${b.chapter !== a.chapter ? `-${b.chapter}` : ''}`,
-      question: `${q} (Ogni commento parte da un versetto preciso della lettura, che va nominato all'inizio, e aggiunge un dettaglio che lo rende prezioso: una nota di studio, un riferimento a margine o una pubblicazione che lo cita. Tre versetti diversi.)`,
+      title: t('Lettura biblica della settimana: {ref}', { ref: `${bible.refLabel({ book: a.book, chapter: a.chapter })}${b.chapter !== a.chapter ? `-${b.chapter}` : ''}` }),
+      question: `${q} ${t("(Ogni commento parte da un versetto preciso della lettura, che va nominato all'inizio, e aggiunge un dettaglio che lo rende prezioso: una nota di studio, un riferimento a margine o una pubblicazione che lo cita. Tre versetti diversi.)")}`,
       paragraphIds: ids,
       sources,
       shared,
@@ -1239,9 +1315,9 @@ class LibraryView extends ItemView {
     if (notes.length) {
       const crumbs = wrap.querySelector('.lmp-lib-crumbs');
       if (crumbs) {
-        const btn = crumbs.createSpan({ cls: 'lmp-doc-notes-btn', attr: { 'aria-label': 'Tutte le note del documento' } });
+        const btn = crumbs.createSpan({ cls: 'lmp-doc-notes-btn', attr: { 'aria-label': t('Tutte le note del documento') } });
         setIcon(btn.createSpan(), 'sticky-note');
-        btn.createSpan({ text: `${notes.length} not${notes.length === 1 ? 'a' : 'e'}` });
+        btn.createSpan({ text: notes.length === 1 ? t('1 nota') : t('{n} note', { n: notes.length }) });
         btn.addEventListener('click', () => this.openNotesPane());
       }
     }
@@ -1273,14 +1349,14 @@ class LibraryView extends ItemView {
    */
   parLabel(pid) {
     const b = this.docWrap && this.docWrap.querySelector(`[data-pid="${pid}"]`);
-    if (!b) return 'Paragrafo';
+    if (!b) return t('Paragrafo');
     const sup = b.querySelector('sup');
-    if (sup && /^\d+$/.test(sup.textContent.trim())) return `par. ${sup.textContent.trim()}`;
+    if (sup && /^\d+$/.test(sup.textContent.trim())) return t('par. {n}', { n: sup.textContent.trim() });
     const txt = b.textContent.replace(/\s+/g, ' ').trim();
     const q = /^(\d+(?:[-–]\d+)?)\.\s/.exec(txt);
-    if (q) return `domanda ${q[1]}`;
+    if (q) return t('domanda {n}', { n: q[1] });
     if (/^H[1-6]$/.test(b.tagName)) return txt.length > 40 ? `${txt.slice(0, 40)}…` : txt;
-    return 'Paragrafo';
+    return t('Paragrafo');
   }
 
   /** Schede SCRABB che usano un paragrafo di questo documento come fonte. */
@@ -1396,7 +1472,7 @@ class LibraryView extends ItemView {
     if (this.paneComp) this.removeChild(this.paneComp);
     this.paneComp = this.addChild(new Component());
 
-    const handle = pane.createDiv({ cls: 'lmp-pane-handle', attr: { 'aria-label': 'Ingrandisci o riduci' } });
+    const handle = pane.createDiv({ cls: 'lmp-pane-handle', attr: { 'aria-label': t('Ingrandisci o riduci') } });
     handle.createDiv('lmp-pane-handle-bar');
     handle.addEventListener('click', () => this.bodyEl.toggleClass('pane-expanded', !this.bodyEl.hasClass('pane-expanded')));
     const header = pane.createDiv('lmp-pane-header');
@@ -1409,17 +1485,17 @@ class LibraryView extends ItemView {
     const content = createDiv('lmp-pane-content');
 
     if (this.paneMode === 'notes') {
-      header.createDiv({ cls: 'lmp-pane-title', text: `Note · ${d.title}` });
-      iconBtn('x', 'Chiudi', () => this.closeLibPane());
+      header.createDiv({ cls: 'lmp-pane-title', text: `${t('Note')} · ${d.title}` });
+      iconBtn('x', t('Chiudi'), () => this.closeLibPane());
       pane.appendChild(content);
       const notes = (this.docNotes || []).slice().sort((a, b) => (a.pid ?? 1e9) - (b.pid ?? 1e9));
-      if (!notes.length) content.createDiv({ cls: 'lmp-empty', text: 'Nessuna nota su questo documento.' });
+      if (!notes.length) content.createDiv({ cls: 'lmp-empty', text: t('Nessuna nota su questo documento.') });
       let last = undefined;
       let list = null;
       for (const x of notes) {
         if (x.pid !== last) {
           last = x.pid;
-          const pl = x.pid != null ? this.parLabel(x.pid) : 'Documento';
+          const pl = x.pid != null ? this.parLabel(x.pid) : t('Documento');
           const h = content.createDiv({ cls: 'lmp-cite-pub lmp-lib-pane-par', text: pl.charAt(0).toUpperCase() + pl.slice(1) });
           if (x.pid != null) h.addEventListener('click', () => this.openParPane(x.pid));
           list = content.createDiv('lmp-notes');
@@ -1440,9 +1516,9 @@ class LibraryView extends ItemView {
     header.createDiv({ cls: 'lmp-pane-title', text: `${pl.charAt(0).toUpperCase()}${pl.slice(1)} · ${d.title}` });
     const pids = this.docWrap ? [...this.docWrap.querySelectorAll('[data-pid]')].map((b) => +b.dataset.pid) : [];
     const i = pids.indexOf(pid);
-    iconBtn('chevron-up', 'Paragrafo precedente', () => i > 0 && this.openParPane(pids[i - 1]));
-    iconBtn('chevron-down', 'Paragrafo successivo', () => i >= 0 && i < pids.length - 1 && this.openParPane(pids[i + 1]));
-    iconBtn('x', 'Chiudi', () => this.closeLibPane());
+    iconBtn('chevron-up', t('Paragrafo precedente'), () => i > 0 && this.openParPane(pids[i - 1]));
+    iconBtn('chevron-down', t('Paragrafo successivo'), () => i >= 0 && i < pids.length - 1 && this.openParPane(pids[i + 1]));
+    iconBtn('x', t('Chiudi'), () => this.closeLibPane());
 
     // Azioni: copia, collega a SCRABB, apri in JW Library
     const actions = pane.createDiv('lmp-actions');
@@ -1454,13 +1530,13 @@ class LibraryView extends ItemView {
       b.addEventListener('click', fn);
     };
     const parText = () => (block ? block.innerText.replace(/^\d+\s+/, '').replace(/\s+/g, ' ').trim() : '');
-    tool('waypoints', 'Collega a SCRABB', () => this.linkToScrabb(pid, parText()));
-    tool('copy', 'Copia', async () => {
+    tool('waypoints', t('Collega a SCRABB'), () => this.linkToScrabb(pid, parText()));
+    tool('copy', t('Copia'), async () => {
       await navigator.clipboard.writeText(parText());
-      new Notice('Paragrafo copiato');
+      new Notice(t('Paragrafo copiato'));
     });
     tool('smartphone', 'JW Library', () => window.open(`jwlibrary:///finder?docid=${d.id}&par=${pid}`));
-    tool('lightbulb', 'Spunti', (evt) => this.aiOnParagraph(evt, pid));
+    tool('lightbulb', t('Spunti'), (evt) => this.aiOnParagraph(evt, pid));
     pane.appendChild(content);
     // Domande libere all'AI su questo paragrafo (solo con la chiave OpenRouter): la conversazione resta per paragrafo.
     if ((this.plugin.settings.openrouterKey || '').trim()) {
@@ -1486,10 +1562,10 @@ class LibraryView extends ItemView {
     // Schede SCRABB che usano il paragrafo come fonte
     const fonti = this.docFonti(pid);
     if (fonti.length) {
-      const sec = this.libSection(content, 'SCRABB', fonti.length);
+      const sec = this.libSection(content, t('SCRABB'), fonti.length);
       const chips = sec.createDiv('scrabb-chips');
       for (const { e } of fonti) {
-        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'aria-label': SCRABB_TYPES[e.tipo].label } });
+        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'aria-label': t(SCRABB_TYPES[e.tipo].label) } });
         chip.createSpan('scrabb-dot');
         chip.createSpan({ text: e.name });
         chip.addEventListener('click', () => this.plugin.showInScrabb(e.path));
@@ -1509,7 +1585,7 @@ class LibraryView extends ItemView {
       }
     }
     if (refs.length) {
-      const sec = this.libSection(content, 'Scritture', refs.length);
+      const sec = this.libSection(content, t('Scritture'), refs.length);
       for (const r of refs) {
         const item = sec.createDiv('lmp-ref');
         item.createDiv({ cls: 'lmp-ref-label', text: r.label });
@@ -1520,7 +1596,7 @@ class LibraryView extends ItemView {
       }
     }
     if (!notes.length && !fonti.length && !refs.length)
-      content.createDiv({ cls: 'lmp-empty', text: 'Nessuna nota, scheda o scrittura su questo paragrafo. Seleziona del testo per evidenziarlo o collegarlo a una scheda SCRABB.' });
+      content.createDiv({ cls: 'lmp-empty', text: t('Nessuna nota, scheda o scrittura su questo paragrafo. Seleziona del testo per evidenziarlo o collegarlo a una scheda SCRABB.') });
     this.layoutDocNoteSquares();
   }
 
@@ -1544,11 +1620,11 @@ class LibraryView extends ItemView {
       stack.pop();
       this.renderLibPane();
     };
-    iconBtn('arrow-left', stack.length > 1 ? `Torna a ${bible.refLabel(stack[stack.length - 2])}` : 'Torna al paragrafo', up);
+    iconBtn('arrow-left', stack.length > 1 ? t('Torna a {ref}', { ref: bible.refLabel(stack[stack.length - 2]) }) : t('Torna al paragrafo'), up);
     header.createDiv({ cls: 'lmp-pane-title', text: bible.refLabel(ref) });
-    iconBtn('book-open', 'Apri nella Bibbia', () => this.plugin.openReader(ref));
-    iconBtn('external-link', 'Apri in una nuova scheda', () => this.plugin.openReaderInNewTab(ref));
-    iconBtn('x', 'Chiudi', () => this.closeLibPane());
+    iconBtn('book-open', t('Apri nella Bibbia'), () => this.plugin.openReader(ref));
+    iconBtn('external-link', t('Apri in una nuova scheda'), () => this.plugin.openReaderInNewTab(ref));
+    iconBtn('x', t('Chiudi'), () => this.closeLibPane());
     pane.appendChild(content);
     content.addClass('lmp-deep');
 
@@ -1577,15 +1653,15 @@ class LibraryView extends ItemView {
       const t = bible.verseText(data, v);
       if (t) parts.push(last > first ? `${v} ${t}` : t);
     }
-    content.createDiv({ cls: 'lmp-deep-text', text: parts.join(' ') || 'Testo non trovato.' });
+    content.createDiv({ cls: 'lmp-deep-text', text: parts.join(' ') || t('Testo non trovato.') });
     const book = bible.byNum.get(ref.book);
     const label = bible.refLabel(ref);
     const sc = this.plugin.scrabb;
     const hasAi = !!(this.plugin.settings.openrouterKey || '').trim() && !!data;
     const acts = content.createDiv('lmp-deep-actions');
     const act = (text, fn) => acts.createEl('button', { cls: 'lmp-small-btn', text }).addEventListener('click', fn);
-    act('Apri nella Bibbia', () => this.plugin.openReader(ref));
-    if (sc && sc.ready) act('Collega a SCRABB', () => linkVerseToScrabb(this.plugin, label, () => this.renderLibPane()));
+    act(t('Apri nella Bibbia'), () => this.plugin.openReader(ref));
+    if (sc && sc.ready) act(t('Collega a SCRABB'), () => linkVerseToScrabb(this.plugin, label, () => this.renderLibPane()));
 
     // AI sul versetto, con lo stesso contesto della Bibbia (capitolo, note, approfondimenti, "Citato in").
     const verses = [];
@@ -1594,7 +1670,7 @@ class LibraryView extends ItemView {
     const onSource = (t) => (t && t.verse ? this.goDeep(t.verse) : this.openCommentSource(t, this.panePar));
     let aiAnchor = acts;
     if (hasAi) {
-      act('Spunti', (evt) =>
+      act(t('Spunti'), (evt) =>
         aiMenu(this.plugin, evt, (preset) =>
           showAiSuggestions(this.plugin, preset, getCtx, {
             place: (box) => {
@@ -1613,14 +1689,14 @@ class LibraryView extends ItemView {
       const key = `${this.state.doc}:${label}`;
       if (!this.paneChats.has(key)) this.paneChats.set(key, { turns: [] });
       if (this.paneChats.size > 30) this.paneChats.delete(this.paneChats.keys().next().value);
-      aiAnchor = renderAskBox(this.plugin, getCtx, this.paneChats.get(key), onSource, 'Chiedi qualcosa su questo versetto…');
+      aiAnchor = renderAskBox(this.plugin, getCtx, this.paneChats.get(key), onSource, t('Chiedi qualcosa su questo versetto…'));
       acts.after(aiAnchor);
       if (this.paneAi && this.paneAi.doc === this.state.doc && this.paneAi.deep === label) aiAnchor.after(this.paneAi.box);
     }
     let shown = 0;
 
     // Le tue note sul versetto (di sola lettura qui: la matita apre il file)
-    const noteFile = book && ref.verse ? bible.getFile(this.plugin.notePath(book, ref.chapter, ref.verse)) : null;
+    const noteFile = book && ref.verse ? this.plugin.verseNoteFile(book, ref.chapter, ref.verse) : null;
     const parsed = noteFile ? parseNoteFile(await this.app.vault.cachedRead(noteFile)) : null;
     if (token !== this.libPaneToken) return;
     if (parsed && (parsed.blocks.length || noteFreeText(parsed.rest))) {
@@ -1631,14 +1707,14 @@ class LibraryView extends ItemView {
         const c = list.createDiv('lmp-note-card lmp-doc-note-card');
         const head = c.createDiv('lmp-note-card-head');
         head.createDiv({ cls: 'lmp-note-card-title', text: title });
-        const edit = head.createEl('button', { cls: 'clickable-icon lmp-note-edit', attr: { 'aria-label': 'Apri nel file delle note' } });
+        const edit = head.createEl('button', { cls: 'clickable-icon lmp-note-edit', attr: { 'aria-label': t('Apri nel file delle note') } });
         setIcon(edit, 'pencil');
         edit.addEventListener('click', () => this.plugin.openNoteAt(noteFile, line));
         if (md) renderMd(this.app, md, c.createDiv('lmp-md lmp-note-card-body'), noteFile.path, this.paneComp);
       };
-      for (const b of parsed.blocks) card(b.title && b.title !== 'Nota' ? b.title : 'Nota', b.content, b.start);
+      for (const b of parsed.blocks) card(b.title && b.title !== 'Nota' ? b.title : t('Nota'), b.content, b.start);
       const free = noteFreeText(parsed.rest);
-      if (free) card('Appunti', free, 0);
+      if (free) card(t('Appunti'), free, 0);
     }
 
     const details = ref.verse && book ? await bible.getVerseDetails(book, ref.chapter, ref.verse).catch(() => null) : null;
@@ -1685,7 +1761,7 @@ class LibraryView extends ItemView {
       const cites = this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse).filter((e) => !noteFile || e.path !== noteFile.path);
       if (cites.length) {
         shown++;
-        const sec = this.libSection(content, 'Nelle mie note', new Set(cites.map((e) => e.path)).size);
+        const sec = this.libSection(content, t('Nelle mie note'), new Set(cites.map((e) => e.path)).size);
         renderNoteCites(this.plugin, sec, cites, (file, line, evt) => this.plugin.openNoteAt(file, line, evt));
       }
     }
@@ -1694,7 +1770,7 @@ class LibraryView extends ItemView {
     const cited = details && details.sections.find((x) => x.title === 'Citato in');
     if (cited) {
       shown++;
-      const sec = this.libSection(content, 'Citato in');
+      const sec = this.libSection(content, t('Citato in'));
       await renderCitedIn(this.plugin, sec, cited.body, src, this.paneComp);
       if (token !== this.libPaneToken) return;
     }
@@ -1702,16 +1778,16 @@ class LibraryView extends ItemView {
     const ents = sc && sc.ready && book && ref.verse ? sc.lookup(book.num, ref.chapter, ref.verse) : [];
     if (ents.length) {
       shown++;
-      const sec = this.libSection(content, 'SCRABB', ents.length);
+      const sec = this.libSection(content, t('SCRABB'), ents.length);
       const chips = sec.createDiv('scrabb-chips');
       for (const e of ents) {
-        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'aria-label': SCRABB_TYPES[e.tipo].label } });
+        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { 'aria-label': t(SCRABB_TYPES[e.tipo].label) } });
         chip.createSpan('scrabb-dot');
         chip.createSpan({ text: e.name });
         chip.addEventListener('click', () => this.plugin.showInScrabb(e.path));
       }
     }
-    if (!shown) content.createDiv({ cls: 'lmp-empty', text: 'Nessun approfondimento per questo versetto.' });
+    if (!shown) content.createDiv({ cls: 'lmp-empty', text: t('Nessun approfondimento per questo versetto.') });
 
     // Versetti citati dentro gli approfondimenti: anche loro portano un livello più in giù.
     content.addEventListener('click', (evt) => {
@@ -1764,8 +1840,8 @@ class LibraryView extends ItemView {
       if (quote && quote !== n.title) card.createDiv({ cls: 'lmp-note-quote', text: `«${quote.length > 140 ? `${quote.slice(0, 140)}…` : quote}»` });
     }
     const head = card.createDiv('lmp-note-card-head');
-    head.createDiv({ cls: 'lmp-note-card-title', text: n.title && n.title !== 'Nota' ? n.title : 'Nota' });
-    const open = head.createEl('button', { cls: 'clickable-icon lmp-note-edit', attr: { 'aria-label': 'Apri nel file delle note' } });
+    head.createDiv({ cls: 'lmp-note-card-title', text: n.title && n.title !== 'Nota' ? n.title : t('Nota') });
+    const open = head.createEl('button', { cls: 'clickable-icon lmp-note-edit', attr: { 'aria-label': t('Apri nel file delle note') } });
     setIcon(open, 'pencil');
     open.addEventListener('click', () => this.plugin.openNoteAt(n.file, n.line));
     // Testo di JW Library: gli a capo sono quelli scritti nell'app.
@@ -1787,13 +1863,13 @@ class LibraryView extends ItemView {
       this.layoutDocNoteSquares();
       if (this.paneMode) this.renderLibPane();
     }, 1500);
-    new ScrabbPickModal(this.plugin, { placeholder: `Collega ${pl} a una scheda (illustrazione, principio, persona…)`, allowCreate: true }, async (e) => {
+    new ScrabbPickModal(this.plugin, { placeholder: t('Collega {par} a una scheda (illustrazione, principio, persona…)', { par: pl }), allowCreate: true }, async (e) => {
       if (e.create) {
         new ScrabbNewModal(this.plugin, { name: e.name, tipo: 'illustrazione', fonti: [link], body: text ? `> ${text}\n> — ${link}` : '' }, refresh).open();
         return;
       }
       await sc.addFonte(e, link, text);
-      new Notice(`${pl.charAt(0).toUpperCase()}${pl.slice(1)} collegato a ${e.name}`);
+      new Notice(t('{par} collegato a {nome}', { par: `${pl.charAt(0).toUpperCase()}${pl.slice(1)}`, nome: e.name }));
       refresh();
     }).open();
   }
@@ -1825,13 +1901,13 @@ class LibraryView extends ItemView {
     bar.hide();
     bar.addEventListener('mousedown', (e) => e.preventDefault());
     for (const h of HIGHLIGHTS) {
-      const dot = bar.createEl('button', { cls: `lmp-color-dot hl-${h.id}`, attr: { 'aria-label': `Evidenzia: ${h.label}` } });
+      const dot = bar.createEl('button', { cls: `lmp-color-dot hl-${h.id}`, attr: { 'aria-label': t('Evidenzia: {colore}', { colore: t(h.label) }) } });
       dot.addEventListener('click', () => this.applySelection(h.id));
     }
-    const erase = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Rimuovi evidenziazione' } });
+    const erase = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Rimuovi evidenziazione') } });
     setIcon(erase, 'eraser');
     erase.addEventListener('click', () => this.applySelection(null));
-    const scr = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Collega a una scheda SCRABB' } });
+    const scr = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Collega a una scheda SCRABB') } });
     setIcon(scr, 'waypoints');
     scr.addEventListener('click', () => {
       const info = this.selInfo;
@@ -1840,15 +1916,15 @@ class LibraryView extends ItemView {
       this.hideSelectionBar();
       this.linkToScrabb(info.ranges[0].v, info.text);
     });
-    const copy = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Copia' } });
+    const copy = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Copia') } });
     setIcon(copy, 'copy');
     copy.addEventListener('click', async () => {
       if (!this.selInfo) return;
       await navigator.clipboard.writeText(this.selInfo.text);
-      new Notice('Testo copiato');
+      new Notice(t('Testo copiato'));
       this.hideSelectionBar();
     });
-    const ai = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': 'Spunti sul testo selezionato' } });
+    const ai = bar.createEl('button', { cls: 'lmp-color-dot lmp-color-erase clickable-icon', attr: { 'aria-label': t('Spunti sul testo selezionato') } });
     setIcon(ai, 'lightbulb');
     ai.addEventListener('click', (evt) => {
       const info = this.selInfo;
@@ -1958,9 +2034,9 @@ function renderWeekCard(plugin, parent, go) {
     const card = parent.createDiv('lmp-week-home');
     const head = card.createEl('button', { cls: 'lmp-week-entry' });
     setIcon(head.createSpan('lmp-week-entry-icon'), 'calendar-days');
-    const t = head.createSpan();
-    t.createDiv({ cls: 'lmp-week-entry-title', text: 'Adunanze della settimana' });
-    t.createDiv({ cls: 'lmp-week-entry-sub', text: weekLabel(k) });
+    const tx = head.createSpan();
+    tx.createDiv({ cls: 'lmp-week-entry-title', text: t('Adunanze della settimana') });
+    tx.createDiv({ cls: 'lmp-week-entry-sub', text: weekLabel(k) });
     setIcon(head.createSpan('lmp-week-entry-go'), 'chevron-right');
     head.addEventListener('click', () => go({ mode: 'week' }));
     const rows = card.createDiv('lmp-week-rows');
@@ -1982,17 +2058,17 @@ function renderWeekCard(plugin, parent, go) {
           const x = parseCode(link[1]);
           const y = parseCode(link[2] || link[1]);
           const lbl = plugin.bible.refLabel({ book: x.book, chapter: x.chapter });
-          row('book-open', 'Lettura biblica', x.book === y.book && y.chapter > x.chapter ? `${lbl}-${y.chapter}` : lbl || link[0], () => plugin.openReader({ book: x.book, chapter: x.chapter }));
+          row('book-open', t('Lettura biblica'), x.book === y.book && y.chapter > x.chapter ? `${lbl}-${y.chapter}` : lbl || link[0], () => plugin.openReader({ book: x.book, chapter: x.chapter }));
         }
         const tags = mw.items.filter((x) => x.k === 'f').flatMap((x) => x.f);
         const own = ownTags(mw.id);
         const n = tags.filter((tag) => own.has(tag)).length;
-        row('users', 'Infrasettimanale', tags.length ? `${n}/${tags.length} risposte` : 'programma', () => go({ mode: 'week' }), tags.length > 0 && n === tags.length);
-      } else row('users', 'Infrasettimanale', 'apri per scaricare il programma', () => go({ mode: 'week' }));
+        row('users', t('Infrasettimanale'), tags.length ? t('{n}/{tot} risposte', { n, tot: tags.length }) : t('programma'), () => go({ mode: 'week' }), tags.length > 0 && n === tags.length);
+      } else row('users', t('Infrasettimanale'), t('apri per scaricare il programma'), () => go({ mode: 'week' }));
       const wt = arts && arts.get(k);
       if (wt) {
         const n = ownTags(wt.id).size;
-        row('tower-control', 'Torre di Guardia', `${wt.title}${n ? ` · ${n} risposte` : ''}`, () => go({ mode: 'doc', sym: wt.pub.symbol, doc: wt.id }));
+        row('tower-control', t('Torre di Guardia'), `${wt.title}${n ? ` · ${t('{n} risposte', { n })}` : ''}`, () => go({ mode: 'doc', sym: wt.pub.symbol, doc: wt.id }));
       }
     });
 }
@@ -2007,16 +2083,16 @@ class RemovePubModal extends Modal {
   }
 
   onOpen() {
-    this.titleEl.setText('Togliere dalla biblioteca?');
+    this.titleEl.setText(t('Togliere dalla biblioteca?'));
     const el = this.contentEl;
-    el.createEl('p', { text: `«${this.name}»: note e immagini vengono cancellate dal vault. Le tue note personali e le evidenziazioni restano. Potrai scaricarla di nuovo.` });
+    el.createEl('p', { text: t('«{nome}»: note e immagini vengono cancellate dal vault. Le tue note personali e le evidenziazioni restano. Potrai scaricarla di nuovo.', { nome: this.name }) });
     const status = el.createDiv({ cls: 'lmp-bible-dl-status', attr: { 'aria-live': 'polite' } });
     const row = el.createDiv('modal-button-container');
-    row.createEl('button', { text: 'Annulla' }).addEventListener('click', () => this.close());
-    const ok = row.createEl('button', { cls: 'mod-warning', text: 'Togli' });
+    row.createEl('button', { text: t('Annulla') }).addEventListener('click', () => this.close());
+    const ok = row.createEl('button', { cls: 'mod-warning', text: t('Togli') });
     ok.addEventListener('click', async () => {
       ok.disabled = true;
-      status.setText('Cancello…');
+      status.setText(t('Cancello…'));
       try {
         await this.run();
         this.close();

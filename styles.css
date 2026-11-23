@@ -1555,7 +1555,6 @@
 .is-mobile .workspace-tabs:has(.lmp-view, .lmp-lib, .scrabb-view) > .workspace-tab-header-container {
   max-height: 120px;
   overflow: hidden;
-  transition: max-height 0.2s ease, padding 0.2s ease, border-width 0.2s ease;
 }
 .is-mobile .lmp-bars-hidden .lmp-toolbar,
 .is-mobile .lmp-bars-hidden .scrabb-header,
@@ -2036,7 +2035,8 @@ button.lmp-ai-ask-copy { margin-top: 4px; }
 .lmp-tab-icon { display: flex; }
 .lmp-tab-icon svg { width: 22px; height: 22px; }
 /* lettura a schermo pieno (barre nascoste scorrendo): anche la barra in alto e le linguette si chiudono */
-.is-mobile .lmp-shell .lmp-toolbar,
+/* in alto senza animazione (ui.js setBarsHidden tiene fermo il testo); in basso sì, lì il testo non si sposta */
+.is-mobile .lmp-shell .lmp-toolbar { max-height: 120px; overflow: hidden; }
 .is-mobile .lmp-tabbar { max-height: 120px; overflow: hidden; transition: max-height 0.2s ease, padding 0.2s ease, border-width 0.2s ease; }
 .is-mobile .lmp-shell:has(.lmp-bars-hidden) .lmp-tabbar { max-height: 0; padding-top: 0; padding-bottom: 0; border-top-width: 0; }
 
@@ -2140,3 +2140,18 @@ input[type='text'].lmp-epub-sym { font-size: 16px; flex: 1; min-width: 10em; }
 
 /* Impostazioni: ordine delle sezioni del pannello, righe compatte */
 .lmp-order-row { padding: 4px 0; }
+
+/* lingua delle pubblicazioni: pulsantino "IT" con il menu delle lingue (una biblioteca per lingua) */
+button.lmp-lang-btn:not(.clickable-icon) { display: inline-flex; align-items: center; gap: 4px; flex: none; height: auto; padding: 4px 8px; border-radius: var(--radius-s); background: transparent; box-shadow: none; color: var(--text-muted); font-size: var(--font-ui-smaller); font-weight: 600; letter-spacing: 0.04em; cursor: pointer; }
+button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-modifier-hover); color: var(--text-normal); }
+.lmp-lang-btn-icon { display: inline-flex; }
+.lmp-lang-btn-icon svg { width: 15px; height: 15px; }
+.lmp-home-top, .lmp-lib-top { display: flex; align-items: center; gap: 8px; }
+.lmp-home-top { justify-content: flex-end; margin-bottom: 12px; }
+.lmp-home-top .lmp-bible-pick { flex: 1; min-width: 0; margin-bottom: 0; }
+.lmp-lib-top { margin-bottom: 4px; }
+.lmp-lib-top .lmp-lib-search { flex: 1; min-width: 0; margin-bottom: 0; }
+.lmp-pub-lang-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.lmp-lib-doc-top { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lmp-lib-doc-top .lmp-lib-crumbs { flex: 1; min-width: 0; margin-bottom: 0; }
+.lmp-lib-head .lmp-lang-btn { align-self: flex-start; }

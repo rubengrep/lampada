@@ -1,6 +1,7 @@
 import { TFile, debounce, normalizePath } from 'obsidian';
 import { DEFAULT_SETTINGS } from './costanti.js';
 import { verseCode } from './testo.js';
+import { compare, formatDate, t } from './lingua.js';
 
 /* ------------------------------------------------------------------ */
 /* SCRABB: schede di studio collegate (principi, modelli, illustrazioni, cronologia, mappa) */
@@ -113,16 +114,17 @@ function scrabbLinkpaths(v) {
 }
 
 function scrabbYear(y) {
-  return y < 0 ? `${-y} a.E.V.` : `${y} E.V.`;
+  return y < 0 ? t('{n} a.E.V.', { n: -y }) : t('{n} E.V.', { n: y });
 }
 
 function scrabbDate(e) {
   if (e.anno == null) return e.data ? String(e.data) : '';
-  const ca = e.approx ? 'ca. ' : '';
-  if (e.fine == null || e.fine === e.anno) return ca + scrabbYear(e.anno);
-  if (e.anno < 0 && e.fine < 0) return `${ca}${-e.anno}–${-e.fine} a.E.V.`;
-  if (e.anno > 0) return `${ca}${e.anno}–${e.fine} E.V.`;
-  return `${ca}${scrabbYear(e.anno)} – ${scrabbYear(e.fine)}`;
+  let d;
+  if (e.fine == null || e.fine === e.anno) d = scrabbYear(e.anno);
+  else if (e.anno < 0 && e.fine < 0) d = t('{da}–{a} a.E.V.', { da: -e.anno, a: -e.fine });
+  else if (e.anno > 0) d = t('{da}–{a} E.V.', { da: e.anno, a: e.fine });
+  else d = `${scrabbYear(e.anno)} – ${scrabbYear(e.fine)}`;
+  return e.approx ? t('ca. {data}', { data: d }) : d;
 }
 
 /** Data di una nota (discorso, parte): campo data/date o "AAAA-MM-GG" nel nome del file. */
@@ -135,14 +137,14 @@ function scrabbNoteDate(app, file) {
 
 function scrabbFmtDate(d) {
   if (!d) return '';
-  const [y, m, g] = d.split('-');
-  return `${g}/${m}/${y}`;
+  const [y, m, g] = d.split('-').map(Number);
+  return formatDate(new Date(y, m - 1, g), { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function scrabbUsageText(used) {
-  if (!used.length) return 'mai usata';
+  if (!used.length) return t('mai usata');
   const last = used.find((o) => o.date);
-  return `${used.length}×${last ? ` · ultima ${scrabbFmtDate(last.date)}` : ''}`;
+  return last ? t('{n}× · ultima {data}', { n: used.length, data: scrabbFmtDate(last.date) }) : `${used.length}×`;
 }
 
 function scrabbFold(s) {
@@ -314,7 +316,7 @@ class ScrabbIndex {
       const e = this.byPath.get(p);
       if (e && (!types || types.includes(e.tipo))) out.push(e);
     }
-    return out.sort((a, b) => a.name.localeCompare(b.name, 'it'));
+    return out.sort((a, b) => compare(a.name, b.name));
   }
 
   isStrong(a, b) {
@@ -422,7 +424,7 @@ class ScrabbIndex {
   /** Crea una nuova scheda; `links` sono nomi di schede da collegare nel frontmatter. */
   async create({ name, tipo, versetti = [], links = [], body = '', extra = {}, fonti = [] }) {
     name = scrabbSafeName(name);
-    if (!name) throw new Error('Nome mancante');
+    if (!name) throw new Error(t('Nome mancante'));
     const folder = normalizePath(`${this.folder}/${SCRABB_TYPES[tipo].folder}`);
     if (!this.app.vault.getAbstractFileByPath(folder)) await this.app.vault.createFolder(folder);
     const path = normalizePath(`${folder}/${name}.md`);
