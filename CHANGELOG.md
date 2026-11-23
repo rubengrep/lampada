@@ -1,5 +1,10 @@
 # Novità
 
+## 0.20.1 — 2026-11-23
+
+- Telefono: il pannello del versetto che sale dal basso era diventato una striscia stretta a sinistra; torna largo quanto lo schermo.
+- Modalità app, iPhone Duo aperto (o tablet) in orizzontale: strumenti e sezioni in una sola colonna laterale, il testo guadagna larghezza. Sul Duo chiuso restano due colonne.
+
 ## 0.20.0 — 2026-11-23
 
 - Modalità app, telefono e tablet in orizzontale (anche iPhone Duo): i comandi vanno in colonna sul lato dove arriva il pollice, il testo prende tutta l'altezza. Indietro in alto, le azioni a metà, le sezioni in basso nella colonna accanto all'ora e al Wi‑Fi. In verticale le sezioni stanno sempre in basso.

@@ -87,12 +87,13 @@
 .lmp-pane {
   display: none;
   flex: 0 0 var(--lmp-pane-w, min(42%, 460px));
-  max-width: calc(100% - 320px);
   border-left: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
   overflow-y: auto;
 }
 .lmp-body.has-pane .lmp-pane { display: block; }
+/* affiancato: il testo tiene almeno 320px (il foglio dal basso, .is-narrow, resta largo quanto lo schermo) */
+.lmp-body:not(.is-narrow) .lmp-pane { max-width: calc(100% - 320px); }
 
 .lmp-body.is-narrow .lmp-pane {
   position: absolute;
@@ -2115,6 +2116,22 @@ body.lmp-app.mod-macos.is-hidden-frameless:not(.is-fullscreen) .lmp-area .lmp-to
   body.lmp-app.is-mobile.lmp-rail-left .lmp-tabbar { width: max(var(--lmp-rail), var(--safe-area-inset-left, 0px)); border-left: none; border-right: 1px solid var(--background-modifier-border); }
   body.lmp-app.is-mobile.lmp-rail-left .lmp-area > .view-content:not(.scrabb-view) { padding-right: 0 !important; padding-left: var(--lmp-rail) !important; }
   body.lmp-app.is-mobile.lmp-rail-left .lmp-area .lmp-toolbar:not(.scrabb-header) { right: auto; left: 0; border-left: none; border-right: 1px solid var(--background-modifier-border); }
+}
+/* Duo aperto (o tablet) in orizzontale: c'è altezza per una colonna sola, le sezioni in fondo a quella degli strumenti */
+@media (orientation: landscape) and (min-height: 600px) {
+  /* ponytail: 6 linguette fisse (5 sezioni + App); se ne cambia il numero, cambiare il 6 */
+  body.lmp-app.is-mobile { --lmp-tabs-h: calc(6 * 44px + 9px + var(--safe-area-inset-bottom, 0px)); }
+  body.lmp-app.is-mobile .lmp-shell { position: relative; }
+  body.lmp-app.is-mobile .lmp-tabbar,
+  body.lmp-app.is-mobile .lmp-shell:has(.lmp-bars-hidden) .lmp-tabbar {
+    position: absolute; right: 0; bottom: 0; z-index: 25; width: var(--lmp-rail); height: var(--lmp-tabs-h); border-top: 1px solid var(--background-modifier-border);
+  }
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar:not(.scrabb-header) { padding-bottom: calc(var(--lmp-tabs-h) + 6px) !important; }
+  body.lmp-app.is-mobile .lmp-area > .view-content.scrabb-view { padding-right: var(--lmp-rail) !important; }
+  /* striscia a sinistra: la colonna resta accanto, non sotto l'ora */
+  body.lmp-app.is-mobile.lmp-rail-left .workspace > .mod-root { padding-left: var(--safe-area-inset-left) !important; }
+  body.lmp-app.is-mobile.lmp-rail-left .lmp-tabbar { right: auto; left: 0; width: var(--lmp-rail); }
+  body.lmp-app.is-mobile.lmp-rail-left .lmp-area > .view-content.scrabb-view { padding-right: 0 !important; padding-left: var(--lmp-rail) !important; }
 }
 @media (orientation: portrait) {
   body.lmp-app.is-mobile .lmp-tabbar { display: flex; }
