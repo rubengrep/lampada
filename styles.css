@@ -761,6 +761,11 @@
   box-shadow: var(--shadow-l);
 }
 .is-phone .lmp-selbar { gap: 10px; padding: 8px 12px; }
+/* in colonna sul bordo (placeSelBar, schermo largo al tocco); la definizione accanto, verso il testo */
+.lmp-selbar.is-side, .lmp-selbar.is-side.has-def { flex-direction: column; flex-wrap: nowrap; gap: 10px; padding: 10px 7px; border-radius: 999px; max-width: none; }
+.lmp-selbar.is-side .lmp-selbar-def { position: absolute; top: 0; right: calc(100% + 8px); width: 260px; padding: 8px 10px; border: 1px solid var(--background-modifier-border); border-radius: 12px; background: var(--background-primary); box-shadow: var(--shadow-l); }
+.lmp-selbar.is-side.def-right .lmp-selbar-def { right: auto; left: calc(100% + 8px); }
+.lmp-selbar.is-side .lmp-selbar-def:empty { display: none; }
 
 .lmp-export-warning {
   margin: 8px 0 12px;

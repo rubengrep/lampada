@@ -1,5 +1,9 @@
 # Novità
 
+## 0.20.2 — 2026-11-23
+
+- iPhone Duo aperto e tablet: selezionando il testo, la barra dei colori sta in colonna sul bordo del testo, a metà altezza, a portata di pollice e lontana dal menu di iOS. Sul telefono resta in basso.
+
 ## 0.20.1 — 2026-11-23
 
 - Telefono: il pannello del versetto che sale dal basso era diventato una striscia stretta a sinistra; torna largo quanto lo schermo.

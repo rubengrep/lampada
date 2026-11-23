@@ -287,12 +287,26 @@ function showDefinition(view, el, text, open, placed) {
     .catch(() => null);
 }
 
-/** Barra della selezione: sotto il testo scelto; sul telefono in fondo, lontano dal menu di iOS. */
+/** Barra della selezione: sotto il testo scelto; al tocco lontano dal menu di iOS (in fondo, o in colonna di lato se largo). */
 function placeSelBar(view) {
   const info = view.selInfo;
   const bar = view.selBar;
   if (!info || !bar) return;
   const root = view.contentEl.getBoundingClientRect();
+  // Schermo largo al tocco (iPhone Duo aperto, tablet): colonna sul bordo del testo, a metà altezza, a portata di pollice
+  // e lontana dal menu di iOS. Dal lato della colonna dei comandi (a sinistra se la striscia di sistema è a sinistra).
+  const main = view.mainEl && view.mainEl.getBoundingClientRect();
+  const side = Platform.isMobile && !!main && main.width >= 600;
+  bar.toggleClass('is-side', side);
+  if (side) {
+    const sw = bar.offsetWidth || 52;
+    const sh = bar.offsetHeight || 400;
+    const atLeft = document.body.hasClass('lmp-rail-left');
+    bar.toggleClass('def-right', atLeft);
+    bar.style.left = `${(atLeft ? main.left - root.left + 10 : main.right - root.left - sw - 14)}px`;
+    bar.style.top = `${Math.max(4, main.top - root.top + (main.height - sh) / 2)}px`;
+    return;
+  }
   const w = bar.offsetWidth || 300;
   const h = bar.offsetHeight || 44;
   let left = info.rect.left - root.left + info.rect.width / 2 - w / 2;
