@@ -59,12 +59,14 @@ class TodayView extends ItemView {
     const wrap = el.createDiv('lmp-today');
     const now = new Date();
     const day = formatDate(now, { weekday: 'long', day: 'numeric', month: 'long' });
-    wrap.createDiv({ cls: 'lmp-today-date', text: day.charAt(0).toUpperCase() + day.slice(1) });
+    // La data e, sulla stessa riga, la lingua delle pubblicazioni (come nelle home di Bibbia e Biblioteca).
+    const head = wrap.createDiv('lmp-today-head');
+    head.createDiv({ cls: 'lmp-today-date', text: day.charAt(0).toUpperCase() + day.slice(1) });
+    pubLangButton(p, head);
     // Al primo avvio non c'è la Bibbia: il pannello per scaricarla, in cima.
     const dl = wrap.createDiv();
     p.bible.ensureLoaded().catch((e) => {
       if (!e || !e.noBible || !dl.isConnected) return;
-      pubLangButton(p, dl.createDiv('lmp-pub-lang-row'));
       renderBibleDownload(p, dl, { onDone: () => p.openReader({ book: 1, chapter: 1 }) });
     });
 

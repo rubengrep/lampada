@@ -179,6 +179,8 @@ class Pager {
       this.el.removeClass('is-folded');
       if (was && anchor) anchor.scrollIntoView({ block: 'start' });
     }
+    // Piè di pagina solo a pagine ("Pagina 3 di 7"); scorrendo quella riga va al testo.
+    this.foot.toggle(!!c && paged);
     this.updateFoot();
   }
 
@@ -186,7 +188,6 @@ class Pager {
   refresh() {
     const c = this.o.content();
     this.words = c ? (c.textContent.match(/\S+/g) || []).length : 0;
-    this.foot.toggle(!!c);
     const land = Date.now() - (this.landing || 0) < 4000;
     this.landing = 0;
     this.el.scrollLeft = 0;

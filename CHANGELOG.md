@@ -1,5 +1,12 @@
 # Novità
 
+## 0.20.3 — 2026-11-23
+
+- Più spazio per il testo: scorrendo non c'è più la riga in fondo con percentuale e minuti. Resta solo nella lettura a pagine («Pagina 3 di 7»).
+- Oggi: il pulsante della lingua delle pubblicazioni accanto alla data.
+- Telefono e tablet: niente barre di scorrimento nelle viste di Lampada.
+- Oggi: il testo di «Cerca o chiedi» non esce più dal riquadro sugli schermi stretti.
+
 ## 0.20.2 — 2026-11-23
 
 - iPhone Duo aperto e tablet: selezionando il testo, la barra dei colori sta in colonna sul bordo del testo, a metà altezza, a portata di pollice e lontana dal menu di iOS. Sul telefono resta in basso.

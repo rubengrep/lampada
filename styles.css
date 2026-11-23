@@ -1961,7 +1961,7 @@ button.lmp-ai-src:hover { color: var(--text-accent); border-color: var(--interac
   cursor: default;
 }
 .lmp-foot-label { overflow: hidden; text-overflow: ellipsis; }
-.lmp-body.has-pane:not(.is-narrow) .lmp-foot { right: min(42%, 460px); }
+.lmp-body.has-pane:not(.is-narrow) .lmp-foot { right: var(--lmp-pane-w, min(42%, 460px)); }
 .lmp-body.is-narrow.has-pane .lmp-foot { display: none; }
 
 /* pannello Aa */
@@ -2166,10 +2166,12 @@ body.lmp-app.mod-macos.is-hidden-frameless:not(.is-fullscreen) .lmp-area .lmp-to
 .lmp-today-view { padding: 0 !important; display: flex; flex-direction: column; overflow: hidden; }
 .lmp-today-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
 .lmp-today { max-width: 760px; margin: 0 auto; padding: 18px 18px 48px; font-family: var(--font-interface); }
-.lmp-today-date { font-size: 26px; font-weight: 700; margin: 4px 0 14px; }
+.lmp-today-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 4px 0 14px; }
+.lmp-today-date { font-size: 26px; font-weight: 700; min-width: 0; }
 .lmp-today-search { display: flex; align-items: center; gap: 10px; width: 100%; height: auto !important; min-height: 46px; padding: 10px 14px !important; margin-bottom: 16px; border-radius: 12px !important; border: 1px solid var(--background-modifier-border); background: var(--background-primary-alt) !important; box-shadow: none !important; color: var(--text-muted); font-size: 15px; text-align: left; justify-content: flex-start; cursor: text; }
 .lmp-today-search:hover { border-color: var(--interactive-accent); }
 .lmp-today-search-icon { display: flex; }
+.lmp-today-search > span:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lmp-today-continue { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .lmp-today-card { display: flex; align-items: center; gap: 12px; width: 100%; height: auto !important; min-height: 64px; padding: 12px 14px !important; border-radius: 10px !important; border: 1px solid var(--background-modifier-border); background: var(--background-secondary) !important; box-shadow: none !important; text-align: left; justify-content: flex-start; cursor: pointer; }
 .lmp-today-card:hover { border-color: var(--interactive-accent); }
@@ -2238,3 +2240,9 @@ button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-mo
 .lmp-news ul { padding-left: 1.2em; }
 .lmp-news li { margin-bottom: 0.4em; }
 
+
+/* Telefono e tablet: niente barre di scorrimento nelle viste di Lampada (si scorre col dito; Obsidian le disegna sempre visibili) */
+.is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view),
+.is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view) * { scrollbar-width: none; }
+.is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view) ::-webkit-scrollbar,
+.is-mobile :is(.lmp-shell, .lmp-view, .lmp-lib, .lmp-today-view, .scrabb-view, .lmp-chat-view)::-webkit-scrollbar { display: none; width: 0; height: 0; }
