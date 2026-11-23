@@ -10,7 +10,7 @@ import { ScrabbNewModal, ScrabbPickModal, linkVerseToScrabb } from './scrabb-vis
 import { codesFromJwUrl, norm, noteFreeText, parseCode, parseNoteFile, parseRefLinks, refFromCodes, splitJwTokens, stripFrontmatter } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { SourceList, addScriptureSources, aiMenu, renderAskBox, renderRbi8Verse, showAiSuggestions, verseAiCtx } from './studio.js';
-import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, hasBibleIn, hasInLang, pubLangButton, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
+import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, hasBibleIn, hasInLang, paneResizer, pubLangButton, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
 const blockText = (b) => b.innerText.replace(/\s+/g, ' ').trim();
 /** Domanda stampata: "4. …", "5, 6. …". */
@@ -81,6 +81,7 @@ class LibraryView extends ItemView {
     this.bodyEl = root.createDiv('lmp-body');
     this.mainEl = this.bodyEl.createDiv('lmp-lib-main lmp-main');
     this.paneEl = this.bodyEl.createDiv('lmp-pane lmp-lib-pane');
+    paneResizer(this);
     this.pager = new Pager(this, this.mainEl, this.bodyEl, {
       content: () => (this.state.mode === 'doc' ? this.docWrap : null),
       label: () => (this.lib.byDocId.get(this.state.doc) || {}).title || '',

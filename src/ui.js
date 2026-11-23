@@ -6,6 +6,50 @@ import { BIBLE_LANGS } from './bibbia-epub.js';
 import { langRoot } from './costanti.js';
 
 /**
+ * Pannello di studio affiancato: si allarga o si stringe trascinando il bordo (doppio tocco: misura di prima).
+ * La larghezza vale per Bibbia e Biblioteca (settings.paneWidth, px).
+ */
+function paneResizer(view) {
+  const { bodyEl, paneEl, plugin } = view;
+  const apply = (w) => (w ? bodyEl.style.setProperty('--lmp-pane-w', `${w}px`) : bodyEl.style.removeProperty('--lmp-pane-w'));
+  apply(plugin.settings.paneWidth);
+  const grip = createDiv({ cls: 'lmp-pane-resizer', attr: { 'aria-label': t('Trascina per cambiare la larghezza') } });
+  bodyEl.insertBefore(grip, paneEl);
+  grip.dataset.ignoreSwipe = 'true';
+  let w = 0;
+  const move = (e) => {
+    const r = bodyEl.getBoundingClientRect();
+    w = Math.round(Math.max(260, Math.min(r.right - e.clientX, r.width - 320)));
+    apply(w);
+  };
+  const up = () => {
+    grip.removeClass('is-dragging');
+    window.removeEventListener('pointermove', move);
+    if (!w) return;
+    plugin.settings.paneWidth = w;
+    plugin.saveSettings();
+  };
+  view.registerDomEvent(grip, 'pointerdown', (e) => {
+    e.preventDefault();
+    w = 0;
+    grip.addClass('is-dragging');
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up, { once: true });
+  });
+  view.registerDomEvent(grip, 'dblclick', () => {
+    delete plugin.settings.paneWidth;
+    plugin.saveSettings();
+    apply(null);
+  });
+}
+
+/** C'è del testo selezionato (col dito o col mouse). */
+const hasSelection = () => {
+  const s = window.getSelection();
+  return !!(s && !s.isCollapsed && s.toString().trim());
+};
+
+/**
  * Telefono e tablet: scorrendo in giù le barre si chiudono, in su (o in cima) tornano.
  * Si collega alle viste Bibbia, Biblioteca e SCRABB; scroller è l'elemento che scorre.
  */
@@ -21,7 +65,8 @@ function autoHideBars(view, scroller) {
     const delta = top - (view.lastScrollTop || 0);
     view.lastScrollTop = top;
     // In fondo iOS "rimbalza": quel piccolo ritorno in su non deve riaprire le barre.
-    if (!touching || Math.abs(delta) < 6 || top + scroller.clientHeight >= scroller.scrollHeight - 2) return;
+    // Trascinando le maniglie della selezione iOS scorre da solo: le barre che si aprono e chiudono facevano saltare il testo.
+    if (!touching || hasSelection() || Math.abs(delta) < 6 || top + scroller.clientHeight >= scroller.scrollHeight - 2) return;
     setBarsHidden(view, delta > 0 && top > 80);
   }, { passive: true });
   view.registerEvent(view.app.workspace.on('active-leaf-change', (leaf) => leaf !== view.leaf && setBarsHidden(view, false)));
@@ -97,21 +142,6 @@ function addViewSwitch(tb, plugin, current, goHome, shell) {
   }
   // Con il guscio stretto lo stesso pulsante è nelle linguette in basso (il CSS nasconde questo).
   if (shell) addAppToggle(tb, plugin);
-  // Tablet con Lampada unica scheda: la riga delle linguette di Obsidian si nasconde (styles.css) e i suoi due pulsanti
-  // delle barre laterali stanno qui, ai due capi della barra. Altrimenti il CSS li tiene nascosti.
-  if (shell) {
-    const ws = plugin.app.workspace;
-    for (const [side, icon, label, split] of [
-      ['left', 'sidebar-left', 'Barra laterale sinistra', () => ws.leftSplit],
-      ['right', 'sidebar-right', 'Barra laterale destra', () => ws.rightSplit],
-    ]) {
-      const b = createEl('button', { cls: `lmp-tb-btn clickable-icon lmp-sb-btn mod-${side}`, attr: { 'aria-label': t(label) } });
-      setIcon(b, icon);
-      b.addEventListener('click', () => split().toggle());
-      if (side === 'left') tb.prepend(b);
-      else tb.appendChild(b);
-    }
-  }
 }
 
 /** Sul telefono (barra nascosta): una sola azione "Vai a…" con lo stesso elenco del selettore. */
@@ -339,4 +369,4 @@ function pubLangButton(plugin, parent, onClick) {
   return b;
 }
 
-export { AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
+export { AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, hasSelection, paneResizer, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };

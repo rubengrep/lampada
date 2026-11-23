@@ -86,7 +86,8 @@
 }
 .lmp-pane {
   display: none;
-  flex: 0 0 min(42%, 460px);
+  flex: 0 0 var(--lmp-pane-w, min(42%, 460px));
+  max-width: calc(100% - 320px);
   border-left: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
   overflow-y: auto;
@@ -673,6 +674,13 @@
 }
 .lmp-hover-actions { display: flex; gap: 6px; margin-top: 8px; }
 .lmp-hover-actions button { font-size: 12px; padding: 2px 8px; height: auto; }
+
+/* bordo del pannello affiancato da trascinare (paneResizer in ui.js) */
+.lmp-pane-resizer { display: none; flex: 0 0 8px; margin-right: -8px; z-index: 5; cursor: col-resize; touch-action: none; position: relative; }
+.lmp-body.has-pane:not(.is-narrow) .lmp-pane-resizer { display: block; }
+.lmp-pane-resizer::after { content: ''; position: absolute; top: 50%; left: 2px; width: 4px; height: 36px; margin-top: -18px; border-radius: 2px; background: var(--text-faint); opacity: 0.5; }
+.lmp-pane-resizer:hover::after, .lmp-pane-resizer.is-dragging::after { opacity: 1; background: var(--interactive-accent); }
+.lmp-pane-resizer.is-dragging { cursor: col-resize; }
 
 /* ---------- pannello a comparsa dal basso ---------- */
 .lmp-pane-handle { display: none; }
@@ -2068,6 +2076,52 @@ body.lmp-app.mod-macos.is-hidden-frameless:not(.is-fullscreen) .lmp-area .lmp-to
 /* solo sul telefono: sul tablet Obsidian lascia già lo spazio della barra di stato sopra le linguette */
 .is-phone .workspace-leaf-content[data-type='lampada-app'] > .view-content.lmp-shell { padding-top: var(--safe-area-inset-top, 0px) !important; }
 
+/* Modalità app sul telefono e sul tablet, in orizzontale (iPhone Duo chiuso o aperto di lato): le barre vanno in colonna
+   sul bordo destro, dove arriva il pollice, e il testo prende tutta l'altezza. Colonna interna: Indietro in alto, le azioni
+   a metà; colonna esterna: le sezioni in basso. In verticale le sezioni stanno sempre in basso. */
+@media (orientation: landscape) {
+  body.lmp-app.is-mobile { --lmp-rail: 48px; }
+  /* la colonna delle sezioni occupa la striscia di sistema (ora, Wi-Fi in alto): le sezioni stanno in basso, sotto */
+  body.lmp-app.is-mobile .lmp-shell { flex-direction: row; }
+  body.lmp-app.is-mobile .lmp-tabbar,
+  body.lmp-app.is-mobile .lmp-shell:has(.lmp-bars-hidden) .lmp-tabbar {
+    display: flex; flex-direction: column; justify-content: flex-end; flex: 0 0 auto; width: max(var(--lmp-rail), var(--safe-area-inset-right, 0px)); max-height: none; overflow-y: auto;
+    padding: 4px 0 calc(4px + var(--safe-area-inset-bottom, 0px)); border-top: none; border-left: 1px solid var(--background-modifier-border);
+  }
+  body.lmp-app.is-mobile .lmp-tab { flex: 0 0 auto; min-height: 44px; padding: 0; justify-content: center; }
+  body.lmp-app.is-mobile .lmp-tab-label { display: none; }
+  body.lmp-app.is-mobile .lmp-area > .view-content:not(.scrabb-view) { padding-right: var(--lmp-rail) !important; }
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar:not(.scrabb-header),
+  body.lmp-app.is-mobile .lmp-bars-hidden .lmp-toolbar:not(.scrabb-header) {
+    position: absolute; top: 0; right: 0; bottom: 0; z-index: 20; width: var(--lmp-rail); max-height: none; overflow-y: auto;
+    flex-direction: column; gap: 2px; padding: 6px 0 !important; border-bottom: none; border-left: 1px solid var(--background-modifier-border);
+  }
+  /* Indietro in alto, le azioni a metà dello spazio che resta */
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar:not(.scrabb-header) > :first-child { margin-bottom: auto; }
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar:not(.scrabb-header)::after { content: ''; margin-top: auto; }
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-tb-spacer { display: none; }
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-tb-btn { width: 40px; height: 40px; flex: 0 0 auto; }
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar:not(.scrabb-header) > .lmp-tb-title,
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar:not(.scrabb-header) > .lmp-tb-text,
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-switch,
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-app-toggle,
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-desktop-only:not(.lmp-rail-keep) { display: none !important; }
+  /* segnalibri e pannello: sul telefono stanno nel menu ⋯, qui c'è posto */
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar.is-reader .lmp-rail-keep,
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-rail-keep:not(.lmp-reader-only) { display: flex !important; }
+  /* striscia a sinistra (applyAppMode mette lmp-rail-left): tutto a specchio, e Obsidian non lascia più il suo margine */
+  body.lmp-app.is-mobile.lmp-rail-left .workspace > .mod-root { padding-left: 0 !important; }
+  body.lmp-app.is-mobile.lmp-rail-left .lmp-shell { flex-direction: row-reverse; }
+  body.lmp-app.is-mobile.lmp-rail-left .lmp-tabbar { width: max(var(--lmp-rail), var(--safe-area-inset-left, 0px)); border-left: none; border-right: 1px solid var(--background-modifier-border); }
+  body.lmp-app.is-mobile.lmp-rail-left .lmp-area > .view-content:not(.scrabb-view) { padding-right: 0 !important; padding-left: var(--lmp-rail) !important; }
+  body.lmp-app.is-mobile.lmp-rail-left .lmp-area .lmp-toolbar:not(.scrabb-header) { right: auto; left: 0; border-left: none; border-right: 1px solid var(--background-modifier-border); }
+}
+@media (orientation: portrait) {
+  body.lmp-app.is-mobile .lmp-tabbar { display: flex; }
+  body.lmp-app.is-mobile .lmp-area .lmp-switch,
+  body.lmp-app.is-mobile .lmp-area .lmp-toolbar .lmp-app-toggle { display: none; }
+}
+
 /* ---------- Biblioteca: catalogo per categorie ---------- */
 .lmp-lib-cats { display: flex; flex-direction: column; margin-top: 12px; border: 1px solid var(--background-modifier-border); border-radius: 10px; background: var(--background-secondary); overflow: hidden; }
 .lmp-lib-cat { display: flex; align-items: center; gap: 14px; width: 100%; height: auto !important; min-height: 64px; padding: 10px 14px !important; background: transparent !important; box-shadow: none !important; border: none; border-radius: 0 !important; text-align: left; cursor: pointer; font-family: var(--font-interface); }
@@ -2162,11 +2216,3 @@ button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-mo
 .lmp-news ul { padding-left: 1.2em; }
 .lmp-news li { margin-bottom: 0.4em; }
 
-/* Tablet (iPad, iPhone pieghevole aperto) con Lampada unica scheda: la riga delle linguette di Obsidian conterrebbe solo
-   quella scheda e i pulsanti delle barre laterali. Si nasconde, e i pulsanti vanno nella barra di Lampada (ui.js). */
-.lmp-sb-btn { display: none !important; }
-.lmp-sb-btn.mod-right { order: 99; }
-.is-tablet:not(.lmp-app) .mod-root .workspace-tabs:has(.lmp-shell):not(:has(.workspace-tab-header ~ .workspace-tab-header)) > .workspace-tab-header-container { display: none; }
-.is-tablet:not(.lmp-app) .mod-root .workspace-tabs:has(.lmp-shell):not(:has(.workspace-tab-header ~ .workspace-tab-header)) .lmp-sb-btn { display: flex !important; }
-/* barra stretta: la destra (struttura, collegamenti) resta nel menu di Obsidian, c'è posto solo per la sinistra */
-@container (max-width: 600px) { .lmp-toolbar .lmp-sb-btn.mod-right { display: none !important; } }

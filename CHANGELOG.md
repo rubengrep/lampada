@@ -1,5 +1,13 @@
 # Novità
 
+## 0.20.0 — 2026-11-23
+
+- Modalità app, telefono e tablet in orizzontale (anche iPhone Duo): i comandi vanno in colonna sul lato dove arriva il pollice, il testo prende tutta l'altezza. Indietro in alto, le azioni a metà, le sezioni in basso nella colonna accanto all'ora e al Wi‑Fi. In verticale le sezioni stanno sempre in basso.
+- Modalità normale: torna la riga delle linguette di Obsidian, così si vede la differenza con la modalità app.
+- Pannello di studio affiancato (Bibbia e Biblioteca): si allarga o si stringe trascinando il bordo; doppio tocco per la misura di prima.
+- Selezione del testo: la barra dei colori sta in basso anche sul tablet e sull'iPhone Duo aperto, dove il menu di iOS (Copia, Cerca info…) non la copre.
+- Selezionando il testo nella Bibbia il testo non salta più: niente più swipe per cambiare capitolo (si usano ‹ ›) e le barre restano ferme mentre si trascinano le maniglie.
+
 ## 0.19.0 — 2026-11-23
 
 - Dopo un aggiornamento si apre una finestra con le novità. Tutte le novità anche da Impostazioni → Novità o dal comando «Novità di Lampada».

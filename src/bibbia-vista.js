@@ -11,7 +11,7 @@ import { linkVerseToScrabb } from './scrabb-vista.js';
 import { categoryOf, codesFromJwUrl, parseRefLinks, compressVerses, extractBlock, jwTokenText, newGuid, norm, noteFreeText, parseNoteFile, refFromCodes, splitJwTokens, stripFrontmatter, verseCode } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { GOSPELS, ParallelModal, aiMenu, highlightParts, parallelsInChapter, renderRbi8Verse, showAiSuggestions, verseAiCtx, wordStudy } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, renderCitedIn, renderNoteCites, pubLangButton, setBarsHidden, viewKeys } from './ui.js';
+import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, paneResizer, renderCitedIn, renderNoteCites, pubLangButton, setBarsHidden, viewKeys } from './ui.js';
 
 /* ------------------------------------------------------------------ */
 /* Vista lettore                                                       */
@@ -80,6 +80,7 @@ class BibleView extends ItemView {
     this.bodyEl = root.createDiv('lmp-body');
     this.mainEl = this.bodyEl.createDiv('lmp-main');
     this.paneEl = this.bodyEl.createDiv('lmp-pane');
+    paneResizer(this);
     this.pager = new Pager(this, this.mainEl, this.bodyEl, {
       content: () => (this.state.mode === 'reader' && this.chapterData ? this.mainEl.querySelector('.lmp-reader') : null),
       label: () => this.getDisplayText(),
@@ -137,18 +138,7 @@ class BibleView extends ItemView {
     this.registerDomEvent(this.paneEl, 'click', (evt) => this.onLinkClick(evt));
     this.registerDomEvent(this.paneEl, 'mouseover', (evt) => this.onLinkHover(evt));
 
-    let touch = null;
-    this.registerDomEvent(this.mainEl, 'touchstart', (e) => {
-      touch = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY } : null;
-    }, { passive: true });
-    this.registerDomEvent(this.mainEl, 'touchend', (e) => {
-      if (!touch || this.state.mode !== 'reader' || this.pager.on) return;
-      const t = e.changedTouches[0];
-      const dx = t.clientX - touch.x;
-      const dy = t.clientY - touch.y;
-      touch = null;
-      if (Math.abs(dx) > 80 && Math.abs(dy) < 50) this.stepChapter(dx < 0 ? 1 : -1);
-    }, { passive: true });
+    // Niente swipe per cambiare capitolo: scattava selezionando il testo. Si cambia con ‹ › (o girando pagina a pagine).
 
     viewKeys(this, [
       ['ArrowLeft', () => (this.pager.on ? pageKey(this.pager, -1) : (this.stepChapter(-1), false))],
@@ -236,10 +226,10 @@ class BibleView extends ItemView {
     btn('search', t('Cerca ovunque'), () => this.plugin.openSearch(this));
     // Sul telefono questi stanno nel menu ⋯ (fillMenu): la barra resta leggibile, col titolo intero.
     this.parBtn = btn('columns-3', t('Racconti paralleli'), () => this.toggleParallels(), 'lmp-reader-only lmp-desktop-only');
-    btn('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open(), 'lmp-desktop-only');
-    btn('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open(), 'lmp-desktop-only');
+    this.histBtn = btn('history', t('Aperti di recente'), () => new PlacesModal(this.plugin, null, 'recent').open(), 'lmp-desktop-only');
+    btn('bookmark', t('Segnalibri'), () => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open(), 'lmp-desktop-only lmp-rail-keep');
     btn('type', t('Aspetto del testo'), () => new ReadingModal(this.plugin).open(), 'lmp-desktop-only');
-    this.paneBtn = btn('panel-right', t('Mostra/nascondi pannello di studio'), () => this.togglePane(), 'lmp-reader-only lmp-desktop-only');
+    this.paneBtn = btn('panel-right', t('Mostra/nascondi pannello di studio'), () => this.togglePane(), `lmp-reader-only lmp-desktop-only${Platform.isPhone ? '' : ' lmp-rail-keep'}`);
     btn('more-vertical', t('Altre opzioni'), (evt) => this.showMoreMenu(evt));
     this.updateToolbar();
   }
@@ -275,7 +265,8 @@ class BibleView extends ItemView {
 
   fillMenu(menu) {
     const s = this.plugin.settings;
-    if (Platform.isPhone) {
+    // barra compatta (telefono, colonna della modalità app): recenti e segnalibri passano qui
+    if (Platform.isPhone || (this.histBtn && !this.histBtn.offsetParent)) {
       menu.addItem((i) => i.setTitle(t('Segnalibri')).setIcon('bookmark').onClick(() => new PlacesModal(this.plugin, this.herePlace(), 'bookmarks').open()));
       menu.addItem((i) => i.setTitle(t('Aperti di recente')).setIcon('history').onClick(() => new PlacesModal(this.plugin, null, 'recent').open()));
       menu.addSeparator();

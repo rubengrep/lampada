@@ -2,7 +2,7 @@ import { Modal, Platform, debounce } from 'obsidian';
 import { FONT_CHOICES } from './costanti.js';
 import { t } from './lingua.js';
 import { quickDefinition } from './studio.js';
-import { setBarsHidden } from './ui.js';
+import { hasSelection, setBarsHidden } from './ui.js';
 
 /* ------------------------------------------------------------------ */
 /* Lettura "come un Kindle": pagine, piè di pagina, aspetto del testo   */
@@ -34,11 +34,6 @@ function foldIn(el) {
   }
   return null;
 }
-
-const hasSelection = () => {
-  const s = window.getSelection();
-  return !!(s && !s.isCollapsed && s.toString().trim());
-};
 
 /**
  * Pagine da libro e piè di pagina per il lettore della Bibbia e per i documenti della biblioteca.
@@ -303,8 +298,8 @@ function placeSelBar(view) {
   let left = info.rect.left - root.left + info.rect.width / 2 - w / 2;
   left = Math.max(8, Math.min(left, root.width - w - 8));
   let top;
-  if (Platform.isPhone) {
-    // Telefono: il menu di iOS (Copia, Cerca info…) va sopra la selezione, o sotto se sopra non c'è posto, e copre
+  if (Platform.isMobile) {
+    // Telefono e tablet (anche iPhone Duo aperto): il menu di iOS (Copia, Cerca info…) va sopra la selezione, o sotto se sopra non c'è posto, e copre
     // qualsiasi cosa vicina. La barra sta in fondo, sopra il piè di pagina; in alto se la selezione arriva fin lì.
     left = (root.width - w) / 2;
     const foot = view.contentEl.querySelector('.lmp-foot');

@@ -293,6 +293,8 @@ class LampadaPlugin extends Plugin {
       window.setTimeout(() => newsAfterUpdate(this, CHANGELOG, t('Novità di Lampada'), this.settings, () => this.saveAll(false), this.firstRun).catch(() => null), 1500)
     );
     this.registerEvent(this.app.workspace.on('layout-change', emptyTabs));
+    // girando il telefono la striscia di sistema cambia lato
+    this.registerEvent(this.app.workspace.on('resize', () => this.applyAppMode()));
     this.register(() => document.querySelectorAll('.lmp-empty-open').forEach((e) => e.remove()));
     this.app.workspace.onLayoutReady(async () => {
       await this.migrateToShell().catch((e) => console.warn('[lampada] passaggio alla vista unica', e));
@@ -512,6 +514,11 @@ class LampadaPlugin extends Plugin {
     const leaf = ws.getMostRecentLeaf(ws.rootSplit);
     const on = !!this.ui.appMode && !!this.settings.appShell && !!leaf && leaf.view instanceof LampadaView;
     document.body.toggleClass('lmp-app', on);
+    // Striscia di sistema (ora, Wi-Fi, fotocamera) a sinistra: la colonna dei comandi va da quel lato, come nelle app di iOS.
+    const probe = document.body.createDiv({ attr: { style: 'position:fixed;visibility:hidden;padding-left:var(--safe-area-inset-left);padding-right:var(--safe-area-inset-right)' } });
+    const cs = getComputedStyle(probe);
+    document.body.toggleClass('lmp-rail-left', on && parseFloat(cs.paddingLeft) > parseFloat(cs.paddingRight));
+    probe.remove();
     document.querySelectorAll('.lmp-app-toggle').forEach((b) => {
       b.toggleClass('is-active', !!this.ui.appMode);
       const icon = b.querySelector('.lmp-tab-icon') || b;
@@ -521,7 +528,7 @@ class LampadaPlugin extends Plugin {
 
   onunload() {
     // (in Node, nelle prove, document non c'è)
-    if (typeof document !== 'undefined') document.body.removeClass('lmp-app');
+    if (typeof document !== 'undefined') document.body.removeClass('lmp-app', 'lmp-rail-left');
     // Una modifica fatta meno di un secondo prima di chiudere non va persa.
     if (this.userDataDirty) this.saveUserData();
   }

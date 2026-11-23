@@ -770,6 +770,5 @@ export default {
   "Novità": "What's new",
   "Novità di Lampada": "What's new in Lampada",
   "Versione installata: {v}": "Installed version: {v}",
-  "Barra laterale destra": "Right sidebar",
-  "Barra laterale sinistra": "Left sidebar",
+  "Trascina per cambiare la larghezza": "Drag to change the width",
 };
