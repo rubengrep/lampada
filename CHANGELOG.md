@@ -1,9 +1,5 @@
 # Novità
 
-## 0.23.0 — 2026-11-25
-
-- Lampada web: Lampada anche nel browser, sui computer dove non si può installare Obsidian. In *Impostazioni → Lampada web* Lampada mette `Lampada.html` nel vault e lo aggiorna a ogni versione. Quando il vault arriva su quel computer, per esempio con OneDrive, lo apri con un doppio clic in Edge o Chrome. È la stessa Lampada, con gli stessi dati. Nel browser non si scaricano pubblicazioni e le note si leggono soltanto.
-
 ## 0.22.0 — 2026-11-25
 
 - Pubblicazioni in due lingue: il pulsante in cima al documento affianca la stessa pubblicazione in un'altra lingua scaricata, paragrafo per paragrafo. Tre modi: in colonne, sotto ogni paragrafo, o interlineare frase per frase.
