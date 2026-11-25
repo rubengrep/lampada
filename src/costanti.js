@@ -56,6 +56,9 @@ const DEFAULT_SETTINGS = {
   justify: false,
   // Vista unica (guscio): Bibbia, Biblioteca, SCRABB e Chiedi in una sola scheda.
   appShell: true,
+  // Lampada web (web.js): Lampada.html nel vault, aggiornato a ogni versione; webVersion = quella scaricata.
+  webViewer: false,
+  webVersion: '',
 };
 
 // Abbreviazioni usate in JW Library (italiano), indicizzate per numero di libro - 1.

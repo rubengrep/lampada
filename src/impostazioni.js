@@ -1,4 +1,5 @@
-import { PluginSettingTab, Setting, Notice } from 'obsidian';
+import { PluginSettingTab, Setting, Notice, Platform } from 'obsidian';
+import { WEB_FILE, updateWebViewerNow } from './web.js';
 import { DEFAULT_SETTINGS, paneLabel, paneOrder } from './costanti.js';
 import { JwlExportModal } from './jwl-esporta.js';
 import { JwlImportModal } from './jwl-importa.js';
@@ -77,6 +78,19 @@ class BibleSettingTab extends PluginSettingTab {
       this.plugin.applyAppMode();
       this.display();
     });
+    if (!Platform.isWeb) {
+      new Setting(containerEl)
+        .setName(t('Lampada web'))
+        .setDesc(t('Mette {file} nel vault e lo aggiorna a ogni versione. Sincronizzato (per esempio su OneDrive), si apre con un doppio clic in Edge o Chrome su un computer senza Obsidian: è la stessa Lampada, con gli stessi dati.', { file: WEB_FILE }))
+        .addToggle((c) =>
+          c.setValue(!!s.webViewer).onChange(async (v) => {
+            s.webViewer = v;
+            await this.plugin.saveAll(false);
+            if (v) await updateWebViewerNow(this.plugin);
+          })
+        )
+        .addButton((b) => b.setButtonText(t('Aggiorna adesso')).onClick(() => updateWebViewerNow(this.plugin)));
+    }
     toggle(t('Modalità app'), t('Mentre usi Lampada nasconde le barre di Obsidian. Tornano quando apri una nota o con il pulsante ⤢.'), () => !!this.plugin.ui.appMode, (v) => this.plugin.toggleAppMode(v));
     if (s.appShell === false) {
       new Setting(containerEl)

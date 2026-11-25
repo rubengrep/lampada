@@ -369,6 +369,10 @@ Lampada non dipende da altri plugin: BRAT serve solo per installarlo e aggiornar
 
 Lampada salva tutto nel vault, quindi funziona con qualsiasi sistema di sincronizzazione di Obsidian: Obsidian Sync, iCloud Drive o Syncthing. Le impostazioni di lettura (carattere, tema, pagine) restano diverse per ogni dispositivo.
 
+### Su un computer senza Obsidian
+
+Dove non puoi installare Obsidian (per esempio un PC dell'ufficio), Lampada si apre anche nel browser. Accendi *Impostazioni → Lampada web*: Lampada mette `Lampada.html` nel vault e lo aggiorna a ogni versione. Quando il vault arriva su quel computer (per esempio con OneDrive), apri `Lampada.html` con un doppio clic in Edge o Chrome e scegli la cartella del vault. È la stessa Lampada, con gli stessi dati. Nel browser non si scaricano pubblicazioni e le note si leggono soltanto. Il codice è in [lampada-web](https://github.com/rubengrep/lampada-web).
+
 ### Dove stanno i dati
 
 | Cosa | Dove |
@@ -387,6 +391,7 @@ Lampada si collega a internet solo in questi casi:
 | Servizio | Quando | Cosa invia |
 |---|---|---|
 | jw.org (`b.jw-cdn.org`, `cfp2.jw-cdn.org`) | solo quando chiedi di scaricare un EPUB o di cercare i nuovi numeri | il simbolo e il numero della pubblicazione, come il pulsante "Scarica" del sito |
+| GitHub (`github.com/rubengrep/lampada-web`) | solo se accendi *Lampada web*, una volta per versione | niente: scarica `Lampada.html` |
 | [OpenRouter](https://openrouter.ai) | solo se attivi l'assistente AI con una tua chiave | la domanda e i paragrafi necessari per rispondere |
 
 Prima di ogni download da jw.org una finestra mostra il nome e l'indirizzo esatto di ogni file, il peso e il rimando alle [condizioni d'uso di jw.org](https://www.jw.org/it/condizioni-uso/): il download parte solo con la conferma, con una barra di avanzamento.

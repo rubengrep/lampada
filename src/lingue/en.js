@@ -835,4 +835,11 @@ export default {
   "Capitolo {n}": "Chapter {n}",
   "Salmo": "Psalm",
   "Descrizione dell'immagine": "Image description",
+  "La pagina web di Lampada {v} non è ancora pronta: riprova più tardi.": "The web page for Lampada {v} isn't ready yet: try again later.",
+  "{file} aggiornato (versione {v}).": "{file} updated (version {v}).",
+  "Pagina web non scaricata: {msg}": "Web page not downloaded: {msg}",
+  "Lampada web: aggiorna Lampada.html nel vault": "Lampada web: update Lampada.html in the vault",
+  "Lampada web": "Lampada web",
+  "Mette {file} nel vault e lo aggiorna a ogni versione. Sincronizzato (per esempio su OneDrive), si apre con un doppio clic in Edge o Chrome su un computer senza Obsidian: è la stessa Lampada, con gli stessi dati.": "Puts {file} in the vault and updates it with every version. Synced (for example to OneDrive), it opens with a double click in Edge or Chrome on a computer without Obsidian: the same Lampada, with the same data.",
+  "Aggiorna adesso": "Update now",
 };

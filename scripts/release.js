@@ -25,3 +25,11 @@ if (run('git', ['status', '--porcelain'])) throw new Error('Ci sono modifiche se
 run('git', ['tag', version]);
 run('git', ['push', 'origin', 'HEAD', version]);
 console.log(run('gh', ['release', 'create', version, 'main.js', 'manifest.json', 'styles.css', '--title', version, '--notes', notes]));
+// Lampada web (rubengrep/lampada-web): la pagina HTML della stessa versione, che il plugin mette nel vault (src/web.js).
+// Se non parte, la fa comunque il controllo automatico di quel repo entro qualche ora.
+try {
+  run('gh', ['workflow', 'run', 'release.yml', '-R', 'rubengrep/lampada-web']);
+  console.log('Lampada web: build avviato');
+} catch (e) {
+  console.warn(`Lampada web: build non avviato (${e.message.split('\n')[0]})`);
+}

@@ -28,6 +28,7 @@ Formati dei dati del vault (note, indici, campi risposta): skill `jwstudy-format
 | `indice-note.js` | indice dei riferimenti biblici nelle note personali |
 | `testo.js` | utility: `norm`, `nameKey`, `verseCode`, `jwLibraryUrl`, `codesFromJwUrl`, `refFromCodes`, `stripFrontmatter` |
 | `lingua.js` + `lingue/en.js` | multilingua: `t('testo italiano', { valori })` → traduzione (chiave = l'italiano; manca → italiano), `lang()` per date/numeri/ordinamenti, `contentLang(settings)` = lingua dei contenuti da `bibleLang` (I, E…). `settings.uiLang` ('auto' = lingua di Obsidian; senza dizionario → inglese), evento `lampada:language` quando cambia. Nuova lingua: copia `lingue/en.js` e aggiungila a `DICTS`/`UI_LANGS`. Le estensioni: `addStrings(lingua, dict)` |
+| `web.js` | Lampada web: con `settings.webViewer` mette `Lampada.html` (`WEB_FILE`) nel vault scaricandolo da `rubengrep/lampada-web/releases/download/<versione>/lampada.html` (release con lo stesso numero del plugin, fatta da un'automazione di quel repo); si riscarica quando `settings.webVersion` ≠ versione del plugin, solo sul computer. Il repo `lampada-web` (cartella accanto al vault) ha lo strato al posto di Obsidian nel browser; lì `Platform.isWeb` è vero (niente comando né impostazione) |
 | `novita.js` | novità dopo un aggiornamento: `CHANGELOG.md` incluso nel bundle come testo (loader `.md` di esbuild), `newsAfterUpdate` (una volta per versione, `settings.seenVersion`; niente alla prima installazione), `NewsModal`, comando e Impostazioni → Novità. Un'estensione lo usa col suo `CHANGELOG.md`: ognuno mostra solo le sue novità |
 | `costanti.js` | `DEFAULT_SETTINGS`, `EXTRA_ALIASES` (abbreviazioni dei libri), `INDEX_MIRROR` (= `index`, cartella degli indici) |
 | `ui.js` | componenti condivisi (segnalibri, barre, "Citato in", "Nelle mie note" `renderNoteCites`, anteprima di una pubblicazione citata `fillCitePreview`: popup nella Bibbia, `CitePreviewModal` nella Biblioteca) |
@@ -53,7 +54,7 @@ Gli utenti ricevono gli aggiornamenti dalle release di GitHub (`rubengrep/lampad
 1. alza `version` in `manifest.json` e aggiungila a `versions.json` (versione → `minAppVersion`);
 2. in cima a `CHANGELOG.md` la sezione `## <versione> — <data>` con le novità per chi usa Lampada (punti brevi, in italiano). Le novità di Lampada non parlano mai delle estensioni private: quelle vanno nel loro repo. `release.js` si ferma se trova una delle parole di `.parole-private` (file locale, fuori dal repo);
 3. `npm run build` (prove ✓), commit;
-4. `gh auth switch -u rubengrep`, `npm run release` (tag = versione, senza "v", release con main.js, manifest.json, styles.css e come note la sezione di `CHANGELOG.md`), poi di nuovo l’account di prima.
+4. `gh auth switch -u rubengrep`, `npm run release` (tag = versione, senza "v", release con main.js, manifest.json, styles.css e come note la sezione di `CHANGELOG.md`; poi avvia il build di `lampada-web` per la stessa versione), poi di nuovo l’account di prima.
 
 ## API per estensioni
 Un altro plugin può dare a Lampada dati e azioni che Lampada non ha. Lampada funziona anche senza nessun fornitore.

@@ -27,6 +27,7 @@ import { ScrabbNewModal, ScrabbPickModal, ScrabbSuggest, ScrabbView } from './sc
 import { categoryOf, cleanSnippet, codesFromJwUrl, formatNoteBlock, jwLibraryUrl, newGuid, parseCode, parseNoteFile, refFromCodes, sleep, stripFrontmatter, verseCode } from './testo.js';
 import { PlacesModal, bookmarkKey, imageTexts, openImageViewer, zoomableImage } from './ui.js';
 import { NewsModal, newsAfterUpdate, newsBetween } from './novita.js';
+import { autoUpdateWebViewer, updateWebViewerNow } from './web.js';
 import CHANGELOG from '../CHANGELOG.md';
 
 /* ------------------------------------------------------------------ */
@@ -69,6 +70,7 @@ class LampadaPlugin extends Plugin {
     });
     this.addCommand({ id: 'download-bible', name: t('Scarica la Bibbia'), callback: () => new BibleDownloadModal(this).open() });
     this.addCommand({ id: 'news', name: t('Novità di Lampada'), callback: () => this.showNews() });
+    if (!Platform.isWeb) this.addCommand({ id: 'web-update', name: t('Lampada web: aggiorna Lampada.html nel vault'), callback: () => updateWebViewerNow(this) });
     this.addCommand({ id: 'import-epub', name: t('Importa un EPUB…'), callback: () => new EpubImportModal(this).open() });
     this.addCommand({ id: 'new-issues', name: t('Cerca nuovi numeri'), callback: () => runNewIssues(this) });
     this.addCommand({ id: 'open-app', name: t('Apri Lampada (Bibbia, Biblioteca, SCRABB, Chiedi)'), callback: () => this.openApp() });
@@ -292,6 +294,7 @@ class LampadaPlugin extends Plugin {
     this.app.workspace.onLayoutReady(() =>
       window.setTimeout(() => newsAfterUpdate(this, CHANGELOG, t('Novità di Lampada'), this.settings, () => this.saveAll(false), this.firstRun).catch(() => null), 1500)
     );
+    autoUpdateWebViewer(this);
     this.registerEvent(this.app.workspace.on('layout-change', emptyTabs));
     // girando il telefono la striscia di sistema cambia lato
     this.registerEvent(this.app.workspace.on('resize', () => this.applyAppMode()));
