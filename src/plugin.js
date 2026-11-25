@@ -25,7 +25,7 @@ import { JwlImportModal, JwlImporter } from './jwl-importa.js';
 import { SCRABB_ALL_LISTS, SCRABB_TEACHINGS, SCRABB_TYPES, SCRABB_VIEW_TYPE, ScrabbIndex, scrabbBody, scrabbFold, scrabbListOf } from './scrabb-dati.js';
 import { ScrabbNewModal, ScrabbPickModal, ScrabbSuggest, ScrabbView } from './scrabb-vista.js';
 import { categoryOf, cleanSnippet, codesFromJwUrl, formatNoteBlock, jwLibraryUrl, newGuid, parseCode, parseNoteFile, refFromCodes, sleep, stripFrontmatter, verseCode } from './testo.js';
-import { PlacesModal, bookmarkKey, openImageViewer, zoomableImage } from './ui.js';
+import { PlacesModal, bookmarkKey, imageTexts, openImageViewer, zoomableImage } from './ui.js';
 import { NewsModal, newsAfterUpdate, newsBetween } from './novita.js';
 import CHANGELOG from '../CHANGELOG.md';
 
@@ -280,7 +280,7 @@ class LampadaPlugin extends Plugin {
         b.createSpan({ cls: 'text-button-label', text: t('Apri Lampada') });
         const open = async () => {
           await this.openApp();
-          if (leaf.view.getViewType() === 'empty') leaf.detach(); // Lampada era già aperta in un'altra scheda
+          if (leaf.view.getViewType() === 'empty') leaf.detach(); // Lampada si è aperta altrove (vista unica spenta)
         };
         b.addEventListener('click', open);
         b.addEventListener('keydown', (e) => e.key === 'Enter' && open());
@@ -337,6 +337,7 @@ class LampadaPlugin extends Plugin {
     this.registerEvent(
       this.app.workspace.on('active-leaf-change', (leaf) => {
         if (leaf && leaf.view instanceof MarkdownView) this.lastMarkdownView = leaf.view;
+        if (leaf && leaf.view instanceof LampadaView) this.lastShellLeaf = leaf;
       })
     );
     this.registerEvent(
@@ -405,6 +406,8 @@ class LampadaPlugin extends Plugin {
   /** Il guscio aperto (quello nell'area principale, se ce n'è più d'uno). */
   shellLeaf() {
     const leaves = this.app.workspace.getLeavesOfType(APP_VIEW_TYPE);
+    // Con più schede di Lampada: quella usata per ultima.
+    if (this.lastShellLeaf && leaves.includes(this.lastShellLeaf)) return this.lastShellLeaf;
     return leaves.find((l) => this.leafLocation(l) === 'tab') || leaves[0] || null;
   }
 
@@ -436,9 +439,11 @@ class LampadaPlugin extends Plugin {
     if (!this.settings.appShell) return null;
     const ws = this.app.workspace;
     let leaf = this.shellLeaf();
-    if (!leaf) {
-      const recent = ws.getMostRecentLeaf(ws.rootSplit);
-      leaf = recent && recent.view && recent.view.getViewType() === 'empty' ? recent : ws.getLeaf('tab');
+    // Su una scheda vuota Lampada si apre lì, anche se è già aperta in un'altra scheda (più Lampade insieme).
+    const recent = ws.getMostRecentLeaf(ws.rootSplit);
+    const empty = recent && recent.view && recent.view.getViewType() === 'empty';
+    if (!leaf || empty) {
+      leaf = empty ? recent : ws.getLeaf('tab');
       await leaf.setViewState({ type: APP_VIEW_TYPE, active: true, state: { area } });
     }
     await ws.revealLeaf(leaf);
@@ -1838,7 +1843,7 @@ class LampadaPlugin extends Plugin {
       if (!img) return;
       evt.preventDefault();
       evt.stopPropagation();
-      openImageViewer(this.app, img.currentSrc || img.src, img.alt);
+      openImageViewer(this.app, img.currentSrc || img.src, imageTexts(img));
     }, { capture: true });
     this.registerDomEvent(document, 'mouseover', (evt) => this.onDocHover(evt));
     this.registerDomEvent(document, 'mouseout', (evt) => this.onDocHoverOut(evt));
@@ -1895,21 +1900,27 @@ class LampadaPlugin extends Plugin {
   }
 
   onDocPointer(evt) {
+    // Popup aperto col clic: si chiude toccando fuori.
+    const pinned = this.hoverInfo && this.hoverInfo.pinned;
+    if (evt.type === 'mousedown' && pinned && !this.hoverEl.contains(evt.target) && !this.hoverInfo.el.contains(evt.target)) this.hideHover(true);
     if (evt.button !== 0) return;
     const info = this.detectBibleLink(evt.target, true);
     if (!info) return;
     const mod = evt.metaKey || evt.ctrlKey;
-    const wantReader = (this.settings.clickAction === 'reader') !== mod;
+    const set = this.settings.clickAction || 'reader';
+    const action = mod ? (set === 'jwlibrary' ? 'reader' : 'jwlibrary') : set;
     // Lasciamo fare a Obsidian quando il comportamento normale coincide con quello voluto.
-    if (!wantReader && info.kind === 'jw') return;
-    if (!wantReader && info.kind === 'wiki' && this.settings.clickAction === 'reader') return;
+    if (action === 'jwlibrary' && (info.kind === 'jw' || (info.kind === 'wiki' && mod))) return;
     evt.preventDefault();
     evt.stopPropagation();
     evt.stopImmediatePropagation();
     if (evt.type !== 'click') return;
+    window.clearTimeout(this.hoverShowTimer);
     this.hideHover(true);
-    if (wantReader) this.openReader(info.ref);
-    else this.openInJwLibrary(info.ref);
+    if (action === 'popup') this.showHover({ ...info, pinned: true });
+    else if (action === 'jwlibrary') this.openInJwLibrary(info.ref);
+    else if (action === 'tab') this.openReaderInNewTab(info.ref);
+    else this.openReader(info.ref, action === 'left' || action === 'right' ? action : undefined);
   }
 
   onDocHover(evt) {
@@ -1934,6 +1945,7 @@ class LampadaPlugin extends Plugin {
 
   hideHover(now) {
     window.clearTimeout(this.hoverHideTimer);
+    if (!now && this.hoverInfo && this.hoverInfo.pinned) return;
     const hide = () => {
       this.hoverEl.hide();
       this.hoverInfo = null;

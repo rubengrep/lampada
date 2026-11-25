@@ -288,6 +288,29 @@ class BibleData {
     return parsed;
   }
 
+  /**
+   * Lo stesso capitolo nella Bibbia di un'altra lingua (lingue affiancate): stessi numeri dei versetti, quindi
+   * l'allineamento è esatto. Letto dal disco (le cartelle delle altre lingue non sono elencate). parseChapterMarkdown o null.
+   */
+  async chapterInLang(code, bookNum, ch) {
+    const s = this.plugin.settings;
+    const root = normalizePath(langRoot(s, code));
+    const pre = root && root !== '/' ? `${root}/` : '';
+    const a = this.app.vault.adapter;
+    const syms = [...new Set([code === baseLang(s) ? s.symbol : s.symbols && s.symbols[code], 'nwtsty', 'nwt'].filter(Boolean))];
+    for (const sym of syms)
+      for (const dir of [INDEX_MIRROR, 'Indici']) {
+        const idx = await a.read(`${pre}${dir}/${sym}.json`).then(JSON.parse, () => null);
+        const b = idx && idx.books && idx.books[bookNum];
+        if (!b) continue;
+        const slug = b.slug || b.file;
+        const folder = b.rel ? b.rel.split('/').slice(0, -1).join('/') : `${idx.folder || sym}/${slug}`;
+        const text = await a.read(`${pre}${folder}/${slug}_${ch}.md`).catch(() => null);
+        if (text) return parseChapterMarkdown(text);
+      }
+    return null;
+  }
+
   verseText(data, v) {
     const lines = data.verseLines.get(v);
     return lines ? lines.join(' ').replace(/\s+/g, ' ').trim() : '';

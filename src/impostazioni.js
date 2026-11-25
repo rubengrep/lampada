@@ -150,10 +150,17 @@ class BibleSettingTab extends PluginSettingTab {
     /* ---------- Riferimenti nelle note ---------- */
     new Setting(containerEl).setName(t('Riferimenti nelle note')).setHeading();
     new Setting(containerEl)
-      .setName(t('Clic su un riferimento biblico'))
-      .setDesc(t('Con ⌘/Ctrl-clic ottieni l’altra azione.'))
+      .setName(t('Clic su un versetto in una nota'))
+      .setDesc(t('Cosa succede quando clicchi un riferimento biblico in una tua nota (es. “Efesini 4:16”). Con ⌘/Ctrl-clic si apre JW Library (o Lampada, se qui scegli JW Library).'))
       .addDropdown((d) =>
-        d.addOptions({ reader: t('Apri in Lampada'), jwlibrary: t('Apri in JW Library') }).setValue(s.clickAction === 'jwlibrary' ? 'jwlibrary' : 'reader').onChange(async (v) => {
+        d.addOptions({
+          popup: t('Mostra il versetto in un popup'),
+          reader: t('Apri in Lampada'),
+          tab: t('Apri in una nuova scheda'),
+          left: t('Apri nella barra laterale sinistra'),
+          right: t('Apri nella barra laterale destra'),
+          jwlibrary: t('Apri in JW Library'),
+        }).setValue(s.clickAction || 'reader').onChange(async (v) => {
           s.clickAction = v;
           await this.plugin.settingsChanged();
         })

@@ -1466,6 +1466,10 @@
 .scrabb-suggest-meta { font-size: var(--font-ui-smaller); color: var(--text-faint); }
 .scrabb-new-quote { border-left: 3px solid var(--color-yellow); padding: 6px 10px; color: var(--text-muted); font-size: var(--font-ui-small); margin: 8px 0; white-space: pre-wrap; max-height: 140px; overflow: auto; }
 .scrabb-new-open { display: flex; align-items: center; gap: 4px; margin-right: auto; font-size: var(--font-ui-small); color: var(--text-muted); }
+.scrabb-edit input[type="number"] { width: 6em; }
+.is-mobile .scrabb-edit input, .is-mobile .scrabb-edit textarea { font-size: 16px; }
+.scrabb-edit textarea { width: 100%; min-width: 14em; }
+.scrabb-edit-del { margin-right: auto; }
 
 /* Telefono e riquadri stretti */
 @media (max-width: 760px) {
@@ -1900,10 +1904,18 @@ button.lmp-ai-src {
 button.lmp-ai-src:hover { color: var(--text-accent); border-color: var(--interactive-accent); }
 
 /* immagini dei documenti: testo alternativo e didascalia */
-.lmp-img-alt { font-family: var(--font-interface); font-size: 13px; line-height: 1.45; font-style: italic; color: var(--text-muted); margin: -0.4em 0 1em; }
+/* didascalia = testo stampato sotto l'immagine; descrizione = testo alternativo, con l'etichetta e il bordo a lato */
+.lmp-img-alt {
+  font-family: var(--font-interface); font-size: 13px; line-height: 1.45; font-style: italic; color: var(--text-muted);
+  margin: 0.4em 0 1em; padding: 2px 0 2px 10px; border-left: 2px solid var(--background-modifier-border-hover);
+}
+.lmp-img-alt[data-label]::before, .lmp-imgview-alt[data-label]::before {
+  content: attr(data-label); display: block; font-style: normal; font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-faint); margin-bottom: 2px;
+}
 .lmp-lib-doc-body p.lmp-dup-label { display: none; }
 .lmp-lib-doc-body ol.lmp-ol-plain { list-style: none; padding-inline-start: 0; }
-.lmp-img-caption, .lmp-lib-doc-body p.lmp-img-caption { font-family: var(--font-interface); font-size: 14px; line-height: 1.45; color: var(--text-muted); margin-top: -0.4em; }
+.lmp-img-caption, .lmp-lib-doc-body p.lmp-img-caption { font-family: var(--font-interface); font-size: 14px; line-height: 1.45; font-weight: 500; color: var(--text-normal); margin-top: -0.4em; }
 
 .lmp-week-figure { margin: 12px 0; }
 .lmp-week-figure img { display: block; width: 100%; height: auto; border-radius: 8px; cursor: zoom-in; }
@@ -2264,10 +2276,13 @@ button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-mo
   width: 44px; height: 44px; border-radius: 50%; color: #fff !important; background: rgba(0, 0, 0, 0.55) !important;
 }
 .lmp-imgview-cap {
-  position: absolute; left: 16px; right: 16px; bottom: calc(var(--safe-area-inset-bottom, 0px) + 12px);
-  color: rgba(255, 255, 255, 0.85); font-size: var(--font-ui-small); text-align: center; pointer-events: none;
-  max-height: 30%; overflow: hidden;
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 16px calc(var(--safe-area-inset-bottom, 0px) + 14px);
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.75) 28px); pointer-events: none;
+  max-height: 35%; overflow: hidden; font-family: var(--font-interface); line-height: 1.45;
 }
+.lmp-imgview-caption { color: #fff; font-size: 15px; font-weight: 500; }
+.lmp-imgview-alt { color: rgba(255, 255, 255, 0.72); font-size: 13px; font-style: italic; margin-top: 8px; padding-left: 10px; border-left: 2px solid rgba(255, 255, 255, 0.3); }
+.lmp-imgview-alt[data-label]::before { color: rgba(255, 255, 255, 0.5); }
 .lmp-imgview.is-zoomed .lmp-imgview-cap { display: none; }
 @keyframes lmp-imgview-in { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .lmp-imgview { animation: none; } }
@@ -2293,3 +2308,39 @@ button.lmp-lang-btn:not(.clickable-icon):hover { background: var(--background-mo
 .lmp-outline-scope button.is-active { background: var(--background-primary); color: var(--text-normal); font-weight: 600; box-shadow: var(--shadow-s); }
 .lmp-book-outline { margin-top: 22px; font-size: 14px; }
 .lmp-book-outline > summary { cursor: pointer; font-weight: 600; padding: 8px 0; color: var(--text-normal); }
+
+/* lingue affiancate nei documenti: paragrafo e traduzione nella stessa riga (largo) o uno sotto l'altro (stretto, a pagine) */
+.lmp-lib-doc.lmp-par2-on { container: lmp-doc / inline-size; }
+.lmp-par2 { color: var(--text-muted); font-size: 0.92em; border-left: 2px solid var(--background-modifier-border-hover); padding-left: 10px; margin: -0.3em 0 1em; }
+.lmp-par2 > :first-child { margin-top: 0; }
+.lmp-par2 > :last-child { margin-bottom: 0; }
+.lmp-par2-title { font-size: 1.05em; margin: -0.4em 0 1em; }
+@container lmp-doc (min-width: 640px) {
+  .lmp-par2-cols .lmp-lib-doc-body { display: grid; grid-template-columns: 1fr 1fr; column-gap: 28px; align-items: start; }
+  .lmp-par2-cols .lmp-lib-doc-body > * { grid-column: 1 / -1; }
+  .lmp-par2-cols .lmp-lib-doc-body > .lmp-par2-src { grid-column: 1; }
+  .lmp-par2-cols .lmp-lib-doc-body > .lmp-par2 { grid-column: 2; margin: 0 0 1em; }
+}
+/* a pagine le colonne sono già le pagine: la traduzione va sotto */
+.is-paged .lmp-lib-doc.lmp-par2-on .lmp-lib-doc-body { display: block; }
+.is-paged .lmp-lib-doc.lmp-par2-on .lmp-lib-doc-body > .lmp-par2 { margin: -0.3em 0 1em; }
+button.lmp-lang-btn.lmp-par2-btn.is-active { color: var(--text-accent); background: color-mix(in srgb, var(--text-accent) 12%, transparent); }
+/* interlineare: sotto ogni frase la sua traduzione */
+/* carattere dell'interfaccia e colore tra accento e grigio: si distingue dal testo; più spazio dopo che prima, così ogni frase sta con la sua */
+.lmp-par2-line {
+  display: block; margin: 0.2em 0 0.9em; user-select: text;
+  font-family: var(--font-interface); font-size: 0.8em; font-weight: normal; font-style: normal; line-height: 1.45; text-align: start;
+  color: color-mix(in srgb, var(--text-accent) 45%, var(--text-muted));
+}
+/* Bibbia in due lingue: colonne per paragrafo (la pagina si allarga), numeri dei versetti nella traduzione */
+.lmp-reader.lmp-par2-cols, .lmp-lib-doc.lmp-par2-cols { max-width: 1180px; }
+.lmp-main:has(> .lmp-reader.lmp-par2-on) { container: lmp-main / inline-size; }
+.lmp-par2-bible { font-family: var(--font-interface); font-size: 0.8em; line-height: 1.5; border-left: none; padding-left: 0; color: color-mix(in srgb, var(--text-accent) 45%, var(--text-muted)); }
+.lmp-par2-vnum { font-weight: 600; font-size: 0.85em; margin-right: 0.3em; opacity: 0.8; }
+@container lmp-main (min-width: 760px) {
+  .lmp-reader.lmp-par2-cols { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; align-items: start; }
+  .lmp-reader.lmp-par2-cols > * { grid-column: 1 / -1; }
+  .lmp-reader.lmp-par2-cols > .lmp-par2-src { grid-column: 1; }
+  .lmp-reader.lmp-par2-cols > .lmp-par2 { grid-column: 2; margin: 0.35em 0 1em; }
+}
+.lmp-main.is-paged > .lmp-reader.lmp-par2-cols { display: block; }

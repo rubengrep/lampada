@@ -1,9 +1,10 @@
 import { compare, lang, t } from './lingua.js';
 import { ItemView, Component, Notice, setIcon, debounce, Platform, Menu, normalizePath } from 'obsidian';
 import { GotoModal } from './bibbia-modali.js';
-import { renderBibleDownload } from './bibbia-epub.js';
+import { BIBLE_LANGS, renderBibleDownload } from './bibbia-epub.js';
 import { LIB_VIEW_TYPE } from './biblioteca-dati.js';
-import { CATEGORIES, HIGHLIGHTS, SECTION_ORDER, VIEW_TYPE, paneOrder, paneLabel } from './costanti.js';
+import { interline } from './biblioteca-vista.js';
+import { CATEGORIES, HIGHLIGHTS, SECTION_ORDER, VIEW_TYPE, paneOrder, paneLabel, pubLang } from './costanti.js';
 import { fileMeta, fileSrc, readFile, renderMd } from './file.js';
 import { jwlTag } from './jwl-formati.js';
 import { SCRABB_TYPES } from './scrabb-dati.js';
@@ -11,7 +12,7 @@ import { linkVerseToScrabb } from './scrabb-vista.js';
 import { categoryOf, codesFromJwUrl, parseRefLinks, compressVerses, extractBlock, jwTokenText, newGuid, norm, noteFreeText, parseNoteFile, refFromCodes, splitJwTokens, stripFrontmatter, verseCode } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { GOSPELS, ParallelModal, aiMenu, highlightParts, parallelsInChapter, renderRbi8Verse, showAiSuggestions, verseAiCtx, wordStudy } from './studio.js';
-import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, paneResizer, renderCitedIn, renderNoteCites, pubLangButton, setBarsHidden, viewKeys } from './ui.js';
+import { PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, fillCitePreview, hasBibleIn, langName, paneResizer, renderCitedIn, renderNoteCites, pubLangButton, setBarsHidden, viewKeys } from './ui.js';
 
 /* ------------------------------------------------------------------ */
 /* Vista lettore                                                       */
@@ -250,6 +251,103 @@ class BibleView extends ItemView {
     this.updateToolbar();
   }
 
+  /**
+   * Lingue affiancate (la stessa scelta della Biblioteca, plugin.ui.libPar2): sotto ogni versetto lo stesso versetto
+   * nella Bibbia dell'altra lingua. Fuori da .lmp-verse, così parole, evidenziazioni e note non cambiano.
+   */
+  par2Key() {
+    return `${this.plugin.ui.libPar2 || ''}|${this.plugin.ui.libPar2Mode || 'cols'}`;
+  }
+
+  /** Nel guscio, tornando alla Bibbia: lingua o modo cambiati nella Biblioteca si vedono subito. */
+  onShown() {
+    if (this.state.mode === 'reader' && this.par2Shown !== undefined && this.par2Shown !== this.par2Key()) this.setOtherLang(this.plugin.ui.libPar2);
+  }
+
+  async renderOtherLang(wrap, book, chapter, token) {
+    this.par2Shown = this.par2Key();
+    const code = this.plugin.ui.libPar2;
+    if (!code || code === pubLang(this.plugin.settings)) return;
+    const other = await this.bible.chapterInLang(code, book.num, chapter).catch(() => null);
+    if (!other || token !== this.renderToken) return;
+    const mode = this.plugin.ui.libPar2Mode || 'cols';
+    // L'ultimo pezzo di ogni versetto (un versetto può continuare nel paragrafo dopo).
+    const last = new Map();
+    for (const el of wrap.querySelectorAll('.lmp-verse[data-v]')) last.set(+el.dataset.v, el);
+    if (mode === 'lines') {
+      // Interlineare per frase, come nella Biblioteca. Versetti su più righe di poesia, o frasi non abbinate: sotto il versetto.
+      for (const [v, el] of last) {
+        const text = this.bible.verseText(other, v);
+        if (!text) continue;
+        const pieces = wrap.querySelectorAll(`.lmp-verse[data-v="${v}"]`).length;
+        if (pieces > 1 || !interline(el, text)) el.after(createSpan({ cls: 'lmp-par2-line lmp-par2-verse', text }));
+      }
+    } else {
+      // Colonne o sotto: i versetti numerati, a gruppi. Un gruppo comincia col paragrafo dove comincia un versetto e
+      // comprende i paragrafi che seguono senza versetti nuovi (le righe della poesia): la traduzione va dopo l'ultimo
+      // (da stretto si legge sotto) e, a colonne, accanto a tutte quelle righe, dalla prima.
+      const started = new Set();
+      const groups = [];
+      for (const el of wrap.children) {
+        if (!el.matches('p.lmp-p')) {
+          if (!el.matches('p')) groups.push(null); // un titolo chiude il gruppo
+          continue;
+        }
+        const vs = [...new Set([...el.querySelectorAll('.lmp-verse[data-v]')].map((x) => +x.dataset.v))].filter((v) => !started.has(v));
+        vs.forEach((v) => started.add(v));
+        const g = groups[groups.length - 1];
+        if (vs.length || !g) groups.push(vs.length ? { ps: [el], vs } : null);
+        else g.ps.push(el);
+      }
+      const boxes = new Map(); // primo paragrafo del gruppo → traduzione
+      for (const g of groups) {
+        if (!g) continue;
+        const box = createDiv('lmp-par2 lmp-par2-bible');
+        for (const v of g.vs) {
+          const text = this.bible.verseText(other, v);
+          if (!text) continue;
+          box.createSpan({ cls: 'lmp-par2-vnum', text: String(v) });
+          box.appendText(`${text} `);
+        }
+        if (!box.childNodes.length) continue;
+        g.ps.forEach((p) => p.addClass('lmp-par2-src'));
+        g.ps[g.ps.length - 1].after(box);
+        boxes.set(g.ps[0], box);
+      }
+      // Righe della griglia (contano solo a colonne): ogni traduzione dalla riga del suo primo paragrafo all'ultimo.
+      let row = 0;
+      const from = new Map();
+      for (const el of wrap.children) {
+        if (el.hasClass('lmp-par2')) {
+          el.style.gridRow = `${from.get(el) || row} / ${row + 1}`;
+          continue;
+        }
+        el.style.gridRow = String(++row);
+        if (boxes.has(el)) from.set(boxes.get(el), row);
+      }
+    }
+    wrap.addClass('lmp-par2-on');
+    wrap.addClass(`lmp-par2-${mode}`);
+    this.pager.refresh();
+    this.applyLayout();
+  }
+
+  /** Lingue con una Bibbia, oltre a quella in uso (per il menu ⋯): calcolate in anticipo, il menu non aspetta. */
+  async loadOtherLangs() {
+    const cur = pubLang(this.plugin.settings);
+    const others = BIBLE_LANGS.map(([c]) => c).filter((c) => c !== cur);
+    const ok = await Promise.all(others.map((c) => hasBibleIn(this.plugin, c)));
+    this.otherLangs = others.filter((_, i) => ok[i]);
+  }
+
+  setOtherLang(code) {
+    this.plugin.ui.libPar2 = code;
+    this.plugin.requestSave();
+    if (this.state.mode !== 'reader') return;
+    this.chapterData = null; // stesso capitolo: senza questo navigate non lo ridisegna
+    this.navigate({ ...this.state }, { push: false });
+  }
+
   showMoreMenu(evt) {
     const menu = new Menu();
     this.fillMenu(menu);
@@ -277,6 +375,19 @@ class BibleView extends ItemView {
     if ((this.bible.bibles || []).length > 1) {
       menu.addSeparator();
       for (const b of this.bible.bibles) menu.addItem((i) => i.setTitle(b.title).setIcon('book').setChecked(b.symbol === this.bible.symbol).onClick(() => this.plugin.setBible(b.symbol)));
+      menu.addSeparator();
+    }
+    const langs = this.otherLangs || [];
+    if (langs.length) {
+      const par2 = this.plugin.ui.libPar2;
+      menu.addItem((i) => i.setTitle(t('Solo questa lingua')).setIcon('languages').setChecked(!langs.includes(par2)).onClick(() => this.setOtherLang(null)));
+      for (const code of langs) menu.addItem((i) => i.setTitle(t('Affianca: {lingua}', { lingua: langName(code) })).setIcon('languages').setChecked(code === par2).onClick(() => this.setOtherLang(code)));
+      const mode = this.plugin.ui.libPar2Mode || 'cols';
+      for (const [k, label, icon] of [['cols', t('In colonne'), 'columns-2'], ['below', t('Sotto ogni paragrafo'), 'rows-2'], ['lines', t('Interlineare, frase per frase'), 'list']])
+        menu.addItem((i) => i.setTitle(label).setIcon(icon).setChecked(langs.includes(par2) && k === mode).onClick(() => {
+          this.plugin.ui.libPar2Mode = k;
+          this.setOtherLang(langs.includes(par2) ? par2 : langs[0]);
+        }));
       menu.addSeparator();
     }
     menu.addItem((i) => i.setTitle(t('Etichette')).setIcon('tags').onClick(() => this.navigate({ mode: 'tags' })));
@@ -875,6 +986,7 @@ class BibleView extends ItemView {
     if (token === this.renderToken) this.chapterNotes = notes;
     if (token !== this.renderToken) return;
     this.chapterData = data;
+    this.loadOtherLangs();
     this.plugin.addRecent({ book: book.num, chapter });
     this.selected.clear();
     this.primary = null;
@@ -955,6 +1067,7 @@ class BibleView extends ItemView {
     this.decorateParallels();
     this.pager.refresh();
     this.applyTargetSelection(target);
+    this.renderOtherLang(wrap, book, chapter, token);
     this.marginEl = wrap.createDiv('lmp-margin');
     window.requestAnimationFrame(() => this.applyLayout());
   }

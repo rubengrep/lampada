@@ -378,13 +378,39 @@ function zoomableImage(target) {
 }
 
 /**
+ * Didascalia (quella stampata: figcaption o .lmp-img-caption) e descrizione (testo alternativo: .lmp-img-alt o alt)
+ * di un'immagine nella pagina. Il nome del file che Obsidian mette come alt non conta.
+ */
+function imageTexts(img) {
+  let caption = '', alt = '';
+  const fig = img.closest('figure');
+  if (fig) {
+    caption = fig.querySelector('figcaption')?.textContent.trim() || '';
+    alt = fig.querySelector('.lmp-img-alt')?.textContent.trim() || '';
+  } else {
+    let el = (img.closest('p') || img.closest('.internal-embed') || img).nextElementSibling;
+    for (let i = 0; el && i < 2; i++, el = el.nextElementSibling) {
+      if (!caption && el.matches('.lmp-img-caption')) caption = el.textContent.trim();
+      else if (!alt && el.matches('.lmp-img-alt')) alt = el.textContent.trim();
+    }
+  }
+  const own = (img.getAttribute('alt') || '').trim();
+  if (!alt && own && own !== caption && !/\.(png|jpe?g|gif|webp|avif|svg)$/i.test(own)) alt = own;
+  return { caption, alt };
+}
+
+/**
  * Immagine a tutto schermo. Ingrandire: pizzico, doppio tocco (o doppio clic), rotella; trascinare: spostare.
  * Chiudere: ✕, Esc, tocco fuori dall'immagine quando non è ingrandita.
  */
-function openImageViewer(app, src, alt) {
+function openImageViewer(app, src, { caption = '', alt = '' } = {}) {
   const bg = document.body.createDiv('lmp-imgview');
-  const img = bg.createEl('img', { attr: { src, alt: alt || '', draggable: 'false' } });
-  if (alt) bg.createDiv({ cls: 'lmp-imgview-cap', text: alt });
+  const img = bg.createEl('img', { attr: { src, alt: alt || caption, draggable: 'false' } });
+  if (caption || alt) {
+    const texts = bg.createDiv('lmp-imgview-cap');
+    if (caption) texts.createDiv({ cls: 'lmp-imgview-caption', text: caption });
+    if (alt) texts.createDiv({ cls: 'lmp-imgview-alt', text: alt, attr: { 'data-label': t("Descrizione dell'immagine") } });
+  }
   const closeBtn = bg.createEl('button', { cls: 'lmp-imgview-close clickable-icon', attr: { 'aria-label': t('Chiudi') } });
   setIcon(closeBtn, 'x');
   let s = 1, x = 0, y = 0;
@@ -469,4 +495,4 @@ function openImageViewer(app, src, alt) {
   return close;
 }
 
-export { openImageViewer, zoomableImage, AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, hasSelection, paneResizer, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };
+export { imageTexts, openImageViewer, zoomableImage, AREAS, hasBibleIn, hasInLang, langName, pubLangButton, citedPars, fillCitePreview, CitePreviewModal, addAppToggle, viewKeys, renderCitedIn, renderNoteCites, autoHideBars, hasSelection, paneResizer, setBarsHidden, bookmarkKey, addViewSwitch, addGoToAction, PlacesModal };

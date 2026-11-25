@@ -1,7 +1,7 @@
-import { ItemView, Modal, SuggestModal, EditorSuggest, Setting, Notice, setIcon, debounce, Platform } from 'obsidian';
+import { ItemView, Modal, SuggestModal, FuzzySuggestModal, EditorSuggest, Setting, Notice, setIcon, debounce, Platform } from 'obsidian';
 import { issueLabel } from './biblioteca-dati.js';
 import { renderMd } from './file.js';
-import { SCRABB_ALL_LISTS, SCRABB_BIBLE_LISTS, SCRABB_ERAS, SCRABB_FIELD_FOR, SCRABB_INTRO, SCRABB_LANES, SCRABB_STUDY_LISTS, SCRABB_TEACHERS, SCRABB_TEACHINGS, SCRABB_TYPES, SCRABB_USABLE, SCRABB_VIEW_TYPE, scrabbBody, scrabbDate, scrabbFmtDate, scrabbFold, scrabbListOf, scrabbListTypes, scrabbSafeName, scrabbUsageText, scrabbYear } from './scrabb-dati.js';
+import { SCRABB_ALL_LISTS, SCRABB_BIBLE_LISTS, SCRABB_ERAS, SCRABB_FIELD_FOR, SCRABB_INTRO, SCRABB_LANES, SCRABB_LINK_FIELDS, scrabbApprox, scrabbFonti, scrabbLinkpaths, scrabbList, scrabbNum, SCRABB_STUDY_LISTS, SCRABB_TEACHERS, SCRABB_TEACHINGS, SCRABB_TYPES, SCRABB_USABLE, SCRABB_VIEW_TYPE, scrabbBody, scrabbDate, scrabbFmtDate, scrabbFold, scrabbListOf, scrabbListTypes, scrabbSafeName, scrabbUsageText, scrabbYear } from './scrabb-dati.js';
 import { cleanSnippet } from './testo.js';
 import { compare, t } from './lingua.js';
 import { addGoToAction, addViewSwitch, autoHideBars, setBarsHidden } from './ui.js';
@@ -94,10 +94,16 @@ class ScrabbPickModal extends SuggestModal {
     const list = this.plugin.scrabb.all(this.opts.types);
     const scored = [];
     for (const e of list) {
-      const n = scrabbFold(e.name);
-      const i = q ? n.indexOf(q) : 0;
-      if (i < 0) continue;
-      scored.push({ e, s: (i === 0 ? 0 : 1) + n.length / 1000 });
+      // Nome o uno degli altri nomi (aliases): vale quello che corrisponde meglio.
+      let best = null;
+      for (const name of [e.name, ...(e.aliases || [])]) {
+        const n = scrabbFold(name);
+        const i = q ? n.indexOf(q) : 0;
+        if (i < 0) continue;
+        const sc = (i === 0 ? 0 : 1) + n.length / 1000 + (name === e.name ? 0 : 0.0005);
+        if (best == null || sc < best) best = sc;
+      }
+      if (best != null) scored.push({ e, s: best });
     }
     scored.sort((a, b) => a.s - b.s);
     const out = scored.slice(0, 60).map((x) => x.e);
@@ -205,6 +211,296 @@ class ScrabbNewModal extends Modal {
       if (this.onDone) this.onDone(file);
     } catch (e) {
       new Notice(t('Impossibile creare la scheda: {errore}', { errore: e.message }));
+    }
+  }
+
+  onClose() {
+    this.contentEl.empty();
+  }
+}
+
+/** Valore del campo "approssimata" per le due date (vedi scrabbApprox). */
+function scrabbApproxValue(start, end) {
+  return start && end ? true : start ? 'inizio' : end ? 'fine' : null;
+}
+
+// Campi del frontmatter che la finestra «Modifica» gestisce da sé; gli altri testi semplici finiscono in "Altri campi".
+const SCRABB_KNOWN = new Set(['tipo', 'tags', 'aliases', 'versetti', 'fonti', 'perspicacia', 'categoria', 'domanda', 'ordine', 'anno', 'anno_fine', 'approssimata', 'corsia', 'data', 'position', ...SCRABB_LINK_FIELDS]);
+
+/**
+ * Modifica una scheda senza toccare lo YAML: tipo, versetti, collegamenti, fonti, data per la Cronologia e gli altri campi.
+ * Scrive nel frontmatter solo i campi cambiati, con gli stessi nomi che si possono scrivere a mano.
+ */
+class ScrabbEditModal extends Modal {
+  constructor(plugin, e) {
+    super(plugin.app);
+    this.plugin = plugin;
+    this.e = e;
+    const fm = plugin.app.metadataCache.getFileCache(e.file)?.frontmatter || {};
+    const str = (x) => (x == null ? '' : Array.isArray(x) ? `[[${x.flat(3).join('')}]]` : String(x));
+    const year = (y, ca) => (y == null ? { n: '', bce: true, ca: false } : { n: String(Math.abs(y)), bce: y < 0, ca: !!ca });
+    const approx = scrabbApprox(fm.approssimata) || {};
+    const links = [];
+    for (const field of SCRABB_LINK_FIELDS)
+      for (const item of scrabbList(fm[field]))
+        for (const name of scrabbLinkpaths([item]))
+          links.push({ field, name, raw: typeof item === 'string' && scrabbLinkpaths([item]).length === 1 ? item : `[[${name}]]` });
+    this.v = {
+      name: e.name,
+      aliases: scrabbList(fm.aliases).map(String).join(', '),
+      tipo: e.tipo,
+      versetti: scrabbList(fm.versetti).map(String).join('\n'),
+      links,
+      fonti: scrabbList(fm.fonti).map(String),
+      perspicacia: str(fm.perspicacia),
+      categoria: str(fm.categoria),
+      domanda: str(fm.domanda),
+      ordine: str(fm.ordine),
+      from: year(scrabbNum(fm.anno), approx.start),
+      to: year(scrabbNum(fm.anno_fine), approx.end),
+      corsia: str(fm.corsia),
+      data: str(fm.data),
+      extra: Object.entries(fm).filter(([k, x]) => !SCRABB_KNOWN.has(k) && ['string', 'number'].includes(typeof x)).map(([k, x]) => ({ k, x: String(x), num: typeof x === 'number' })),
+    };
+    this.init = this.toFm();
+  }
+
+  /** Valori del frontmatter (null = campo da togliere); lancia un errore con un messaggio per l'utente. */
+  toFm() {
+    const v = this.v;
+    const yr = (y) => {
+      if (!y.n) return null;
+      const n = Math.abs(Math.round(Number(y.n)));
+      if (!n) throw new Error(t('Scrivi l’anno (un numero, senza lo 0).'));
+      return y.bce ? -n : n;
+    };
+    const anno = yr(v.from);
+    const fine = yr(v.to);
+    if (fine != null && anno == null) throw new Error(t('Manca l’anno di inizio.'));
+    if (fine != null && fine < anno) throw new Error(t('«Fino a» viene prima dell’anno di inizio.'));
+    const ordine = v.ordine.trim() === '' ? null : Number(v.ordine);
+    if (ordine != null && !Number.isFinite(ordine)) throw new Error(t('L’ordine deve essere un numero.'));
+    const list = (a) => (a.length ? a : null);
+    const out = {
+      aliases: list(v.aliases.split(',').map((s) => s.trim()).filter(Boolean)),
+      tipo: v.tipo,
+      versetti: list(v.versetti.split('\n').map((s) => s.trim()).filter(Boolean)),
+      fonti: list(v.fonti),
+      perspicacia: v.perspicacia.trim() || null,
+      categoria: v.categoria.trim() || null,
+      domanda: v.domanda.trim() || null,
+      ordine,
+      anno,
+      anno_fine: fine === anno ? null : fine,
+      // Una data sola: il «ca.» vale per lei, da qualunque riga venga.
+      approssimata: anno == null ? null : scrabbApproxValue(v.from.ca || (fine == null || fine === anno ? v.to.ca : false), fine != null && fine !== anno && v.to.ca),
+      corsia: v.corsia || null,
+      data: v.data.trim() || null,
+    };
+    for (const f of SCRABB_LINK_FIELDS) out[f] = list(v.links.filter((l) => l.field === f).map((l) => l.raw));
+    for (const x of v.extra) {
+      const k = x.k.trim();
+      if (!k) continue;
+      if (x.isNew && (SCRABB_KNOWN.has(k) || k in out)) throw new Error(t('Il campo «{nome}» c’è già.', { nome: k }));
+      out[k] = x.del || x.x.trim() === '' ? null : x.num && Number.isFinite(Number(x.x)) ? Number(x.x) : x.x.trim();
+    }
+    return out;
+  }
+
+  onOpen() {
+    const v = this.v;
+    const c = this.contentEl;
+    this.titleEl.setText(t('Modifica «{nome}»', { nome: this.e.name }));
+    c.addClass('scrabb-edit');
+    const head = (name) => new Setting(c).setName(name).setHeading();
+    const text = (name, desc, key, ph) =>
+      new Setting(c).setName(name).setDesc(desc || '').addText((x) => x.setPlaceholder(ph || '').setValue(v[key]).onChange((s) => (v[key] = s)));
+
+    text(t('Nome'), t('Cambiandolo, i link alla scheda nelle altre note si aggiornano (se in Obsidian è attivo l’aggiornamento dei link).'), 'name');
+    text(t('Altri nomi'), t('Separati da virgola: anche con questi nomi la trovi e la colleghi.'), 'aliases');
+    new Setting(c).setName(t('Tipo')).addDropdown((d) => {
+      for (const [k, x] of Object.entries(SCRABB_TYPES)) d.addOption(k, t(x.label));
+      d.setValue(v.tipo).onChange((s) => (v.tipo = s));
+    });
+    new Setting(c)
+      .setName(t('Versetti'))
+      .setDesc(t('Uno per riga, es. Romani 12:19'))
+      .addTextArea((x) => {
+        x.setValue(v.versetti).onChange((s) => (v.versetti = s));
+        x.inputEl.rows = Math.min(8, Math.max(3, v.versetti.split('\n').length + 1));
+      });
+
+    head(t('Collegamenti'));
+    const chips = new Setting(c).setDesc(t('Altre schede collegate a questa. × toglie il collegamento.')).controlEl.createDiv('scrabb-chips');
+    const drawChips = () => {
+      chips.empty();
+      for (const l of v.links) {
+        const ch = chips.createSpan({ cls: 'scrabb-chip', text: l.name });
+        ch.createSpan({ cls: 'scrabb-chip-x', text: '×' }).addEventListener('click', () => {
+          v.links = v.links.filter((x) => x !== l);
+          drawChips();
+        });
+      }
+      chips.createEl('button', { cls: 'scrabb-chip scrabb-chip-add', text: t('+ collega') }).addEventListener('click', () =>
+        new ScrabbPickModal(this.plugin, { placeholder: t('Collega a…') }, (x) => {
+          if (x.path === this.e.path || v.links.some((l) => l.name === x.name)) return;
+          v.links.push({ field: SCRABB_FIELD_FOR[x.tipo], name: x.name, raw: `[[${x.name}]]` });
+          drawChips();
+        }).open()
+      );
+    };
+    drawChips();
+    if (v.fonti.length) {
+      const box = new Setting(c).setName(t('Fonti')).setDesc(t('Paragrafi delle pubblicazioni. Si aggiungono dalla Biblioteca con «Collega a SCRABB».')).controlEl.createDiv('scrabb-chips');
+      const drawFonti = () => {
+        box.empty();
+        for (const f of v.fonti) {
+          const info = scrabbFonti(f)[0];
+          const ch = box.createSpan({ cls: 'scrabb-chip', text: (info && (info.label || info.file)) || f });
+          ch.createSpan({ cls: 'scrabb-chip-x', text: '×' }).addEventListener('click', () => {
+            v.fonti = v.fonti.filter((x) => x !== f);
+            drawFonti();
+          });
+        }
+      };
+      drawFonti();
+    }
+    let perspInput;
+    new Setting(c)
+      .setName(t('Perspicacia'))
+      .setDesc(t('L’articolo di Perspicacia su questa voce: «Scegli…» lo cerca nella biblioteca.'))
+      .addText((x) => (perspInput = x).setPlaceholder('[[…]]').setValue(v.perspicacia).onChange((s) => (v.perspicacia = s)))
+      .addButton((b) => b.setButtonText(t('Scegli…')).onClick(() => this.pickPerspicacia((link) => {
+        v.perspicacia = link;
+        perspInput.setValue(link);
+      })));
+
+    head(t('Elenco e studio'));
+    text(t('Categoria'), t('Gruppo nell’elenco, se la scheda non è collegata a un tema.'), 'categoria');
+    text(t('Domanda'), t('Mostrata sotto il titolo della scheda.'), 'domanda');
+    text(t('Ordine'), t('Numero: posizione nell’elenco (i più bassi prima).'), 'ordine');
+
+    head(t('Data e Cronologia'));
+    const yearRow = (name, desc, y) =>
+      new Setting(c)
+        .setName(name)
+        .setDesc(desc)
+        .addText((x) => {
+          x.inputEl.type = 'number';
+          x.inputEl.min = '1';
+          x.setPlaceholder(t('anno')).setValue(y.n).onChange((s) => (y.n = s.trim()));
+        })
+        .addDropdown((d) => d.addOptions({ bce: t('a.E.V.'), ce: t('E.V.') }).setValue(y.bce ? 'bce' : 'ce').onChange((s) => (y.bce = s === 'bce')))
+        .addToggle((x) => x.setTooltip(t('Circa: data approssimativa (ca.)')).setValue(y.ca).onChange((s) => (y.ca = s)));
+    yearRow(t('Anno'), t('Quando è nato, è successo o è cominciato. Senza anno la scheda non va nella Cronologia. L’interruttore aggiunge «ca.».'), v.from);
+    yearRow(t('Fino a'), t('Facoltativo: fine del periodo o della vita. L’interruttore aggiunge «ca.».'), v.to);
+    new Setting(c)
+      .setName(t('Corsia'))
+      .setDesc(t('Riga della Cronologia in cui compare.'))
+      .addDropdown((d) => {
+        d.addOption('', t('Automatica'));
+        for (const l of SCRABB_LANES) d.addOption(l, t(l));
+        if (v.corsia && !SCRABB_LANES.includes(v.corsia)) d.addOption(v.corsia, v.corsia);
+        d.setValue(v.corsia).onChange((s) => (v.corsia = s));
+      });
+    text(t('Testo della data'), t('Facoltativo, mostrato accanto alla data: es. «11 anni di regno». «futuro» mette la scheda in fondo alla Cronologia.'), 'data');
+
+    head(t('Altri campi'));
+    const extraEl = c.createDiv();
+    const drawExtra = () => {
+      extraEl.empty();
+      for (const x of v.extra) {
+        if (x.del) continue;
+        const s = new Setting(extraEl).setName(x.k || t('Nuovo campo'));
+        if (x.isNew) s.addText((n) => n.setPlaceholder(t('nome, es. esito')).setValue(x.k).onChange((k) => (x.k = k)));
+        s.addText((n) => n.setPlaceholder(t('valore')).setValue(x.x).onChange((val) => (x.x = val)));
+        s.addExtraButton((b) => b.setIcon('x').setTooltip(t('Togli')).onClick(() => {
+          x.del = true;
+          drawExtra();
+        }));
+      }
+      new Setting(extraEl).addButton((b) => b.setButtonText(t('+ campo')).onClick(() => {
+        v.extra.push({ k: '', x: '', isNew: true });
+        drawExtra();
+      }));
+    };
+    drawExtra();
+
+    const btns = c.createDiv('modal-button-container');
+    // Due tocchi per eliminare: il file va nel cestino scelto in Obsidian, da cui si recupera.
+    const del = btns.createEl('button', { cls: 'mod-warning scrabb-edit-del', text: t('Elimina') });
+    del.addEventListener('click', async () => {
+      if (!del.hasClass('is-armed')) {
+        del.addClass('is-armed');
+        del.setText(t('Tocca di nuovo per eliminare'));
+        return;
+      }
+      await this.app.fileManager.trashFile(this.e.file);
+      this.close();
+      new Notice(t('Scheda eliminata: {nome}', { nome: this.e.name }));
+    });
+    btns.createEl('button', { text: t('Apri nota') }).addEventListener('click', () => {
+      this.close();
+      this.app.workspace.getLeaf('tab').openFile(this.e.file);
+    });
+    btns.createEl('button', { cls: 'mod-cta', text: t('Salva') }).addEventListener('click', () => this.save());
+  }
+
+  /** Cerca un articolo di Perspicacia (simbolo "it") tra le pubblicazioni della biblioteca. */
+  async pickPerspicacia(done) {
+    const lib = this.plugin.library;
+    await lib.ensureLoaded().catch(() => null);
+    const docs = (lib.bySym && lib.bySym.get('it')?.docs) || [];
+    if (!docs.length) {
+      new Notice(t('Perspicacia non è nella biblioteca: importala, oppure scrivi il link a mano.'));
+      return;
+    }
+    const m = new FuzzySuggestModal(this.app);
+    m.setPlaceholder(t('Cerca una voce di Perspicacia…'));
+    m.getItems = () => docs.filter((d) => d.file);
+    m.getItemText = (d) => d.title;
+    m.onChooseItem = (d) => done(`[[${d.file}|Perspicacia · ${d.title}]]`); // testo nel vault: resta in italiano
+    m.open();
+  }
+
+  async save() {
+    let out;
+    try {
+      out = this.toFm();
+    } catch (err) {
+      new Notice(err.message);
+      return;
+    }
+    const changed = Object.keys(out).filter((k) => JSON.stringify(out[k]) !== JSON.stringify(this.init[k] ?? null));
+    const name = scrabbSafeName(this.v.name);
+    if (!name) {
+      new Notice(t('Scrivi un nome per la scheda.'));
+      return;
+    }
+    const file = this.e.file;
+    const newPath = name === this.e.name ? null : `${file.parent && file.parent.path !== '/' ? file.parent.path + '/' : ''}${name}.md`;
+    if (newPath && this.app.vault.getAbstractFileByPath(newPath)) {
+      new Notice(t('C’è già una nota «{nome}» in questa cartella.', { nome: name }));
+      return;
+    }
+    if (!changed.length && !newPath) return this.close();
+    try {
+      if (changed.length) await this.app.fileManager.processFrontMatter(file, (fm) => {
+        for (const k of changed) {
+          if (out[k] == null) delete fm[k];
+          else fm[k] = out[k];
+        }
+        // Il tag segue il tipo (scrabb/persona…).
+        if (changed.includes('tipo') && fm.tags) {
+          const old = `scrabb/${scrabbFold(this.init.tipo)}`;
+          fm.tags = scrabbList(fm.tags).map((x) => (String(x) === old ? `scrabb/${scrabbFold(out.tipo)}` : x));
+        }
+      });
+      if (newPath) await this.app.fileManager.renameFile(file, newPath);
+      this.close();
+      new Notice(t('Scheda aggiornata: {nome}', { nome: name }));
+    } catch (err) {
+      new Notice(t('Impossibile salvare la scheda: {errore}', { errore: err.message }));
     }
   }
 
@@ -357,7 +653,7 @@ class ScrabbView extends ItemView {
         this.state.list = scrabbListOf(e.tipo);
         this.state.study = path;
       }
-      if (this.state.tab === 'cronologia' && e.anno == null) new Notice(t('Questa scheda non ha ancora una data (campo “anno”).'));
+      if (this.state.tab === 'cronologia' && e.anno == null) new Notice(t('Questa scheda non ha ancora una data: toccala e scegli «Modifica».'));
       this.saveState();
       this.render();
       if (this.state.tab === 'cronologia') this.scrollTimelineTo(e);
@@ -434,6 +730,7 @@ class ScrabbView extends ItemView {
     act('file-text', t('Apri nota'), (evt) => this.openFile(e, evt));
     if (this.state.tab !== 'mappa') act('waypoints', t('Mappa'), () => this.openTab('mappa', e.path));
     if (e.anno != null && this.state.tab !== 'cronologia') act('calendar-range', t('Cronologia'), () => this.openTab('cronologia', e.path));
+    act('pencil', t('Modifica'), () => new ScrabbEditModal(this.plugin, e).open());
     if (e.perspicacia) {
       act('library-big', t('Perspicacia'), () => this.plugin.openPerspicacia(e));
     }
@@ -745,6 +1042,7 @@ class ScrabbView extends ItemView {
     btn('file-text', t('Apri nota'), (evt) => this.openFile(e, evt));
     btn('waypoints', t('Mappa'), () => this.openTab('mappa', e.path));
     if (e.anno != null) btn('calendar-range', t('Cronologia'), () => this.openTab('cronologia', e.path));
+    btn('pencil', t('Modifica'), () => new ScrabbEditModal(this.plugin, e).open());
     if (e.perspicacia) btn('library-big', t('Perspicacia'), () => this.plugin.openPerspicacia(e));
     const body = el.createDiv('scrabb-study-body');
     await this.renderEntityBody(body, e, null, { token: 'study' });
@@ -806,7 +1104,7 @@ class ScrabbView extends ItemView {
     const scroller = el.createDiv('scrabb-tl');
     this.tlScroller = scroller;
     if (!dated.length) {
-      scroller.createDiv({ cls: 'scrabb-empty', text: t('Nessuna scheda con data. Aggiungi “anno: -1513” (a.E.V. con il meno) nel frontmatter.') });
+      scroller.createDiv({ cls: 'scrabb-empty', text: t('Nessuna scheda con data. Apri un personaggio o un evento e tocca «Modifica».') });
       return;
     }
     const minY = Math.floor((Math.min(...dated.map((e) => e.anno)) - 80) / 100) * 100;
@@ -1259,4 +1557,4 @@ function linkVerseToScrabb(plugin, label, refresh) {
   }).open();
 }
 
-export { ScrabbSuggest, ScrabbPickModal, ScrabbNewModal, ScrabbView, linkVerseToScrabb };
+export { ScrabbSuggest, ScrabbPickModal, ScrabbNewModal, ScrabbEditModal, ScrabbView, linkVerseToScrabb };

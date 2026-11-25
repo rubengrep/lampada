@@ -1,21 +1,84 @@
-import { ItemView, Component, Menu, Modal, Notice, setIcon, debounce, Platform } from 'obsidian';
+import { ItemView, Component, Menu, Modal, Notice, setIcon, debounce, normalizePath, Platform } from 'obsidian';
 import { LIB_VIEW_TYPE, findDocLabel, isoDate, issueLabel, mondayOf, weekLabel } from './biblioteca-dati.js';
 import { BIBLE_LANGS, epubInfo, renderBibleDownload } from './bibbia-epub.js';
 import { EpubImportModal } from './biblioteca-epub.js';
-import { HIGHLIGHTS, paneLabel, pubLang } from './costanti.js';
-import { compare, lang, t } from './lingua.js';
+import { HIGHLIGHTS, langRoot, paneLabel, pubLang } from './costanti.js';
+import { paragraphsOf } from './ricerca.js';
+import { JW_LANGS, compare, lang, t } from './lingua.js';
 import { fileAt, fileMeta, fileSrc, linkDest, readFile, renderMd } from './file.js';
 import { SCRABB_TYPES } from './scrabb-dati.js';
 import { ScrabbNewModal, ScrabbPickModal, linkVerseToScrabb } from './scrabb-vista.js';
-import { codesFromJwUrl, norm, noteFreeText, parseCode, parseNoteFile, parseRefLinks, refFromCodes, splitJwTokens, stripFrontmatter } from './testo.js';
+import { alignSentences, codesFromJwUrl, norm, noteFreeText, parseCode, parseNoteFile, parseRefLinks, refFromCodes, splitJwTokens, splitSentences, stripFrontmatter } from './testo.js';
 import { Pager, ReadingModal, pageKey, placeSelBar, showDefinition } from './lettura.js';
 import { SourceList, addScriptureSources, aiMenu, renderAskBox, renderRbi8Verse, showAiSuggestions, verseAiCtx } from './studio.js';
-import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, hasBibleIn, hasInLang, paneResizer, pubLangButton, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
+import { CitePreviewModal, PlacesModal, addGoToAction, addViewSwitch, autoHideBars, citedPars, hasBibleIn, hasInLang, langName, paneResizer, pubLangButton, renderCitedIn, renderNoteCites, setBarsHidden, viewKeys } from './ui.js';
 
-const blockText = (b) => b.innerText.replace(/\s+/g, ' ').trim();
+/** Il blocco senza le frasi tradotte dell'interlineare (.lmp-par2-line): per copiare, citare, chiedere all'AI. */
+const ownBlock = (b) => {
+  if (!b.querySelector('.lmp-par2-line')) return b;
+  const c = b.cloneNode(true);
+  c.querySelectorAll('.lmp-par2-line').forEach((x) => x.remove());
+  return c;
+};
+const blockText = (b) => (ownBlock(b).innerText || ownBlock(b).textContent).replace(/\s+/g, ' ').trim();
 /** Domanda stampata: "4. …", "5, 6. …". */
 const isQuestionBlock = (b) => /^\d+(\s*[-–,]\s*\d+)*\.\s/.test(blockText(b));
 const isLabelBlock = (b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(blockText(b));
+
+/** Testo di un elemento come lo si legge, senza numeri dei paragrafi, rimandi alle note e frasi già tradotte. */
+const SKIP_TEXT = 'sup, .lmp-fn-ref, .lmp-par2-line, .lmp-num, .lmp-ref-mark, img, svg';
+function textNodes(el) {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => (n.parentElement.closest(SKIP_TEXT) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT) });
+  const out = [];
+  let pos = 0;
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    out.push({ node, from: pos, to: (pos += node.nodeValue.length) });
+  }
+  return out;
+}
+const textOf = (el) => textNodes(el).map((x) => x.node.nodeValue).join('').replace(/\[\^[^\]\s]+\]/g, '').replace(/\s+/g, ' ').trim();
+
+/**
+ * Interlineare per frase nel blocco di un paragrafo: dopo ogni frase (o gruppo di frasi, vedi alignSentences) la frase
+ * corrispondente dell'altra lingua, in un elemento a parte (.lmp-par2-line) fuori dalle parole contate (.lmp-w), così
+ * evidenziazioni e note non cambiano. false = frasi non abbinate: il chiamante mostra il paragrafo intero.
+ */
+export function interline(block, other) {
+  const nodes = textNodes(block);
+  const text = nodes.map((x) => x.node.nodeValue).join('');
+  const A = splitSentences(text);
+  const B = splitSentences(other);
+  if (!A.length || !B.length) return false;
+  const beads = A.length === 1 && B.length === 1 ? [[0, 1, 0, 1]] : alignSentences(A.map((x) => x.s.length), B.map((x) => x.s.length));
+  if (!beads) return false;
+  // Dall'ultima alla prima: dividere un nodo di testo non sposta le posizioni di quelle prima.
+  for (const [, a1, b0, b1] of [...beads].reverse()) {
+    const line = createSpan({ cls: 'lmp-par2-line', text: B.slice(b0, b1).map((x) => x.s).join(' ') });
+    const end = A[a1 - 1].end;
+    const at = nodes.find((x) => end > x.from && end <= x.to) || nodes[nodes.length - 1];
+    const word = at.node.parentElement.closest('.lmp-w, .lmp-sp');
+    let ref = word && block.contains(word) ? word : null;
+    // ". “" in un solo separatore: si divide in due (stesso data-a), così la virgoletta resta con la frase dopo.
+    if (ref && ref.hasClass('lmp-sp') && end < at.to && ref.firstChild === at.node && ref.childNodes.length === 1) {
+      const rest = ref.cloneNode(false);
+      rest.textContent = at.node.nodeValue.slice(end - at.from);
+      at.node.nodeValue = at.node.nodeValue.slice(0, end - at.from);
+      ref.after(rest);
+    }
+    if (!ref && end < at.to) {
+      at.node.splitText(end - at.from);
+      ref = at.node;
+    }
+    ref = ref || at.node;
+    const link = ref.parentElement && ref.parentElement.closest('a');
+    let after = link && block.contains(link) ? link : ref;
+    // Rimandi e note in fondo alla frase («+», «*») restano con la frase.
+    while (after.nextSibling && after.nextSibling.nodeType === 1 && after.nextSibling.matches('sup, .lmp-ref-mark, .lmp-fn-ref')) after = after.nextSibling;
+    after.after(line);
+  }
+  return true;
+}
 
 class LibraryView extends ItemView {
   constructor(leaf, plugin) {
@@ -565,7 +628,7 @@ class LibraryView extends ItemView {
       fig.createEl('img', { attr: { src: fileSrc(this.app, f), alt: it.alt || '', loading: 'lazy' } });
     }
     if (it.cap) fig.createEl('figcaption', { cls: 'lmp-img-caption', text: it.cap });
-    if (it.alt && it.alt !== it.cap) fig.createDiv({ cls: 'lmp-img-alt', text: it.alt });
+    if (it.alt && it.alt !== it.cap) fig.createDiv({ cls: 'lmp-img-alt', text: it.alt, attr: { 'data-label': t("Descrizione dell'immagine") } });
   }
 
   async weekVerseCard(card, ref) {
@@ -839,7 +902,30 @@ class LibraryView extends ItemView {
     const crumbs = top.createDiv('lmp-lib-crumbs');
     // Lingua: solo se il documento c'è anche in un'altra lingua.
     this.pubLangsOf(d.pub).then((have) => {
-      if (have.length && token === this.renderToken) pubLangButton(this.plugin, top, (evt) => this.pubLangMenu(evt, d.pub, d.issue !== 'altro' ? d.issue : '', d));
+      if (!have.length || token !== this.renderToken) return;
+      pubLangButton(this.plugin, top, (evt) => this.pubLangMenu(evt, d.pub, d.issue !== 'altro' ? d.issue : '', d));
+      const par2 = this.plugin.ui.libPar2;
+      const on = have.includes(par2);
+      const mode = this.plugin.ui.libPar2Mode || 'cols';
+      const MODES = [['cols', t('In colonne'), 'columns-2'], ['below', t('Sotto ogni paragrafo'), 'rows-2'], ['lines', t('Interlineare, frase per frase'), 'list']];
+      // Pillola come «IT», con l'icona della modalità; accesa mostra le due lingue («IT · EN»).
+      const code = (c) => (JW_LANGS[c] || c).toUpperCase();
+      const b = top.createEl('button', { cls: 'lmp-lang-btn lmp-par2-btn', attr: { 'aria-label': on ? t('Lingue affiancate: {lingua}', { lingua: langName(par2) }) : t('Affianca un’altra lingua') } });
+      b.toggleClass('is-active', on);
+      setIcon(b.createSpan('lmp-lang-btn-icon'), (MODES.find(([k]) => k === mode) || MODES[0])[2]);
+      if (on) b.createSpan({ text: `${code(pubLang(this.plugin.settings))} · ${code(par2)}` });
+      b.addEventListener('click', (evt) => {
+        const menu = new Menu();
+        menu.addItem((it) => it.setTitle(t('Solo questa lingua')).setChecked(!on).onClick(() => this.setPar2(null)));
+        for (const code of have) menu.addItem((it) => it.setTitle(t('Affianca: {lingua}', { lingua: langName(code) })).setChecked(code === par2).onClick(() => this.setPar2(code)));
+        menu.addSeparator();
+        for (const [k, label, icon] of MODES)
+          menu.addItem((it) => it.setTitle(label).setIcon(icon).setChecked(k === mode).onClick(() => {
+            this.plugin.ui.libPar2Mode = k;
+            this.setPar2(on ? par2 : have[0]);
+          }));
+        menu.showAtMouseEvent(evt);
+      });
     });
     const pubLink = crumbs.createSpan({ cls: 'lmp-lib-crumb', text: d.pub.title });
     pubLink.addEventListener('click', () => this.navigate({ mode: 'pub', sym: d.pub.symbol }));
@@ -894,6 +980,7 @@ class LibraryView extends ItemView {
     this.renderImageText(d, file, content, token);
     // Senza attendere: i campi possono arrivare da un'estensione.
     this.renderAnswerFields(d, wrap, token);
+    this.renderParallel(d, wrap, token);
     await this.renderDocNotes();
     if (token !== this.renderToken) return;
     const nav = wrap.createDiv('lmp-chapter-nav');
@@ -914,9 +1001,67 @@ class LibraryView extends ItemView {
     this.plugin.addRecent({ doc: d.id });
   }
 
+  /** Lingua da affiancare ai documenti (null = nessuna): vale per tutti i documenti che la hanno. */
+  setPar2(code) {
+    this.plugin.ui.libPar2 = code;
+    this.plugin.requestSave();
+    this.navigate({ ...this.state }, { push: false });
+  }
+
+  /**
+   * Lo stesso documento in un'altra lingua, dagli indici di quella lingua: stesso id (uguale in tutte le lingue),
+   * altrimenti la stessa posizione tra i documenti della pubblicazione, se sono tanti quanti. { path, title } o null.
+   */
+  async docInLang(code, d) {
+    const root = normalizePath(langRoot(this.plugin.settings, code));
+    const pre = root && root !== '/' ? `${root}/` : '';
+    const docs = [];
+    for (const x of ['', '.epub', '.wol']) {
+      const idx = await this.app.vault.adapter.read(`${pre}index/${d.pub.symbol}${x}.json`).then(JSON.parse, () => null);
+      for (const [id, o] of Object.entries((idx && idx.docs) || {})) if (o && o.rel && !docs.some((y) => y.id === String(id))) docs.push({ ...o, id: String(id) });
+    }
+    const o = docs.find((y) => y.id === d.id) || (docs.length === d.pub.docs.length ? docs[d.pub.docs.indexOf(d)] : null);
+    return o ? { path: `${pre}${o.rel}`, title: o.title || '' } : null;
+  }
+
+  /**
+   * Lingue affiancate: dopo ogni paragrafo (data-pid) lo stesso paragrafo nell'altra lingua (^pN uguale in tutte le
+   * lingue, come in JW Library). Largo: in due colonne allineate; stretto o a pagine: sotto, più piccolo.
+   */
+  async renderParallel(d, wrap, token) {
+    const code = this.plugin.ui.libPar2;
+    if (!code || code === pubLang(this.plugin.settings)) return;
+    const o = await this.docInLang(code, d).catch(() => null);
+    // Dal disco: le cartelle nascoste delle altre lingue non sono elencate (fileAt vede solo la lingua in uso).
+    const text = o && (await this.app.vault.adapter.read(o.path).catch(() => null));
+    if (token !== this.renderToken) return;
+    if (!text) return; // non c'è in quella lingua: solo il testo di sempre
+    const file = { path: o.path };
+    const pars = new Map(paragraphsOf(stripFrontmatter(text)).map((x) => [x.pid, x.md]));
+    if (token !== this.renderToken || !pars.size) return;
+    const mode = this.plugin.ui.libPar2Mode || 'cols';
+    wrap.addClass('lmp-par2-on');
+    wrap.addClass(`lmp-par2-${mode}`);
+    const title = wrap.querySelector('.lmp-lib-doc-title');
+    if (title && o.title) title.after(createDiv({ cls: 'lmp-par2 lmp-par2-title', text: o.title }));
+    for (const block of wrap.querySelectorAll('.lmp-lib-doc-body [data-pid]')) {
+      const md = pars.get(+block.dataset.pid);
+      if (!md || isLabelBlock(block)) continue; // «La tua risposta»: il campo resta subito sotto
+      const el = createDiv('lmp-par2');
+      // Senza il codice del paragrafo e senza le immagini, che sono già nel testo principale.
+      await renderMd(this.app, md.replace(/[ \t]+\^p\d+[ \t]*$/, '').replace(/!\[\[[^\]]*\]\]/g, ''), el, file.path, this.comp);
+      if (token !== this.renderToken) return;
+      // Interlineare: ogni frase con sotto la sua; se le frasi non si abbinano con sicurezza, il paragrafo intero sotto.
+      if (mode === 'lines' && interline(block, textOf(el))) continue;
+      block.addClass('lmp-par2-src');
+      block.after(el);
+    }
+    if (this.pager) this.pager.layout();
+  }
+
   /**
    * Immagini: la riga subito sotto senza codice di paragrafo è la didascalia e si mostra come tale; il testo alternativo
-   * (quando si conosce) va sotto l'immagine.
+   * (quando si conosce) va sotto la didascalia, con l'etichetta «Descrizione dell'immagine».
    */
   async renderImageText(d, file, content, token) {
     const figs = [...content.querySelectorAll('.internal-embed[src]')]
@@ -950,7 +1095,7 @@ class LibraryView extends ItemView {
       e.setAttribute('alt', alt);
       const img = e.querySelector('img');
       if (img) img.setAttribute('alt', alt);
-      block.after(createDiv({ cls: 'lmp-img-alt', text: alt }));
+      (cap || block).after(createDiv({ cls: 'lmp-img-alt', text: alt, attr: { 'data-label': t("Descrizione dell'immagine") } }));
     }
   }
 
@@ -1352,7 +1497,7 @@ class LibraryView extends ItemView {
     if (!b) return t('Paragrafo');
     const sup = b.querySelector('sup');
     if (sup && /^\d+$/.test(sup.textContent.trim())) return t('par. {n}', { n: sup.textContent.trim() });
-    const txt = b.textContent.replace(/\s+/g, ' ').trim();
+    const txt = ownBlock(b).textContent.replace(/\s+/g, ' ').trim();
     const q = /^(\d+(?:[-–]\d+)?)\.\s/.exec(txt);
     if (q) return t('domanda {n}', { n: q[1] });
     if (/^H[1-6]$/.test(b.tagName)) return txt.length > 40 ? `${txt.slice(0, 40)}…` : txt;
@@ -1529,7 +1674,7 @@ class LibraryView extends ItemView {
       b.createSpan({ cls: 'lmp-tool-text', text: label });
       b.addEventListener('click', fn);
     };
-    const parText = () => (block ? block.innerText.replace(/^\d+\s+/, '').replace(/\s+/g, ' ').trim() : '');
+    const parText = () => (block ? blockText(block).replace(/^\d+\s+/, '') : '');
     tool('waypoints', t('Collega a SCRABB'), () => this.linkToScrabb(pid, parText()));
     tool('copy', t('Copia'), async () => {
       await navigator.clipboard.writeText(parText());

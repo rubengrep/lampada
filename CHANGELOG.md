@@ -1,5 +1,14 @@
 # Novità
 
+## 0.22.0 — 2026-11-25
+
+- Pubblicazioni in due lingue: il pulsante in cima al documento affianca la stessa pubblicazione in un'altra lingua scaricata, paragrafo per paragrafo. Tre modi: in colonne, sotto ogni paragrafo, o interlineare frase per frase.
+- Bibbia in due lingue: dal menu ⋯ del lettore, «Affianca» mostra ogni versetto anche nell'altra lingua, negli stessi tre modi. A colonne la traduzione parte dalla riga dove comincia il versetto; l'interlineare va frase per frase. Lingua e modo cambiano subito, anche tornando dalla Biblioteca.
+- Clic su un versetto in una nota: nelle impostazioni si sceglie cosa fa (finestrella, lettore, nuova scheda, barra laterale sinistra o destra, JW Library).
+- SCRABB: la scheda si compila tutta da Lampada con «Modifica»: nome, altri nomi, tipo, versetti, collegamenti, fonti, Perspicacia, date e cronologia, campi in più, eliminazione. «ca.» (data approssimata) vale per la data d'inizio, per quella di fine o per entrambe. Il README spiega come compilare una scheda da SCRABB o nel file .md.
+- Lampada in una seconda scheda: si apre lì, senza chiudere la scheda nuova.
+- Immagini: la didascalia e la descrizione dell'immagine (il testo alternativo) non si confondono più. La didascalia è in testo normale, subito sotto l'immagine. La descrizione viene dopo, in corsivo, con il bordo a lato e l'etichetta «Descrizione dell'immagine». Così anche nell'immagine a tutto schermo.
+
 ## 0.21.0 — 2026-11-23
 
 - Bibbia: schema del capitolo e del libro. Nel lettore, il pulsante «Schema del capitolo» (sul telefono nel menu ⋯) apre i punti del capitolo nel pannello; con «Libro» si vede tutto lo schema, col capitolo aperto segnato. Toccando un punto si va al versetto. Nella pagina del libro, sotto i capitoli, «Schema del libro». Viene dal sommario o dalla panoramica della Bibbia scaricata.

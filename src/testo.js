@@ -407,4 +407,92 @@ function categoryOf(num) {
   return c ? c.id : 'pent';
 }
 
-export { parseOutline, parseRefLinks, norm, nameKey, pad, verseCode, stripFrontmatter, splitParagraphs, cleanInline, tokenizeInline, VERSE_MARK_RE, NAV_LINE_RE, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, parseCode, refFromCodes, jwLibraryUrl, JWLIB_LINK_RE, codesFromJwUrl, cleanSnippet, sleep, JW_TOKEN_RE, jwTokenCount, splitJwTokens, newGuid, JWL_MARKER_RE, jwlMarker, jwTokenText, parseNoteFile, formatNoteBlock, noteFreeText, categoryOf };
+/* ---------------- frasi e allineamento tra due lingue (interlineare per frase) ---------------- */
+
+// Abbreviazioni dopo cui il punto non chiude la frase (italiano e inglese).
+const SENT_ABBR_RE = /(?:^|[\s(])(?:a\.E\.V|E\.V|a\.C|d\.C|B\.C\.E|C\.E|ecc|cfr|vol|nn?|pp?|vv?|cap|ca|par|e\.g|i\.e|etc|vs|Mr|Mrs|Dr|St|ft)$/i;
+
+/** Posizioni in cui finisce una frase: dopo . ! ? … (e virgolette o parentesi chiuse), prima di spazio e maiuscola. */
+function sentenceEnds(text) {
+  const out = [];
+  const re = /[.!?…]+["”»’)\]]*(?=\s+["“«(‘]?\p{Lu})/gu;
+  let m;
+  while ((m = re.exec(text))) {
+    const before = text.slice(Math.max(0, m.index - 12), m.index);
+    // "ecc. Poi", "J. F. Rutherford": non sono fine frase.
+    if (m[0][0] === '.' && (SENT_ABBR_RE.test(before) || /(?:^|[\s.])\p{Lu}$/u.test(before))) continue;
+    out.push(m.index + m[0].length);
+  }
+  return out;
+}
+
+/** Frasi di un testo: [{ s, start, end }] (posizioni nel testo; end = dove la frase finisce). */
+function splitSentences(text) {
+  const out = [];
+  let start = 0;
+  for (const end of [...sentenceEnds(text), text.length]) {
+    // "… messengers. (Ge 16:7) Angels …": il riferimento tra parentesi dopo il punto è della frase prima.
+    const lead = out.length ? /^\s*\([^()]*\)/.exec(text.slice(start, end)) : null;
+    if (lead) {
+      const prev = out[out.length - 1];
+      start += lead[0].length;
+      prev.end = start;
+      prev.s = text.slice(prev.start, start).trim();
+    }
+    const s = text.slice(start, end).trim();
+    if (s) out.push({ s, start, end });
+    start = end;
+  }
+  return out;
+}
+
+// Normale standard (Abramowitz e Stegun 7.1.26): basta per il metodo di Gale e Church.
+function normCdf(x) {
+  const t = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+  const y = 1 - ((((1.061405429 * t - 1.453152027) * t + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-(x * x) / 2);
+  return x >= 0 ? (1 + y) / 2 : (1 - y) / 2;
+}
+
+// Abbinamenti possibili (frasi di qua → frasi di là) e quanto sono frequenti nelle traduzioni.
+const BEADS = [[1, 1, 0.89], [1, 2, 0.045], [2, 1, 0.045], [2, 2, 0.011], [1, 3, 0.004], [3, 1, 0.004]];
+
+/**
+ * Allinea le frasi di due traduzioni dello stesso paragrafo (lunghezze in caratteri), col metodo di Gale e Church:
+ * gruppi 1↔1, 1↔2, 2↔1… scelti perché le lunghezze tornino. [[a0, a1, b0, b1]…] (fine esclusa), oppure null
+ * se un gruppo è troppo incerto (minP) o non si arriva in fondo: meglio il paragrafo intero che frasi sbagliate.
+ */
+function alignSentences(la, lb, minP = 0.02) {
+  const n = la.length, m = lb.length;
+  if (!n || !m) return null;
+  const sum = (a) => a.reduce((x, y) => x + y, 0);
+  const c = sum(lb) / sum(la) || 1;
+  const D = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(Infinity));
+  const from = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(null));
+  D[0][0] = 0;
+  for (let i = 0; i <= n; i++)
+    for (let j = 0; j <= m; j++) {
+      if (D[i][j] === Infinity) continue;
+      for (const [da, db, prior] of BEADS) {
+        if (i + da > n || j + db > m) continue;
+        const l1 = sum(la.slice(i, i + da)), l2 = sum(lb.slice(j, j + db));
+        const delta = (l2 - l1 * c) / Math.sqrt(Math.max(1, l1) * 6.8);
+        const p = 2 * (1 - normCdf(Math.abs(delta)));
+        const cost = D[i][j] - Math.log(prior) - Math.log(Math.max(p, 1e-12));
+        if (cost < D[i + da][j + db]) {
+          D[i + da][j + db] = cost;
+          from[i + da][j + db] = [i, j, p];
+        }
+      }
+    }
+  if (D[n][m] === Infinity) return null;
+  const beads = [];
+  for (let i = n, j = m; i || j; ) {
+    const [pi, pj, p] = from[i][j];
+    if (p < minP) return null;
+    beads.unshift([pi, i, pj, j]);
+    [i, j] = [pi, pj];
+  }
+  return beads;
+}
+
+export { sentenceEnds, splitSentences, alignSentences, parseOutline, parseRefLinks, norm, nameKey, pad, verseCode, stripFrontmatter, splitParagraphs, cleanInline, tokenizeInline, VERSE_MARK_RE, NAV_LINE_RE, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, parseCode, refFromCodes, jwLibraryUrl, JWLIB_LINK_RE, codesFromJwUrl, cleanSnippet, sleep, JW_TOKEN_RE, jwTokenCount, splitJwTokens, newGuid, JWL_MARKER_RE, jwlMarker, jwTokenText, parseNoteFile, formatNoteBlock, noteFreeText, categoryOf };

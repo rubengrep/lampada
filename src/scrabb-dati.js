@@ -117,14 +117,22 @@ function scrabbYear(y) {
   return y < 0 ? t('{n} a.E.V.', { n: -y }) : t('{n} E.V.', { n: y });
 }
 
+/** Campo "approssimata": true (o sì) = tutte e due le date, "inizio" o "fine" = solo quella. null = nessuna. */
+function scrabbApprox(v) {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (s === 'inizio') return { start: true, end: false };
+  if (s === 'fine') return { start: false, end: true };
+  return ['true', 'sì', 'si', 'yes'].includes(s) ? { start: true, end: true } : null;
+}
+
 function scrabbDate(e) {
   if (e.anno == null) return e.data ? String(e.data) : '';
-  let d;
-  if (e.fine == null || e.fine === e.anno) d = scrabbYear(e.anno);
-  else if (e.anno < 0 && e.fine < 0) d = t('{da}–{a} a.E.V.', { da: -e.anno, a: -e.fine });
-  else if (e.anno > 0) d = t('{da}–{a} E.V.', { da: e.anno, a: e.fine });
-  else d = `${scrabbYear(e.anno)} – ${scrabbYear(e.fine)}`;
-  return e.approx ? t('ca. {data}', { data: d }) : d;
+  const a = e.approx || {};
+  const ca = (d, on) => (on ? t('ca. {data}', { data: d }) : d);
+  if (e.fine == null || e.fine === e.anno) return ca(scrabbYear(e.anno), a.start || a.end);
+  if (e.anno < 0 && e.fine < 0) return t('{da}–{a} a.E.V.', { da: ca(-e.anno, a.start), a: ca(-e.fine, a.end) });
+  if (e.anno > 0) return t('{da}–{a} E.V.', { da: ca(e.anno, a.start), a: ca(e.fine, a.end) });
+  return `${ca(scrabbYear(e.anno), a.start)} – ${ca(scrabbYear(e.fine), a.end)}`;
 }
 
 /** Data di una nota (discorso, parte): campo data/date o "AAAA-MM-GG" nel nome del file. */
@@ -220,11 +228,12 @@ class ScrabbIndex {
       const e = {
         path: file.path,
         name: file.basename,
+        aliases: scrabbList(fm.aliases).map(String),
         file,
         tipo,
         anno: scrabbNum(fm.anno),
         fine: scrabbNum(fm.anno_fine),
-        approx: !!fm.approssimata,
+        approx: scrabbApprox(fm.approssimata),
         data: fm.data || null,
         corsia: fm.corsia ? String(fm.corsia) : null,
         categoria: fm.categoria ? String(fm.categoria) : null,
@@ -457,4 +466,4 @@ class ScrabbIndex {
   }
 }
 
-export { SCRABB_VIEW_TYPE, SCRABB_TYPES, SCRABB_FIELD_FOR, SCRABB_LINK_FIELDS, SCRABB_TEACHINGS, SCRABB_TEACHERS, SCRABB_USABLE, SCRABB_STUDY_LISTS, SCRABB_BIBLE_LISTS, SCRABB_ALL_LISTS, scrabbListTypes, scrabbListOf, SCRABB_INTRO, SCRABB_BODY, SCRABB_LANES, SCRABB_ERAS, scrabbNum, scrabbList, scrabbFonti, scrabbLinkpaths, scrabbYear, scrabbDate, scrabbNoteDate, scrabbFmtDate, scrabbUsageText, scrabbFold, scrabbSafeName, scrabbBody, ScrabbIndex };
+export { SCRABB_VIEW_TYPE, SCRABB_TYPES, SCRABB_FIELD_FOR, SCRABB_LINK_FIELDS, SCRABB_TEACHINGS, SCRABB_TEACHERS, SCRABB_USABLE, SCRABB_STUDY_LISTS, SCRABB_BIBLE_LISTS, SCRABB_ALL_LISTS, scrabbListTypes, scrabbListOf, SCRABB_INTRO, SCRABB_BODY, SCRABB_LANES, SCRABB_ERAS, scrabbNum, scrabbList, scrabbFonti, scrabbLinkpaths, scrabbYear, scrabbApprox, scrabbDate, scrabbNoteDate, scrabbFmtDate, scrabbUsageText, scrabbFold, scrabbSafeName, scrabbBody, ScrabbIndex };

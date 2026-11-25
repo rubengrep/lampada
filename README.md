@@ -132,6 +132,13 @@ Articoli di approfondimento:
 - **Campi "La tua risposta"** sotto le domande di studio, da compilare come nell'app.
 - Riferimenti biblici cliccabili: il versetto si apre in un'anteprima senza perdere il punto.
 - Per ogni paragrafo puoi collegarlo a una scheda SCRABB, copiarlo o aprirlo in JW Library.
+- **Lingue affiancate**: se una pubblicazione c'è in più lingue, il pulsante a due colonne in cima al documento mostra lo stesso testo anche nell'altra lingua, in tre modi:
+  - **in colonne**: ogni paragrafo accanto al suo; sul telefono e a pagine la traduzione va sotto;
+  - **sotto ogni paragrafo**;
+  - **interlineare, frase per frase**: sotto ogni frase la sua traduzione. Le frasi si abbinano in base alla lunghezza, anche quando una lingua ne usa due dove l'altra ne usa una. Se l'abbinamento non è sicuro, quel paragrafo si mostra intero sotto l'originale.
+
+  Evidenziazioni, note e risposte restano sulla lingua principale. La scelta vale per tutti i documenti, finché non scegli «Solo questa lingua».
+- **Bibbia in due lingue**: dal menu ⋯ del lettore, «Affianca: English» mostra ogni versetto anche nell'altra lingua, negli stessi tre modi: **a colonne** (la traduzione accanto, dalla riga dove comincia il versetto; con la finestra stretta va sotto), **sotto** ogni paragrafo, o **interlineare**, frase per frase (un versetto con due frasi ha due righe tradotte). I numeri dei versetti sono gli stessi, quindi l'allineamento è esatto. Lingua e modo sono gli stessi scelti nella Biblioteca.
 
 ![Un articolo di studio con le evidenziazioni](docs/articolo.webp)
 
@@ -179,6 +186,75 @@ Uno spazio per costruire, nel tempo, la tua conoscenza della Bibbia: **principi,
 ![SCRABB: cronologia](docs/scrabb-cronologia.webp)
 
 ![SCRABB: mappa dei collegamenti](docs/scrabb-mappa.webp)
+
+#### Come si compila una scheda
+
+Tutto si può fare in due modi: dalla vista SCRABB, senza vedere il codice, oppure scrivendo nel file `.md` della scheda. I campi sono gli stessi: quello che scrivi a mano compare in SCRABB, e quello che cambi in SCRABB finisce nel file.
+
+**Da SCRABB**
+
+- **Nuova scheda**: pulsante **+** in SCRABB. Scegli nome, tipo, versetti e le schede collegate. Una scheda nasce anche:
+  - dal comando *SCRABB: collega a una scheda…*, scrivendo un nome che non c'è ancora;
+  - da un testo selezionato in una nota, con *SCRABB: crea un modello dalla selezione…* o *SCRABB: salva la selezione come illustrazione…*;
+  - dalla Bibbia o dalla Biblioteca, con «Collega a SCRABB».
+- **Modifica** (nel riquadro della scheda): cambi tutti i campi.
+  - Nome (la nota si rinomina e i link si aggiornano) e altri nomi (`aliases`), con cui la trovi e la colleghi.
+  - Tipo e versetti, uno per riga.
+  - Collegamenti: «+ collega» aggiunge una scheda, × la toglie.
+  - Fonti, cioè i paragrafi delle pubblicazioni: × le toglie.
+  - Articolo di Perspicacia: «Scegli…» lo cerca nella biblioteca.
+  - Categoria, domanda e ordine nell'elenco.
+  - **Data per la Cronologia**: anno con a.E.V. / E.V. e «fino a», ognuno con il suo «ca.» se è approssimativo; poi la corsia e un testo libero (es. «11 anni di regno»).
+  - **Altri campi**: quelli tuoi, come `esito` o `oratore`. «+ campo» ne aggiunge uno.
+  - **Elimina**, con due tocchi: la nota va nel cestino scelto in Obsidian, da cui si recupera.
+- **Collega**: collega in fretta la scheda a un'altra.
+- **Versetti e paragrafi**: nella Bibbia tocca un versetto, nella Biblioteca un paragrafo, poi «Collega a SCRABB». Il versetto va in `versetti`, il paragrafo in `fonti`.
+- **Il testo della scheda** («Chi era», «Momenti chiave»…) si scrive nella nota: «Apri nota».
+
+**Nel file `.md`**
+
+Una scheda è una nota con il campo `tipo` nelle proprietà. Lampada la riconosce in qualsiasi cartella del vault. Le schede nuove vanno nella *Cartella delle schede* (Impostazioni → SCRABB), in una sottocartella per tipo.
+
+```yaml
+---
+tipo: persona
+anno: -1767
+anno_fine: -1657
+corsia: Patriarchi
+versetti:
+  - "Genesi 39:2, 9"
+  - "Genesi 45:4-8"
+persone:
+  - "[[Giacobbe]]"
+luoghi:
+  - "[[Egitto]]"
+eventi:
+  - "[[Israele entra in Egitto]]"
+perspicacia: "[[it_giuseppe_1200002515|Perspicacia · Giuseppe]]"
+tags: [scrabb/persona]
+---
+## Chi era
+…
+```
+
+| Campo | Cosa ci va |
+|---|---|
+| `tipo` | `principio`, `qualità`, `tema`, `modello`, `illustrazione`, `esperienza`, `situazione`, `persona`, `evento`, `periodo`, `luogo` o `libro` |
+| `versetti` | elenco di riferimenti, es. `"Romani 12:19"` |
+| `principi`, `modelli`, `illustrazioni`, `esperienze`, `situazioni`, `persone`, `luoghi`, `eventi`, `temi` | link ad altre schede, tra virgolette: `"[[Mosè]]"`. Il campo dipende dal tipo della scheda collegata: qualità, temi e libri vanno in `temi`, eventi e periodi in `eventi` |
+| `fonti` | paragrafi delle pubblicazioni: `"[[w202512_…#^p12\|Titolo ¶12]]"` |
+| `perspicacia` | link all'articolo di Perspicacia |
+| `categoria` | gruppo nell'elenco, se la scheda non è collegata a un tema |
+| `domanda` | mostrata sotto il titolo |
+| `ordine` | numero: posizione nell'elenco, i più bassi prima |
+| `anno`, `anno_fine` | anni per la Cronologia; prima della nostra èra con il meno: `anno: -1513` |
+| `approssimata` | data approssimativa, «ca.»: `true` per tutte e due le date, `inizio` solo per `anno`, `fine` solo per `anno_fine` |
+| `corsia` | riga della Cronologia: `Eventi`, `Patriarchi`, `Re (regno unito)`, `Re di Giuda`, `Re d’Israele`, `Profeti`, `Gesù e la congregazione`, `Personaggi`, `Altro`. Senza, eventi e periodi vanno in Eventi e le persone in Personaggi |
+| `data` | testo accanto alla data; `futuro` mette la scheda in fondo alla Cronologia |
+| `aliases` | altri nomi della scheda |
+| `tags` | `scrabb/<tipo>`: lo mette Lampada quando crea la scheda; non serve per riconoscerla |
+
+Ogni altro campo resta tuo: Lampada non lo usa e lo mostra in «Modifica → Altri campi». Contano anche i link scritti nel testo della scheda, come collegamenti più deboli. E un link alla scheda da qualsiasi altra nota la fa comparire sotto «Nelle mie note». Per illustrazioni ed esperienze, compare anche dove le hai usate.
 
 ### Le tue note in Obsidian
 

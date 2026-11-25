@@ -157,6 +157,67 @@ var en_default = {
   "Apri il versetto dopo averlo citato": "Open the verse after quoting it",
   "Apri impostazioni": "Open settings",
   "Apri in JW Library": "Open in JW Library",
+  "Lingue affiancate: {lingua}": "Languages side by side: {lingua}",
+  "In colonne": "In columns",
+  "Sotto ogni paragrafo": "Under each paragraph",
+  "Interlineare, frase per frase": "Interlinear, sentence by sentence",
+  "Affianca un\u2019altra lingua": "Show another language alongside",
+  "Solo questa lingua": "This language only",
+  "Affianca: {lingua}": "Alongside: {lingua}",
+  "Cambiandolo, i link alla scheda nelle altre note si aggiornano (se in Obsidian \xE8 attivo l\u2019aggiornamento dei link).": "If you change it, links to the card in other notes are updated (when link updating is on in Obsidian).",
+  "Altri nomi": "Other names",
+  "Separati da virgola: anche con questi nomi la trovi e la colleghi.": "Comma-separated: you can also find and link the card by these names.",
+  "L\u2019articolo di Perspicacia su questa voce: \xABScegli\u2026\xBB lo cerca nella biblioteca.": "The Insight article on this entry: \u201CChoose\u2026\u201D finds it in the library.",
+  "Scegli\u2026": "Choose\u2026",
+  "Tocca di nuovo per eliminare": "Tap again to delete",
+  "Scheda eliminata: {nome}": "Card deleted: {nome}",
+  "C\u2019\xE8 gi\xE0 una nota \xAB{nome}\xBB in questa cartella.": "There is already a note \u201C{nome}\u201D in this folder.",
+  "Perspicacia non \xE8 nella biblioteca: importala, oppure scrivi il link a mano.": "Insight is not in the library: import it, or type the link by hand.",
+  "Cerca una voce di Perspicacia\u2026": "Search an Insight entry\u2026",
+  "Circa: data approssimativa (ca.)": "Circa: approximate date (c.)",
+  "Quando \xE8 nato, \xE8 successo o \xE8 cominciato. Senza anno la scheda non va nella Cronologia. L\u2019interruttore aggiunge \xABca.\xBB.": "When they were born, it happened or it began. Without a year the card is not on the Timeline. The switch adds \u201Cc.\u201D.",
+  "Facoltativo: fine del periodo o della vita. L\u2019interruttore aggiunge \xABca.\xBB.": "Optional: end of the period or of the life. The switch adds \u201Cc.\u201D.",
+  "+ campo": "+ field",
+  "Altre schede collegate a questa. \xD7 toglie il collegamento.": "Other cards linked to this one. \xD7 removes the link.",
+  "Altri campi": "Other fields",
+  "Categoria": "Category",
+  "Collegamenti": "Links",
+  "Data e Cronologia": "Date and Timeline",
+  "Elenco e studio": "List and study",
+  "Facoltativo, mostrato accanto alla data: es. \xAB11 anni di regno\xBB. \xABfuturo\xBB mette la scheda in fondo alla Cronologia.": "Optional, shown next to the date: e.g. \u201Creigned 11 years\u201D. \u201Cfuturo\u201D puts the card at the end of the Timeline.",
+  "Gruppo nell\u2019elenco, se la scheda non \xE8 collegata a un tema.": "Group in the list, if the card is not linked to a theme.",
+  "Il campo \xAB{nome}\xBB c\u2019\xE8 gi\xE0.": "The field \u201C{nome}\u201D already exists.",
+  "Impossibile salvare la scheda: {errore}": "Could not save the card: {errore}",
+  "L\u2019ordine deve essere un numero.": "The order must be a number.",
+  "Manca l\u2019anno di inizio.": "The start year is missing.",
+  "Modifica \xAB{nome}\xBB": "Edit \u201C{nome}\u201D",
+  "Mostrata sotto il titolo della scheda.": "Shown under the card title.",
+  "Nessuna scheda con data. Apri un personaggio o un evento e tocca \xABModifica\xBB.": "No cards with a date. Open a person or an event and tap \u201CEdit\u201D.",
+  "Numero: posizione nell\u2019elenco (i pi\xF9 bassi prima).": "Number: position in the list (lowest first).",
+  "Nuovo campo": "New field",
+  "Ordine": "Order",
+  "Paragrafi delle pubblicazioni. Si aggiungono dalla Biblioteca con \xABCollega a SCRABB\xBB.": "Paragraphs of publications. Add them from the Library with \u201CLink to SCRABB\u201D.",
+  "Questa scheda non ha ancora una data: toccala e scegli \xABModifica\xBB.": "This card has no date yet: tap it and choose \u201CEdit\u201D.",
+  "Scheda aggiornata: {nome}": "Card updated: {nome}",
+  "Testo della data": "Date text",
+  "Uno per riga, es. Romani 12:19": "One per line, e.g. Romans 12:19",
+  "nome, es. esito": "name, e.g. esito",
+  "valore": "value",
+  "anno": "year",
+  "Fino a": "Until",
+  "Anno": "Year",
+  "a.E.V.": "B.C.E.",
+  "E.V.": "C.E.",
+  "Corsia": "Lane",
+  "Riga della Cronologia in cui compare.": "Timeline row where it appears.",
+  "Automatica": "Automatic",
+  "Scrivi l\u2019anno (un numero, senza lo 0).": "Write the year (a number, not 0).",
+  "\xABFino a\xBB viene prima dell\u2019anno di inizio.": "\u201CUntil\u201D comes before the start year.",
+  "Mostra il versetto in un popup": "Show the verse in a popup",
+  "Apri nella barra laterale sinistra": "Open in the left sidebar",
+  "Apri nella barra laterale destra": "Open in the right sidebar",
+  "Clic su un versetto in una nota": "Clicking a verse in a note",
+  "Cosa succede quando clicchi un riferimento biblico in una tua nota (es. \u201CEfesini 4:16\u201D). Con \u2318/Ctrl-clic si apre JW Library (o Lampada, se qui scegli JW Library).": "What happens when you click a Bible reference in one of your notes (e.g. \u201CEphesians 4:16\u201D). \u2318/Ctrl-click opens JW Library (or Lampada, if you choose JW Library here).",
   "Apri in Lampada": "Open in Lampada",
   "Apri in una nuova scheda": "Open in a new tab",
   "Apri in una scheda": "Open in a tab",
@@ -280,7 +341,6 @@ var en_default = {
   "Compatta": "Compact",
   "COMPITO:": "TASK:",
   "Completato: {data}": "Completed: {data}",
-  "Con \u2318/Ctrl-clic ottieni l\u2019altra azione.": "\u2318/Ctrl-click does the other action.",
   "condizioni d\u2019uso di jw.org": "jw.org terms of use",
   "Confronta i racconti paralleli": "Compare the parallel accounts",
   "Continua a leggere": "Continue reading",
@@ -528,7 +588,6 @@ var en_default = {
   "Nessuna nota su questo documento.": "No notes on this document.",
   "Nessuna nota, scheda o scrittura su questo paragrafo. Seleziona del testo per evidenziarlo o collegarlo a una scheda SCRABB.": "No notes, cards, or scriptures on this paragraph. Select some text to highlight it or link it to a SCRABB card.",
   "Nessuna nuova copertina trovata": "No new covers found",
-  "Nessuna scheda con data. Aggiungi \u201Canno: -1513\u201D (a.E.V. con il meno) nel frontmatter.": "No cards with a date. Add \u201Canno: -1513\u201D (B.C.E. with the minus sign) to the frontmatter.",
   "Nessuna scheda trovata": "No cards found",
   "Nessuna scheda.": "No cards.",
   "Niente di nuovo su questo versetto (forse \xE8 gi\xE0 tra le fonti).": "Nothing new on this verse (it may already be among the sources).",
@@ -634,7 +693,6 @@ var en_default = {
   "Quale principio fa capire questa illustrazione?": "Which principle does this illustration explain?",
   "Quale principio mostra questo modello?": "Which principle does this example show?",
   "Qualit\xE0": "Quality",
-  "Questa scheda non ha ancora una data (campo \u201Canno\u201D).": "This card has no date yet (\u201Canno\u201D field).",
   "Questa settimana": "This week",
   "Questo file si apre solo dentro Lampada": "This file only opens inside Lampada",
   "Questo versetto non c\u2019\xE8 nell\u2019edizione con riferimenti.": "This verse isn\u2019t in the Reference Bible.",
@@ -833,7 +891,8 @@ var en_default = {
   "Schema del libro": "Book outline",
   "Questa Bibbia non ha lo schema dei libri.": "This Bible has no book outlines.",
   "Capitolo {n}": "Chapter {n}",
-  "Salmo": "Psalm"
+  "Salmo": "Psalm",
+  "Descrizione dell'immagine": "Image description"
 };
 
 // src/lingua.js
@@ -1532,6 +1591,74 @@ function noteFreeText(rest) {
 function categoryOf(num) {
   const c = CATEGORIES.find((c2) => num >= c2.from && num <= c2.to);
   return c ? c.id : "pent";
+}
+var SENT_ABBR_RE = /(?:^|[\s(])(?:a\.E\.V|E\.V|a\.C|d\.C|B\.C\.E|C\.E|ecc|cfr|vol|nn?|pp?|vv?|cap|ca|par|e\.g|i\.e|etc|vs|Mr|Mrs|Dr|St|ft)$/i;
+function sentenceEnds(text) {
+  const out = [];
+  const re = /[.!?…]+["”»’)\]]*(?=\s+["“«(‘]?\p{Lu})/gu;
+  let m;
+  while (m = re.exec(text)) {
+    const before = text.slice(Math.max(0, m.index - 12), m.index);
+    if (m[0][0] === "." && (SENT_ABBR_RE.test(before) || /(?:^|[\s.])\p{Lu}$/u.test(before))) continue;
+    out.push(m.index + m[0].length);
+  }
+  return out;
+}
+function splitSentences(text) {
+  const out = [];
+  let start = 0;
+  for (const end of [...sentenceEnds(text), text.length]) {
+    const lead = out.length ? /^\s*\([^()]*\)/.exec(text.slice(start, end)) : null;
+    if (lead) {
+      const prev = out[out.length - 1];
+      start += lead[0].length;
+      prev.end = start;
+      prev.s = text.slice(prev.start, start).trim();
+    }
+    const s = text.slice(start, end).trim();
+    if (s) out.push({ s, start, end });
+    start = end;
+  }
+  return out;
+}
+function normCdf(x) {
+  const t2 = 1 / (1 + 0.3275911 * Math.abs(x) / Math.SQRT2);
+  const y = 1 - ((((1.061405429 * t2 - 1.453152027) * t2 + 1.421413741) * t2 - 0.284496736) * t2 + 0.254829592) * t2 * Math.exp(-(x * x) / 2);
+  return x >= 0 ? (1 + y) / 2 : (1 - y) / 2;
+}
+var BEADS = [[1, 1, 0.89], [1, 2, 0.045], [2, 1, 0.045], [2, 2, 0.011], [1, 3, 4e-3], [3, 1, 4e-3]];
+function alignSentences(la, lb, minP = 0.02) {
+  const n = la.length, m = lb.length;
+  if (!n || !m) return null;
+  const sum = (a) => a.reduce((x, y) => x + y, 0);
+  const c = sum(lb) / sum(la) || 1;
+  const D = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(Infinity));
+  const from = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(null));
+  D[0][0] = 0;
+  for (let i = 0; i <= n; i++)
+    for (let j = 0; j <= m; j++) {
+      if (D[i][j] === Infinity) continue;
+      for (const [da, db, prior] of BEADS) {
+        if (i + da > n || j + db > m) continue;
+        const l1 = sum(la.slice(i, i + da)), l2 = sum(lb.slice(j, j + db));
+        const delta = (l2 - l1 * c) / Math.sqrt(Math.max(1, l1) * 6.8);
+        const p = 2 * (1 - normCdf(Math.abs(delta)));
+        const cost = D[i][j] - Math.log(prior) - Math.log(Math.max(p, 1e-12));
+        if (cost < D[i + da][j + db]) {
+          D[i + da][j + db] = cost;
+          from[i + da][j + db] = [i, j, p];
+        }
+      }
+    }
+  if (D[n][m] === Infinity) return null;
+  const beads = [];
+  for (let i = n, j = m; i || j; ) {
+    const [pi, pj, p] = from[i][j];
+    if (p < minP) return null;
+    beads.unshift([pi, i, pj, j]);
+    [i, j] = [pi, pj];
+  }
+  return beads;
 }
 
 // src/biblioteca-dati.js
@@ -2278,6 +2405,28 @@ var BibleData = class {
     if (this.chapterCache.size > 120) this.chapterCache.delete(this.chapterCache.keys().next().value);
     this.chapterCache.set(key, parsed);
     return parsed;
+  }
+  /**
+   * Lo stesso capitolo nella Bibbia di un'altra lingua (lingue affiancate): stessi numeri dei versetti, quindi
+   * l'allineamento è esatto. Letto dal disco (le cartelle delle altre lingue non sono elencate). parseChapterMarkdown o null.
+   */
+  async chapterInLang(code, bookNum, ch) {
+    const s = this.plugin.settings;
+    const root = (0, import_obsidian2.normalizePath)(langRoot(s, code));
+    const pre = root && root !== "/" ? `${root}/` : "";
+    const a = this.app.vault.adapter;
+    const syms = [...new Set([code === baseLang(s) ? s.symbol : s.symbols && s.symbols[code], "nwtsty", "nwt"].filter(Boolean))];
+    for (const sym of syms)
+      for (const dir of [INDEX_MIRROR, "Indici"]) {
+        const idx = await a.read(`${pre}${dir}/${sym}.json`).then(JSON.parse, () => null);
+        const b = idx && idx.books && idx.books[bookNum];
+        if (!b) continue;
+        const slug = b.slug || b.file;
+        const folder = b.rel ? b.rel.split("/").slice(0, -1).join("/") : `${idx.folder || sym}/${slug}`;
+        const text = await a.read(`${pre}${folder}/${slug}_${ch}.md`).catch(() => null);
+        if (text) return parseChapterMarkdown(text);
+      }
+    return null;
   }
   verseText(data, v) {
     const lines = data.verseLines.get(v);
@@ -3921,7 +4070,279 @@ var NoteRefsModal = class extends import_obsidian6.Modal {
 };
 
 // src/bibbia-vista.js
+var import_obsidian13 = require("obsidian");
+
+// src/biblioteca-vista.js
 var import_obsidian12 = require("obsidian");
+
+// src/ricerca.js
+var STOP = new Set(
+  `abbia abbiamo abbiano adesso agli alcuni alcune all alla alle allo allora altra altre altri altro anche ancora avere aveva avevano avete avuto
+  che chi cio come con contro cosa cosi cui dal dall dalla dalle dagli dallo degli dei del dell della delle dello dentro deve devono dopo dove
+  ecc era erano essa esse essere essi esso fra gli hanno in invece lei loro lui mai molto nei nel nell nella nelle nello negli noi non nostra
+  nostre nostri nostro occorre ogni oppure per perche pero piu poi possono puo qual quale quali quando quanto quella quelle quelli quello questa
+  queste questi questo sara sarebbe sei sia siamo siano sono sta stato stessa stesso suo sua sue suoi sul sull sulla sulle sullo sugli tale
+  tali tra tua tuo tue tuoi tutta tutte tutti tutto una uno vengono viene voi vostra vostro gia ciascuno qualcosa qualche nessuno quindi mentre
+  pure tanto tanti tanta tante cioe pag par vedi nota`.split(/\s+/)
+);
+var SUFFIXES = [
+  "amente",
+  "imente",
+  "mente",
+  "azioni",
+  "azione",
+  "izioni",
+  "izione",
+  "zioni",
+  "zione",
+  "menti",
+  "mento",
+  "avano",
+  "evano",
+  "ivano",
+  "iamo",
+  "ando",
+  "endo",
+  "are",
+  "ere",
+  "ire",
+  "ato",
+  "ata",
+  "ati",
+  "ate",
+  "ito",
+  "ita",
+  "iti",
+  "ite",
+  "uto",
+  "uta",
+  "uti",
+  "ute",
+  "ava",
+  "eva",
+  "iva",
+  "oso",
+  "osa",
+  "osi",
+  "ose"
+];
+var STOP_EN = new Set(
+  `the and for are but not you all any can had her was one our out has him his how its may new now old see two who did get let say she too
+  use about above after again against also been before being below between both could does doing down during each from further have having
+  here hers herself himself into itself just more most myself nor off once only other ours ourselves over own same should some such than that
+  their theirs them themselves then there these they this those through under until very were what when where which while whom why will with
+  would yet your yours yourself yourselves upon shall etc page par note`.split(/\s+/)
+);
+var SUFFIXES_EN = ["ations", "ation", "iness", "ness", "ments", "ment", "ingly", "ings", "ing", "edly", "ies", "ied", "ers", "er", "ed", "es", "y", "s"];
+function stemEn(w) {
+  for (const s of SUFFIXES_EN) if (w.length - s.length >= 3 && w.endsWith(s) && !(s === "y" && /[aeiou]y$/.test(w))) {
+    w = w.slice(0, -s.length);
+    break;
+  }
+  if (w.length >= 4 && w.endsWith("e")) w = w.slice(0, -1);
+  if (/([bdgmnpt])\1$/.test(w)) w = w.slice(0, -1);
+  return w;
+}
+function stem(w, lang2 = "it") {
+  if (/^\d/.test(w)) return w;
+  if (lang2 === "en") return stemEn(w);
+  for (const s of SUFFIXES) if (w.length - s.length >= 4 && w.endsWith(s)) return w.slice(0, -s.length);
+  if (w.length >= 4 && /[aeiou]$/.test(w)) {
+    w = w.slice(0, -1);
+    if (/[aeiou]$/.test(w) && w.length >= 4) w = w.slice(0, -1);
+    if (/[cg]h$/.test(w)) w = w.slice(0, -1);
+  }
+  return w;
+}
+function mdText(md) {
+  return String(md || "").replace(/!\[\[[^\]]*\]\]/g, " ").replace(/\[\[[^\]|]*\|([^\]]*)\]\]/g, "$1").replace(/\[\[([^\]]*)\]\]/g, "$1").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/<[^>]+>/g, "").replace(/\s*\^p\d+[ \t]*$/gm, "").replace(/\\([\\`*_\[\]().!-])/g, "$1").replace(/\*\*|__/g, "");
+}
+function terms(text, lang2 = "it") {
+  const stop = lang2 === "en" ? STOP_EN : STOP;
+  const out = [];
+  const s = String(text).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  for (const m of s.matchAll(/[a-z0-9]+/g)) {
+    const w = m[0];
+    if (w.length < 3 || stop.has(w)) continue;
+    out.push(stem(w, lang2));
+  }
+  return out;
+}
+function paragraphsOf(body) {
+  const out = [];
+  for (const chunk of String(body).split(/\n[ \t]*\n/)) {
+    const m = /\^p(\d+)[ \t]*$/.exec(chunk.trimEnd());
+    if (m) out.push({ pid: +m[1], md: chunk.trim() });
+  }
+  return out;
+}
+function notePars(body) {
+  const lines = String(body).split("\n");
+  let i = 0;
+  if (lines[0].trim() === "---") {
+    const end = lines.findIndex((l, j) => j > 0 && l.trim() === "---");
+    if (end > 0) i = end + 1;
+  }
+  const out = [];
+  let start = -1;
+  for (; i <= lines.length; i++) {
+    const blank = i === lines.length || !lines[i].trim();
+    if (!blank && start < 0) start = i;
+    else if (blank && start >= 0) {
+      out.push({ pid: start, md: lines.slice(start, i).join("\n") });
+      start = -1;
+    }
+  }
+  return out;
+}
+var shardKey = (t2) => t2.slice(0, 2);
+var MIN_TERMS = 3;
+var IndexBuilder = class {
+  /** `lang`: lingua dei testi (parole vuote e radici); resta nei metadati e la ricerca usa la stessa. */
+  constructor(lang2 = "it") {
+    this.lang = lang2;
+    this.docs = [];
+    this.pars = [];
+    this.post = /* @__PURE__ */ new Map();
+    this.totalLen = 0;
+  }
+  /** `plain`: nota tua, divisa in paragrafi con notePars (le pubblicazioni hanno ^pN). */
+  addDoc(key, body, { plain: plain2 = false } = {}) {
+    const d = this.docs.length;
+    let added = 0;
+    for (const p of plain2 ? notePars(body) : paragraphsOf(body)) {
+      const ts = terms(mdText(p.md), this.lang);
+      if (ts.length < MIN_TERMS) continue;
+      const n = this.pars.length / 3;
+      this.pars.push(d, p.pid, Math.min(ts.length, 65535));
+      this.totalLen += ts.length;
+      const tf = /* @__PURE__ */ new Map();
+      for (const t2 of ts) tf.set(t2, (tf.get(t2) || 0) + 1);
+      for (const [t2, c] of tf) {
+        let l = this.post.get(t2);
+        if (!l) this.post.set(t2, l = { a: new Uint32Array(4), n: 0 });
+        else if (l.n === l.a.length) {
+          const a = new Uint32Array(l.n * 2);
+          a.set(l.a);
+          l.a = a;
+        }
+        l.a[l.n++] = n * 16 + Math.min(c, 15);
+      }
+      added++;
+    }
+    if (added) this.docs.push(key);
+    return added;
+  }
+  /** → { meta, pars (ArrayBuffer), shards: Map(chiave → ArrayBuffer) } */
+  finish(extra = {}) {
+    const count = this.pars.length / 3;
+    const groups = /* @__PURE__ */ new Map();
+    for (const t2 of this.post.keys()) {
+      const k = shardKey(t2);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(t2);
+    }
+    const shards = /* @__PURE__ */ new Map();
+    for (const [k, list] of groups) {
+      shards.set(k, encodeShard(list.sort().map((t2) => [t2, this.post.get(t2).a.subarray(0, this.post.get(t2).n)])));
+      for (const t2 of list) this.post.delete(t2);
+    }
+    const meta = { v: 1, lang: this.lang, count, avgLen: count ? this.totalLen / count : 0, docs: this.docs, shards: [...shards.keys()].sort(), ...extra };
+    return { meta, pars: new Uint32Array(this.pars).buffer, shards };
+  }
+};
+function encodeShard(entries) {
+  const head = new TextEncoder().encode(JSON.stringify(entries.map(([t2, l]) => [t2, l.length])));
+  const pad2 = (4 - head.length % 4) % 4;
+  const total = entries.reduce((s, [, l]) => s + l.length, 0);
+  const buf = new ArrayBuffer(4 + head.length + pad2 + total * 4);
+  new DataView(buf).setUint32(0, head.length, true);
+  new Uint8Array(buf, 4, head.length).set(head);
+  const posts = new Uint32Array(buf, 4 + head.length + pad2, total);
+  let o = 0;
+  for (const [, l] of entries) {
+    posts.set(l, o);
+    o += l.length;
+  }
+  return buf;
+}
+function decodeShard(buf) {
+  const len = new DataView(buf).getUint32(0, true);
+  const head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, len)));
+  const start = 4 + len + (4 - len % 4) % 4;
+  const out = /* @__PURE__ */ new Map();
+  let o = 0;
+  for (const [t2, n] of head) {
+    out.set(t2, new Uint32Array(buf, start + o * 4, n));
+    o += n;
+  }
+  return out;
+}
+var IndexReader = class {
+  constructor(meta, parsBuf, loadShard) {
+    this.meta = meta;
+    this.pars = new Uint32Array(parsBuf);
+    this.loadShard = loadShard;
+    this.cache = /* @__PURE__ */ new Map();
+  }
+  async shard(k) {
+    if (!this.cache.has(k)) {
+      if (this.cache.size > 40) this.cache.delete(this.cache.keys().next().value);
+      this.cache.set(k, this.meta.shards.includes(k) ? this.loadShard(k).then((b) => b ? decodeShard(b) : /* @__PURE__ */ new Map()) : Promise.resolve(/* @__PURE__ */ new Map()));
+    }
+    return this.cache.get(k);
+  }
+  /** Parole della ricerca → elenchi da sommare (una parola con * può valere più elenchi). */
+  async lists(query) {
+    const out = [];
+    for (const raw of String(query).split(/\s+/)) {
+      const prefix = raw.endsWith("*");
+      for (const t2 of terms(raw.replace(/\*$/, ""), this.meta.lang || "it")) {
+        const sh = await this.shard(shardKey(t2));
+        if (!prefix) {
+          if (sh.has(t2)) out.push(sh.get(t2));
+          continue;
+        }
+        const p = String(raw).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
+        const base = p.length >= 3 ? p : t2;
+        for (const [w, l] of sh) if (w.startsWith(base) || w === t2) out.push(l);
+      }
+    }
+    return out;
+  }
+  async search(query, { limit = 8, perDoc = 2, docFilter } = {}) {
+    const N = this.meta.count;
+    const lists = await this.lists(query);
+    if (!lists.length || !N) return [];
+    const k1 = 1.2;
+    const b = 0.75;
+    const avg = this.meta.avgLen || 1;
+    const scores = /* @__PURE__ */ new Map();
+    for (const l of lists) {
+      const idf = Math.log(1 + (N - l.length + 0.5) / (l.length + 0.5));
+      for (let i = 0; i < l.length; i++) {
+        const p = Math.floor(l[i] / 16);
+        const tf = l[i] % 16;
+        const len = this.pars[p * 3 + 2];
+        const s = idf * tf * (k1 + 1) / (tf + k1 * (1 - b + b * len / avg));
+        scores.set(p, (scores.get(p) || 0) + s);
+      }
+    }
+    const ranked = [...scores].sort((x, y) => y[1] - x[1]);
+    const out = [];
+    const perDocCount = /* @__PURE__ */ new Map();
+    for (const [p, score] of ranked) {
+      const doc = this.meta.docs[this.pars[p * 3]];
+      if (docFilter && !docFilter(doc)) continue;
+      const n = perDocCount.get(doc) || 0;
+      if (n >= perDoc) continue;
+      perDocCount.set(doc, n + 1);
+      out.push({ doc, pid: this.pars[p * 3 + 1], score });
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
+};
 
 // src/scrabb-dati.js
 var import_obsidian7 = require("obsidian");
@@ -4037,14 +4458,20 @@ function scrabbLinkpaths(v) {
 function scrabbYear(y) {
   return y < 0 ? t("{n} a.E.V.", { n: -y }) : t("{n} E.V.", { n: y });
 }
+function scrabbApprox(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  if (s === "inizio") return { start: true, end: false };
+  if (s === "fine") return { start: false, end: true };
+  return ["true", "s\xEC", "si", "yes"].includes(s) ? { start: true, end: true } : null;
+}
 function scrabbDate(e) {
   if (e.anno == null) return e.data ? String(e.data) : "";
-  let d;
-  if (e.fine == null || e.fine === e.anno) d = scrabbYear(e.anno);
-  else if (e.anno < 0 && e.fine < 0) d = t("{da}\u2013{a} a.E.V.", { da: -e.anno, a: -e.fine });
-  else if (e.anno > 0) d = t("{da}\u2013{a} E.V.", { da: e.anno, a: e.fine });
-  else d = `${scrabbYear(e.anno)} \u2013 ${scrabbYear(e.fine)}`;
-  return e.approx ? t("ca. {data}", { data: d }) : d;
+  const a = e.approx || {};
+  const ca = (d, on) => on ? t("ca. {data}", { data: d }) : d;
+  if (e.fine == null || e.fine === e.anno) return ca(scrabbYear(e.anno), a.start || a.end);
+  if (e.anno < 0 && e.fine < 0) return t("{da}\u2013{a} a.E.V.", { da: ca(-e.anno, a.start), a: ca(-e.fine, a.end) });
+  if (e.anno > 0) return t("{da}\u2013{a} E.V.", { da: ca(e.anno, a.start), a: ca(e.fine, a.end) });
+  return `${ca(scrabbYear(e.anno), a.start)} \u2013 ${ca(scrabbYear(e.fine), a.end)}`;
 }
 function scrabbNoteDate(app, file) {
   const fm = app.metadataCache.getFileCache(file)?.frontmatter || {};
@@ -4123,11 +4550,12 @@ var ScrabbIndex = class {
       const e = {
         path: file.path,
         name: file.basename,
+        aliases: scrabbList(fm.aliases).map(String),
         file,
         tipo,
         anno: scrabbNum(fm.anno),
         fine: scrabbNum(fm.anno_fine),
-        approx: !!fm.approssimata,
+        approx: scrabbApprox(fm.approssimata),
         data: fm.data || null,
         corsia: fm.corsia ? String(fm.corsia) : null,
         categoria: fm.categoria ? String(fm.categoria) : null,
@@ -4662,10 +5090,31 @@ function zoomableImage(target) {
   if (!img || !img.closest(ZOOMABLE) || img.closest("a, button")) return null;
   return img.closest('.lmp-shell, .workspace-leaf-content[data-type^="lampada"], .lmp-hover-card, .modal') ? img : null;
 }
-function openImageViewer(app, src, alt) {
+function imageTexts(img) {
+  let caption = "", alt = "";
+  const fig = img.closest("figure");
+  if (fig) {
+    caption = fig.querySelector("figcaption")?.textContent.trim() || "";
+    alt = fig.querySelector(".lmp-img-alt")?.textContent.trim() || "";
+  } else {
+    let el = (img.closest("p") || img.closest(".internal-embed") || img).nextElementSibling;
+    for (let i = 0; el && i < 2; i++, el = el.nextElementSibling) {
+      if (!caption && el.matches(".lmp-img-caption")) caption = el.textContent.trim();
+      else if (!alt && el.matches(".lmp-img-alt")) alt = el.textContent.trim();
+    }
+  }
+  const own = (img.getAttribute("alt") || "").trim();
+  if (!alt && own && own !== caption && !/\.(png|jpe?g|gif|webp|avif|svg)$/i.test(own)) alt = own;
+  return { caption, alt };
+}
+function openImageViewer(app, src, { caption = "", alt = "" } = {}) {
   const bg = document.body.createDiv("lmp-imgview");
-  const img = bg.createEl("img", { attr: { src, alt: alt || "", draggable: "false" } });
-  if (alt) bg.createDiv({ cls: "lmp-imgview-cap", text: alt });
+  const img = bg.createEl("img", { attr: { src, alt: alt || caption, draggable: "false" } });
+  if (caption || alt) {
+    const texts = bg.createDiv("lmp-imgview-cap");
+    if (caption) texts.createDiv({ cls: "lmp-imgview-caption", text: caption });
+    if (alt) texts.createDiv({ cls: "lmp-imgview-alt", text: alt, attr: { "data-label": t("Descrizione dell'immagine") } });
+  }
   const closeBtn = bg.createEl("button", { cls: "lmp-imgview-close clickable-icon", attr: { "aria-label": t("Chiudi") } });
   (0, import_obsidian8.setIcon)(closeBtn, "x");
   let s = 1, x = 0, y = 0;
@@ -4837,10 +5286,15 @@ var ScrabbPickModal = class extends import_obsidian9.SuggestModal {
     const list = this.plugin.scrabb.all(this.opts.types);
     const scored = [];
     for (const e of list) {
-      const n = scrabbFold(e.name);
-      const i = q2 ? n.indexOf(q2) : 0;
-      if (i < 0) continue;
-      scored.push({ e, s: (i === 0 ? 0 : 1) + n.length / 1e3 });
+      let best = null;
+      for (const name of [e.name, ...e.aliases || []]) {
+        const n = scrabbFold(name);
+        const i = q2 ? n.indexOf(q2) : 0;
+        if (i < 0) continue;
+        const sc = (i === 0 ? 0 : 1) + n.length / 1e3 + (name === e.name ? 0 : 5e-4);
+        if (best == null || sc < best) best = sc;
+      }
+      if (best != null) scored.push({ e, s: best });
     }
     scored.sort((a, b) => a.s - b.s);
     const out = scored.slice(0, 60).map((x) => x.e);
@@ -4941,6 +5395,258 @@ var ScrabbNewModal = class extends import_obsidian9.Modal {
       if (this.onDone) this.onDone(file);
     } catch (e) {
       new import_obsidian9.Notice(t("Impossibile creare la scheda: {errore}", { errore: e.message }));
+    }
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+function scrabbApproxValue(start, end) {
+  return start && end ? true : start ? "inizio" : end ? "fine" : null;
+}
+var SCRABB_KNOWN = /* @__PURE__ */ new Set(["tipo", "tags", "aliases", "versetti", "fonti", "perspicacia", "categoria", "domanda", "ordine", "anno", "anno_fine", "approssimata", "corsia", "data", "position", ...SCRABB_LINK_FIELDS]);
+var ScrabbEditModal = class extends import_obsidian9.Modal {
+  constructor(plugin, e) {
+    super(plugin.app);
+    this.plugin = plugin;
+    this.e = e;
+    const fm = plugin.app.metadataCache.getFileCache(e.file)?.frontmatter || {};
+    const str = (x) => x == null ? "" : Array.isArray(x) ? `[[${x.flat(3).join("")}]]` : String(x);
+    const year = (y, ca) => y == null ? { n: "", bce: true, ca: false } : { n: String(Math.abs(y)), bce: y < 0, ca: !!ca };
+    const approx = scrabbApprox(fm.approssimata) || {};
+    const links = [];
+    for (const field of SCRABB_LINK_FIELDS)
+      for (const item of scrabbList(fm[field]))
+        for (const name of scrabbLinkpaths([item]))
+          links.push({ field, name, raw: typeof item === "string" && scrabbLinkpaths([item]).length === 1 ? item : `[[${name}]]` });
+    this.v = {
+      name: e.name,
+      aliases: scrabbList(fm.aliases).map(String).join(", "),
+      tipo: e.tipo,
+      versetti: scrabbList(fm.versetti).map(String).join("\n"),
+      links,
+      fonti: scrabbList(fm.fonti).map(String),
+      perspicacia: str(fm.perspicacia),
+      categoria: str(fm.categoria),
+      domanda: str(fm.domanda),
+      ordine: str(fm.ordine),
+      from: year(scrabbNum(fm.anno), approx.start),
+      to: year(scrabbNum(fm.anno_fine), approx.end),
+      corsia: str(fm.corsia),
+      data: str(fm.data),
+      extra: Object.entries(fm).filter(([k, x]) => !SCRABB_KNOWN.has(k) && ["string", "number"].includes(typeof x)).map(([k, x]) => ({ k, x: String(x), num: typeof x === "number" }))
+    };
+    this.init = this.toFm();
+  }
+  /** Valori del frontmatter (null = campo da togliere); lancia un errore con un messaggio per l'utente. */
+  toFm() {
+    const v = this.v;
+    const yr = (y) => {
+      if (!y.n) return null;
+      const n = Math.abs(Math.round(Number(y.n)));
+      if (!n) throw new Error(t("Scrivi l\u2019anno (un numero, senza lo 0)."));
+      return y.bce ? -n : n;
+    };
+    const anno = yr(v.from);
+    const fine = yr(v.to);
+    if (fine != null && anno == null) throw new Error(t("Manca l\u2019anno di inizio."));
+    if (fine != null && fine < anno) throw new Error(t("\xABFino a\xBB viene prima dell\u2019anno di inizio."));
+    const ordine = v.ordine.trim() === "" ? null : Number(v.ordine);
+    if (ordine != null && !Number.isFinite(ordine)) throw new Error(t("L\u2019ordine deve essere un numero."));
+    const list = (a) => a.length ? a : null;
+    const out = {
+      aliases: list(v.aliases.split(",").map((s) => s.trim()).filter(Boolean)),
+      tipo: v.tipo,
+      versetti: list(v.versetti.split("\n").map((s) => s.trim()).filter(Boolean)),
+      fonti: list(v.fonti),
+      perspicacia: v.perspicacia.trim() || null,
+      categoria: v.categoria.trim() || null,
+      domanda: v.domanda.trim() || null,
+      ordine,
+      anno,
+      anno_fine: fine === anno ? null : fine,
+      // Una data sola: il «ca.» vale per lei, da qualunque riga venga.
+      approssimata: anno == null ? null : scrabbApproxValue(v.from.ca || (fine == null || fine === anno ? v.to.ca : false), fine != null && fine !== anno && v.to.ca),
+      corsia: v.corsia || null,
+      data: v.data.trim() || null
+    };
+    for (const f of SCRABB_LINK_FIELDS) out[f] = list(v.links.filter((l) => l.field === f).map((l) => l.raw));
+    for (const x of v.extra) {
+      const k = x.k.trim();
+      if (!k) continue;
+      if (x.isNew && (SCRABB_KNOWN.has(k) || k in out)) throw new Error(t("Il campo \xAB{nome}\xBB c\u2019\xE8 gi\xE0.", { nome: k }));
+      out[k] = x.del || x.x.trim() === "" ? null : x.num && Number.isFinite(Number(x.x)) ? Number(x.x) : x.x.trim();
+    }
+    return out;
+  }
+  onOpen() {
+    const v = this.v;
+    const c = this.contentEl;
+    this.titleEl.setText(t("Modifica \xAB{nome}\xBB", { nome: this.e.name }));
+    c.addClass("scrabb-edit");
+    const head = (name) => new import_obsidian9.Setting(c).setName(name).setHeading();
+    const text = (name, desc, key, ph) => new import_obsidian9.Setting(c).setName(name).setDesc(desc || "").addText((x) => x.setPlaceholder(ph || "").setValue(v[key]).onChange((s) => v[key] = s));
+    text(t("Nome"), t("Cambiandolo, i link alla scheda nelle altre note si aggiornano (se in Obsidian \xE8 attivo l\u2019aggiornamento dei link)."), "name");
+    text(t("Altri nomi"), t("Separati da virgola: anche con questi nomi la trovi e la colleghi."), "aliases");
+    new import_obsidian9.Setting(c).setName(t("Tipo")).addDropdown((d) => {
+      for (const [k, x] of Object.entries(SCRABB_TYPES)) d.addOption(k, t(x.label));
+      d.setValue(v.tipo).onChange((s) => v.tipo = s);
+    });
+    new import_obsidian9.Setting(c).setName(t("Versetti")).setDesc(t("Uno per riga, es. Romani 12:19")).addTextArea((x) => {
+      x.setValue(v.versetti).onChange((s) => v.versetti = s);
+      x.inputEl.rows = Math.min(8, Math.max(3, v.versetti.split("\n").length + 1));
+    });
+    head(t("Collegamenti"));
+    const chips = new import_obsidian9.Setting(c).setDesc(t("Altre schede collegate a questa. \xD7 toglie il collegamento.")).controlEl.createDiv("scrabb-chips");
+    const drawChips = () => {
+      chips.empty();
+      for (const l of v.links) {
+        const ch = chips.createSpan({ cls: "scrabb-chip", text: l.name });
+        ch.createSpan({ cls: "scrabb-chip-x", text: "\xD7" }).addEventListener("click", () => {
+          v.links = v.links.filter((x) => x !== l);
+          drawChips();
+        });
+      }
+      chips.createEl("button", { cls: "scrabb-chip scrabb-chip-add", text: t("+ collega") }).addEventListener(
+        "click",
+        () => new ScrabbPickModal(this.plugin, { placeholder: t("Collega a\u2026") }, (x) => {
+          if (x.path === this.e.path || v.links.some((l) => l.name === x.name)) return;
+          v.links.push({ field: SCRABB_FIELD_FOR[x.tipo], name: x.name, raw: `[[${x.name}]]` });
+          drawChips();
+        }).open()
+      );
+    };
+    drawChips();
+    if (v.fonti.length) {
+      const box = new import_obsidian9.Setting(c).setName(t("Fonti")).setDesc(t("Paragrafi delle pubblicazioni. Si aggiungono dalla Biblioteca con \xABCollega a SCRABB\xBB.")).controlEl.createDiv("scrabb-chips");
+      const drawFonti = () => {
+        box.empty();
+        for (const f of v.fonti) {
+          const info = scrabbFonti(f)[0];
+          const ch = box.createSpan({ cls: "scrabb-chip", text: info && (info.label || info.file) || f });
+          ch.createSpan({ cls: "scrabb-chip-x", text: "\xD7" }).addEventListener("click", () => {
+            v.fonti = v.fonti.filter((x) => x !== f);
+            drawFonti();
+          });
+        }
+      };
+      drawFonti();
+    }
+    let perspInput;
+    new import_obsidian9.Setting(c).setName(t("Perspicacia")).setDesc(t("L\u2019articolo di Perspicacia su questa voce: \xABScegli\u2026\xBB lo cerca nella biblioteca.")).addText((x) => (perspInput = x).setPlaceholder("[[\u2026]]").setValue(v.perspicacia).onChange((s) => v.perspicacia = s)).addButton((b) => b.setButtonText(t("Scegli\u2026")).onClick(() => this.pickPerspicacia((link) => {
+      v.perspicacia = link;
+      perspInput.setValue(link);
+    })));
+    head(t("Elenco e studio"));
+    text(t("Categoria"), t("Gruppo nell\u2019elenco, se la scheda non \xE8 collegata a un tema."), "categoria");
+    text(t("Domanda"), t("Mostrata sotto il titolo della scheda."), "domanda");
+    text(t("Ordine"), t("Numero: posizione nell\u2019elenco (i pi\xF9 bassi prima)."), "ordine");
+    head(t("Data e Cronologia"));
+    const yearRow = (name, desc, y) => new import_obsidian9.Setting(c).setName(name).setDesc(desc).addText((x) => {
+      x.inputEl.type = "number";
+      x.inputEl.min = "1";
+      x.setPlaceholder(t("anno")).setValue(y.n).onChange((s) => y.n = s.trim());
+    }).addDropdown((d) => d.addOptions({ bce: t("a.E.V."), ce: t("E.V.") }).setValue(y.bce ? "bce" : "ce").onChange((s) => y.bce = s === "bce")).addToggle((x) => x.setTooltip(t("Circa: data approssimativa (ca.)")).setValue(y.ca).onChange((s) => y.ca = s));
+    yearRow(t("Anno"), t("Quando \xE8 nato, \xE8 successo o \xE8 cominciato. Senza anno la scheda non va nella Cronologia. L\u2019interruttore aggiunge \xABca.\xBB."), v.from);
+    yearRow(t("Fino a"), t("Facoltativo: fine del periodo o della vita. L\u2019interruttore aggiunge \xABca.\xBB."), v.to);
+    new import_obsidian9.Setting(c).setName(t("Corsia")).setDesc(t("Riga della Cronologia in cui compare.")).addDropdown((d) => {
+      d.addOption("", t("Automatica"));
+      for (const l of SCRABB_LANES) d.addOption(l, t(l));
+      if (v.corsia && !SCRABB_LANES.includes(v.corsia)) d.addOption(v.corsia, v.corsia);
+      d.setValue(v.corsia).onChange((s) => v.corsia = s);
+    });
+    text(t("Testo della data"), t("Facoltativo, mostrato accanto alla data: es. \xAB11 anni di regno\xBB. \xABfuturo\xBB mette la scheda in fondo alla Cronologia."), "data");
+    head(t("Altri campi"));
+    const extraEl = c.createDiv();
+    const drawExtra = () => {
+      extraEl.empty();
+      for (const x of v.extra) {
+        if (x.del) continue;
+        const s = new import_obsidian9.Setting(extraEl).setName(x.k || t("Nuovo campo"));
+        if (x.isNew) s.addText((n) => n.setPlaceholder(t("nome, es. esito")).setValue(x.k).onChange((k) => x.k = k));
+        s.addText((n) => n.setPlaceholder(t("valore")).setValue(x.x).onChange((val) => x.x = val));
+        s.addExtraButton((b) => b.setIcon("x").setTooltip(t("Togli")).onClick(() => {
+          x.del = true;
+          drawExtra();
+        }));
+      }
+      new import_obsidian9.Setting(extraEl).addButton((b) => b.setButtonText(t("+ campo")).onClick(() => {
+        v.extra.push({ k: "", x: "", isNew: true });
+        drawExtra();
+      }));
+    };
+    drawExtra();
+    const btns = c.createDiv("modal-button-container");
+    const del = btns.createEl("button", { cls: "mod-warning scrabb-edit-del", text: t("Elimina") });
+    del.addEventListener("click", async () => {
+      if (!del.hasClass("is-armed")) {
+        del.addClass("is-armed");
+        del.setText(t("Tocca di nuovo per eliminare"));
+        return;
+      }
+      await this.app.fileManager.trashFile(this.e.file);
+      this.close();
+      new import_obsidian9.Notice(t("Scheda eliminata: {nome}", { nome: this.e.name }));
+    });
+    btns.createEl("button", { text: t("Apri nota") }).addEventListener("click", () => {
+      this.close();
+      this.app.workspace.getLeaf("tab").openFile(this.e.file);
+    });
+    btns.createEl("button", { cls: "mod-cta", text: t("Salva") }).addEventListener("click", () => this.save());
+  }
+  /** Cerca un articolo di Perspicacia (simbolo "it") tra le pubblicazioni della biblioteca. */
+  async pickPerspicacia(done) {
+    const lib = this.plugin.library;
+    await lib.ensureLoaded().catch(() => null);
+    const docs = lib.bySym && lib.bySym.get("it")?.docs || [];
+    if (!docs.length) {
+      new import_obsidian9.Notice(t("Perspicacia non \xE8 nella biblioteca: importala, oppure scrivi il link a mano."));
+      return;
+    }
+    const m = new import_obsidian9.FuzzySuggestModal(this.app);
+    m.setPlaceholder(t("Cerca una voce di Perspicacia\u2026"));
+    m.getItems = () => docs.filter((d) => d.file);
+    m.getItemText = (d) => d.title;
+    m.onChooseItem = (d) => done(`[[${d.file}|Perspicacia \xB7 ${d.title}]]`);
+    m.open();
+  }
+  async save() {
+    let out;
+    try {
+      out = this.toFm();
+    } catch (err) {
+      new import_obsidian9.Notice(err.message);
+      return;
+    }
+    const changed = Object.keys(out).filter((k) => JSON.stringify(out[k]) !== JSON.stringify(this.init[k] ?? null));
+    const name = scrabbSafeName(this.v.name);
+    if (!name) {
+      new import_obsidian9.Notice(t("Scrivi un nome per la scheda."));
+      return;
+    }
+    const file = this.e.file;
+    const newPath = name === this.e.name ? null : `${file.parent && file.parent.path !== "/" ? file.parent.path + "/" : ""}${name}.md`;
+    if (newPath && this.app.vault.getAbstractFileByPath(newPath)) {
+      new import_obsidian9.Notice(t("C\u2019\xE8 gi\xE0 una nota \xAB{nome}\xBB in questa cartella.", { nome: name }));
+      return;
+    }
+    if (!changed.length && !newPath) return this.close();
+    try {
+      if (changed.length) await this.app.fileManager.processFrontMatter(file, (fm) => {
+        for (const k of changed) {
+          if (out[k] == null) delete fm[k];
+          else fm[k] = out[k];
+        }
+        if (changed.includes("tipo") && fm.tags) {
+          const old = `scrabb/${scrabbFold(this.init.tipo)}`;
+          fm.tags = scrabbList(fm.tags).map((x) => String(x) === old ? `scrabb/${scrabbFold(out.tipo)}` : x);
+        }
+      });
+      if (newPath) await this.app.fileManager.renameFile(file, newPath);
+      this.close();
+      new import_obsidian9.Notice(t("Scheda aggiornata: {nome}", { nome: name }));
+    } catch (err) {
+      new import_obsidian9.Notice(t("Impossibile salvare la scheda: {errore}", { errore: err.message }));
     }
   }
   onClose() {
@@ -5075,7 +5781,7 @@ var ScrabbView = class extends import_obsidian9.ItemView {
         this.state.list = scrabbListOf(e.tipo);
         this.state.study = path;
       }
-      if (this.state.tab === "cronologia" && e.anno == null) new import_obsidian9.Notice(t("Questa scheda non ha ancora una data (campo \u201Canno\u201D)."));
+      if (this.state.tab === "cronologia" && e.anno == null) new import_obsidian9.Notice(t("Questa scheda non ha ancora una data: toccala e scegli \xABModifica\xBB."));
       this.saveState();
       this.render();
       if (this.state.tab === "cronologia") this.scrollTimelineTo(e);
@@ -5144,6 +5850,7 @@ var ScrabbView = class extends import_obsidian9.ItemView {
     act("file-text", t("Apri nota"), (evt) => this.openFile(e, evt));
     if (this.state.tab !== "mappa") act("waypoints", t("Mappa"), () => this.openTab("mappa", e.path));
     if (e.anno != null && this.state.tab !== "cronologia") act("calendar-range", t("Cronologia"), () => this.openTab("cronologia", e.path));
+    act("pencil", t("Modifica"), () => new ScrabbEditModal(this.plugin, e).open());
     if (e.perspicacia) {
       act("library-big", t("Perspicacia"), () => this.plugin.openPerspicacia(e));
     }
@@ -5441,6 +6148,7 @@ var ScrabbView = class extends import_obsidian9.ItemView {
     btn("file-text", t("Apri nota"), (evt) => this.openFile(e, evt));
     btn("waypoints", t("Mappa"), () => this.openTab("mappa", e.path));
     if (e.anno != null) btn("calendar-range", t("Cronologia"), () => this.openTab("cronologia", e.path));
+    btn("pencil", t("Modifica"), () => new ScrabbEditModal(this.plugin, e).open());
     if (e.perspicacia) btn("library-big", t("Perspicacia"), () => this.plugin.openPerspicacia(e));
     const body = el.createDiv("scrabb-study-body");
     await this.renderEntityBody(body, e, null, { token: "study" });
@@ -5496,7 +6204,7 @@ var ScrabbView = class extends import_obsidian9.ItemView {
     const scroller = el.createDiv("scrabb-tl");
     this.tlScroller = scroller;
     if (!dated.length) {
-      scroller.createDiv({ cls: "scrabb-empty", text: t("Nessuna scheda con data. Aggiungi \u201Canno: -1513\u201D (a.E.V. con il meno) nel frontmatter.") });
+      scroller.createDiv({ cls: "scrabb-empty", text: t("Nessuna scheda con data. Apri un personaggio o un evento e tocca \xABModifica\xBB.") });
       return;
     }
     const minY = Math.floor((Math.min(...dated.map((e) => e.anno)) - 80) / 100) * 100;
@@ -6949,8 +7657,2058 @@ var ReadingModal = class extends import_obsidian11.Modal {
   }
 };
 
+// src/biblioteca-vista.js
+var ownBlock = (b) => {
+  if (!b.querySelector(".lmp-par2-line")) return b;
+  const c = b.cloneNode(true);
+  c.querySelectorAll(".lmp-par2-line").forEach((x) => x.remove());
+  return c;
+};
+var blockText = (b) => (ownBlock(b).innerText || ownBlock(b).textContent).replace(/\s+/g, " ").trim();
+var isQuestionBlock = (b) => /^\d+(\s*[-–,]\s*\d+)*\.\s/.test(blockText(b));
+var isLabelBlock = (b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(blockText(b));
+var SKIP_TEXT = "sup, .lmp-fn-ref, .lmp-par2-line, .lmp-num, .lmp-ref-mark, img, svg";
+function textNodes(el) {
+  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: (n) => n.parentElement.closest(SKIP_TEXT) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT });
+  const out = [];
+  let pos = 0;
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    out.push({ node, from: pos, to: pos += node.nodeValue.length });
+  }
+  return out;
+}
+var textOf = (el) => textNodes(el).map((x) => x.node.nodeValue).join("").replace(/\[\^[^\]\s]+\]/g, "").replace(/\s+/g, " ").trim();
+function interline(block, other) {
+  const nodes = textNodes(block);
+  const text = nodes.map((x) => x.node.nodeValue).join("");
+  const A = splitSentences(text);
+  const B = splitSentences(other);
+  if (!A.length || !B.length) return false;
+  const beads = A.length === 1 && B.length === 1 ? [[0, 1, 0, 1]] : alignSentences(A.map((x) => x.s.length), B.map((x) => x.s.length));
+  if (!beads) return false;
+  for (const [, a1, b0, b1] of [...beads].reverse()) {
+    const line = createSpan({ cls: "lmp-par2-line", text: B.slice(b0, b1).map((x) => x.s).join(" ") });
+    const end = A[a1 - 1].end;
+    const at = nodes.find((x) => end > x.from && end <= x.to) || nodes[nodes.length - 1];
+    const word = at.node.parentElement.closest(".lmp-w, .lmp-sp");
+    let ref = word && block.contains(word) ? word : null;
+    if (ref && ref.hasClass("lmp-sp") && end < at.to && ref.firstChild === at.node && ref.childNodes.length === 1) {
+      const rest = ref.cloneNode(false);
+      rest.textContent = at.node.nodeValue.slice(end - at.from);
+      at.node.nodeValue = at.node.nodeValue.slice(0, end - at.from);
+      ref.after(rest);
+    }
+    if (!ref && end < at.to) {
+      at.node.splitText(end - at.from);
+      ref = at.node;
+    }
+    ref = ref || at.node;
+    const link = ref.parentElement && ref.parentElement.closest("a");
+    let after = link && block.contains(link) ? link : ref;
+    while (after.nextSibling && after.nextSibling.nodeType === 1 && after.nextSibling.matches("sup, .lmp-ref-mark, .lmp-fn-ref")) after = after.nextSibling;
+    after.after(line);
+  }
+  return true;
+}
+var LibraryView = class extends import_obsidian12.ItemView {
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.plugin = plugin;
+    this.lib = plugin.library;
+    this.state = { mode: "home" };
+    this.history = [];
+    this.renderToken = 0;
+    this.comp = null;
+  }
+  getViewType() {
+    return LIB_VIEW_TYPE;
+  }
+  getIcon() {
+    return "library-big";
+  }
+  getDisplayText() {
+    const s = this.state;
+    const pub = s.sym && this.lib.bySym.get(s.sym);
+    if (s.mode === "doc" && s.doc) return this.lib.byDocId.get(s.doc)?.title || t("Biblioteca");
+    if (s.mode === "week") return t("Adunanze della settimana");
+    if (s.mode === "ext") return s.title || t("Biblioteca");
+    if (s.mode === "cat") return t((this.lib.categories().find((c) => c.id === s.cat) || {}).label || "Biblioteca");
+    if (s.mode === "issue" && pub) return `${pub.title.replace(/\s*\(\d{4}\)$/, "")} \xB7 ${issueLabel(s.issue)}`;
+    if (pub) return pub.title;
+    return t("Biblioteca");
+  }
+  /** Titolo nella barra: niente nella home (lo dice il selettore), il percorso dentro una pubblicazione. */
+  toolbarTitle() {
+    const s = this.state;
+    if (s.mode === "home" || !s.mode) return "";
+    const d = s.mode === "doc" && s.doc && this.lib.byDocId.get(s.doc);
+    if (d && d.pub) {
+      const pub = d.pub.title.replace(/\s*\(\d{4}\)$/, "");
+      return `${pub}${d.issue && d.issue !== "altro" ? ` ${issueLabel(d.issue)}` : ""} \u203A ${d.title}`;
+    }
+    return this.getDisplayText();
+  }
+  getState() {
+    return { ...this.state };
+  }
+  async setState(state, result) {
+    await super.setState(state, result);
+    if (state && state.mode) await this.navigate(state, { push: false });
+  }
+  async onOpen() {
+    const root = this.contentEl;
+    root.empty();
+    root.addClass("lmp-lib");
+    root.dataset.ignoreSwipe = "true";
+    this.plugin.applyFont(root);
+    this.toolbarEl = root.createDiv("lmp-toolbar");
+    this.bodyEl = root.createDiv("lmp-body");
+    this.mainEl = this.bodyEl.createDiv("lmp-lib-main lmp-main");
+    this.paneEl = this.bodyEl.createDiv("lmp-pane lmp-lib-pane");
+    paneResizer(this);
+    this.pager = new Pager(this, this.mainEl, this.bodyEl, {
+      content: () => this.state.mode === "doc" ? this.docWrap : null,
+      label: () => (this.lib.byDocId.get(this.state.doc) || {}).title || "",
+      edge: (d) => this.stepDoc(d),
+      settle: () => this.savePlace(),
+      anchor: () => this.panePar != null && this.docWrap ? this.docBlock(this.panePar) : null
+    });
+    const ro = new ResizeObserver(() => {
+      this.bodyEl.toggleClass("is-narrow", this.bodyEl.clientWidth < 760);
+      this.layoutDocNoteSquares();
+    });
+    ro.observe(this.bodyEl);
+    this.register(() => ro.disconnect());
+    viewKeys(this, [
+      ["Escape", () => this.paneMode ? (this.closeLibPane(), false) : true],
+      ["ArrowLeft", () => pageKey(this.pager, -1)],
+      ["ArrowRight", () => pageKey(this.pager, 1)]
+    ]);
+    const btn = (icon, label, fn) => {
+      const b = this.toolbarEl.createEl("button", { cls: "lmp-tb-btn clickable-icon", attr: { "aria-label": label } });
+      (0, import_obsidian12.setIcon)(b, icon);
+      b.addEventListener("click", fn);
+      return b;
+    };
+    this.backBtn = btn("arrow-left", t("Indietro"), () => this.goBack());
+    addViewSwitch(this.toolbarEl, this.plugin, "lib", () => this.navigate({ mode: "home" }), this.inShell);
+    this.titleEl2 = this.toolbarEl.createDiv("lmp-tb-title lmp-lib-title");
+    this.toolbarEl.createDiv("lmp-tb-spacer");
+    this.prevBtn = btn("chevron-left", t("Documento precedente"), () => this.stepDoc(-1));
+    this.nextBtn = btn("chevron-right", t("Documento successivo"), () => this.stepDoc(1));
+    btn("search", t("Cerca ovunque"), () => this.plugin.openSearch());
+    btn("history", t("Aperti di recente"), () => new PlacesModal(this.plugin, null, "recent").open());
+    btn("bookmark", t("Segnalibri"), () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
+    btn("type", t("Aspetto del testo"), () => new ReadingModal(this.plugin).open());
+    if (import_obsidian12.Platform.isPhone && this.addAction && !this.inShell) {
+      this.addAction("type", t("Aspetto del testo"), () => new ReadingModal(this.plugin).open());
+      this.addAction("chevron-right", t("Documento successivo"), () => this.stepDoc(1));
+      this.addAction("chevron-left", t("Documento precedente"), () => this.stepDoc(-1));
+      this.addAction("bookmark", t("Segnalibri"), () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
+      this.addAction("history", t("Aperti di recente"), () => new PlacesModal(this.plugin, null, "recent").open());
+      this.addAction("search", t("Cerca ovunque"), () => this.plugin.openSearch());
+      addGoToAction(this, "lib", () => this.navigate({ mode: "home" }));
+      root.addClass("lmp-native-header");
+    }
+    this.registerDomEvent(this.mainEl, "click", (evt) => this.onLinkClick(evt), { capture: true });
+    this.buildSelectionBar();
+    this.registerDomEvent(document, "selectionchange", (0, import_obsidian12.debounce)(() => this.onSelectionChange(), 200, true));
+    this.registerDomEvent(this.mainEl, "scroll", () => this.hideSelectionBar());
+    autoHideBars(this, this.mainEl);
+    this.registerEvent(this.app.workspace.on("lampada:scrabb-changed", () => {
+      this.layoutDocNoteSquares();
+      if (this.paneMode === "par") this.renderLibPane();
+    }));
+    if (!this.renderToken) await this.navigate(this.plugin.ui.libLast || { mode: "home" }, { push: false });
+  }
+  async onClose() {
+    setBarsHidden(this, false);
+    this.contentEl.empty();
+  }
+  applyTypography() {
+    this.plugin.applyFont(this.contentEl);
+    if (this.pager) this.pager.layout();
+  }
+  /** Documento aperto senza un paragrafo preciso: dove si era arrivati a leggere (anche su un altro dispositivo). */
+  async resumeDoc(token) {
+    const pos = (await this.plugin.readPositions().catch(() => ({ docs: {} }))).docs[this.state.doc];
+    const block = pos && pos.par > 1 && token === this.renderToken && this.docBlock(+pos.par);
+    if (block) this.pager.reveal(block, "start");
+  }
+  /** Il paragrafo in cima: riaprendo il documento (anche su un altro dispositivo) si riprende da lì. */
+  savePlace() {
+    const el = this.pager.anchorEl();
+    if (this.state.mode === "doc" && el) this.plugin.savePosition(this.state.doc, { par: +el.dataset.pid });
+  }
+  snapshot() {
+    return { ...this.state, scroll: this.mainEl ? this.mainEl.scrollTop : 0 };
+  }
+  /** Prima di cambiare pagina: dove si era (nella vista unica la cronologia è del guscio). */
+  pushHistory() {
+    if (this.inShell) return this.inShell.push(this, this.snapshot());
+    this.history.push(this.snapshot());
+    if (this.history.length > 100) this.history.shift();
+  }
+  canGoBack() {
+    return this.inShell ? this.inShell.stack.length > 0 : this.history.length > 0;
+  }
+  async goBack() {
+    if (this.inShell) return this.inShell.goBack();
+    const prev = this.history.pop();
+    if (prev) await this.restore(prev);
+  }
+  async restore(prev) {
+    await this.navigate(prev, { push: false });
+    if (prev.scroll) this.mainEl.scrollTop = prev.scroll;
+  }
+  async navigate(target, opts = {}) {
+    const token = ++this.renderToken;
+    if (!this.mainEl) return;
+    try {
+      await this.lib.ensureLoaded();
+    } catch (e) {
+      this.mainEl.empty();
+      if (e && e.noBible) {
+        pubLangButton(this.plugin, this.mainEl.createDiv("lmp-pub-lang-row"));
+        renderBibleDownload(this.plugin, this.mainEl.createDiv("lmp-error"), { onDone: () => this.plugin.openReader({ book: 1, chapter: 1 }) });
+      } else this.mainEl.createDiv({ cls: "lmp-empty", text: t("Biblioteca non disponibile: {msg}", { msg: e.message }) });
+      return;
+    }
+    if (token !== this.renderToken) return;
+    if (opts.push !== false && this.state.mode) this.pushHistory();
+    this.state = { mode: target.mode || "home", sym: target.sym, issue: target.issue, doc: target.doc, letter: target.letter, week: target.week, cat: target.cat, url: target.url, title: target.title };
+    this.paneMode = null;
+    this.panePar = null;
+    this.docWrap = null;
+    this.docNotes = [];
+    if (this.paneEl) {
+      this.paneEl.empty();
+      this.bodyEl.removeClass("has-pane");
+    }
+    if (this.comp) this.removeChild(this.comp);
+    this.comp = this.addChild(new import_obsidian12.Component());
+    this.mainEl.empty();
+    this.mainEl.scrollTop = 0;
+    this.docBody = null;
+    this.hideSelectionBar();
+    const m = this.state.mode;
+    this.pendingLabels = [];
+    if (m === "doc") {
+      await this.renderDoc(token);
+      if (token === this.renderToken) this.pager.refresh();
+      const block = target.par != null && this.docBlock(+target.par);
+      if (!block && token === this.renderToken) this.resumeDoc(token);
+      if (block && token === this.renderToken) {
+        window.setTimeout(() => {
+          this.pager.reveal(block, "center");
+          block.addClass("is-flash");
+          window.setTimeout(() => block.removeClass("is-flash"), 1400);
+          this.openParPane(+block.dataset.pid);
+        }, 50);
+      }
+    } else if (m === "week") await this.renderWeek(token);
+    else if (m === "issue") this.renderIssue();
+    else if (m === "pub") this.renderPub();
+    else if (m === "cat") this.renderCat();
+    else if (m === "ext") await this.renderExt(token);
+    else this.renderHome();
+    if (m !== "doc") this.pager.refresh();
+    if (m === "pub" || m === "issue") this.fillLabels(token);
+    if (token !== this.renderToken) return;
+    this.titleEl2.setText(this.toolbarTitle());
+    this.backBtn.toggleClass("is-disabled", !this.canGoBack());
+    const inDoc = m === "doc";
+    this.prevBtn.style.display = inDoc ? "" : "none";
+    this.nextBtn.style.display = inDoc ? "" : "none";
+    this.plugin.ui.libLast = { ...this.state };
+    this.plugin.requestSave();
+    this.leaf.updateHeader?.();
+    this.app.workspace.requestSaveLayout();
+  }
+  /* ---------------- home ---------------- */
+  renderHome() {
+    const wrap = this.mainEl.createDiv("lmp-lib-home");
+    const top = wrap.createDiv("lmp-lib-top");
+    const search = top.createEl("input", { type: "search", cls: "lmp-lib-search", attr: { placeholder: t("Cerca una pubblicazione o un titolo\u2026") } });
+    pubLangButton(this.plugin, top);
+    const results = wrap.createDiv("lmp-lib-results");
+    const sections = wrap.createDiv();
+    if (!this.inShell) {
+      this.weekHomeCard(sections);
+      this.plugin.renderPlaces(sections.createDiv(), null, true);
+    }
+    const cats = sections.createDiv("lmp-lib-cats");
+    for (const cat of this.lib.categories()) {
+      const row = cats.createEl("button", { cls: `lmp-lib-cat cat-lib-${cat.id}` });
+      const covers = row.createDiv("lmp-lib-cat-covers");
+      for (const p of cat.pubs.slice(0, 3)) {
+        const art = covers.createDiv("lmp-lib-cat-cover");
+        const cover = this.lib.pubCover(p);
+        if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), loading: "lazy", alt: "" } });
+        else art.addClass("is-fake");
+      }
+      const tx = row.createDiv("lmp-lib-cat-text");
+      tx.createDiv({ cls: "lmp-lib-cat-title", text: t(cat.label) });
+      const one = cat.pubs.length === 1 && cat.pubs[0];
+      tx.createDiv({ cls: "lmp-lib-cat-meta", text: one ? one.issues ? t("{n} numeri", { n: one.issues.length }) : t("{n} documenti", { n: one.docs.length }) : t("{n} pubblicazioni", { n: cat.pubs.length }) });
+      (0, import_obsidian12.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
+      row.addEventListener("click", () => this.navigate(one ? { mode: "pub", sym: one.symbol } : { mode: "cat", cat: cat.id }));
+    }
+    for (const p of this.plugin.providers) {
+      const b = typeof p.libraryBrowse === "function" && p.libraryBrowse();
+      if (!b) continue;
+      const row = cats.createEl("button", { cls: "lmp-lib-cat lmp-lib-ext" });
+      (0, import_obsidian12.setIcon)(row.createDiv("lmp-lib-cat-covers"), b.icon || "globe");
+      const tx = row.createDiv("lmp-lib-cat-text");
+      tx.createDiv({ cls: "lmp-lib-cat-title", text: b.text });
+      if (b.meta) tx.createDiv({ cls: "lmp-lib-cat-meta", text: b.meta });
+      (0, import_obsidian12.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
+      row.addEventListener("click", () => this.navigate({ mode: "ext", url: b.url, title: b.text }));
+    }
+    const tools = sections.createDiv("lmp-lib-tools");
+    tools.createEl("button", { cls: "lmp-small-btn", text: t("Importa\u2026") }).addEventListener("click", () => new EpubImportModal(this.plugin).open());
+    for (const p of this.plugin.providers) {
+      if (typeof p.libraryActions !== "function") continue;
+      for (const { text, run } of p.libraryActions() || []) tools.createEl("button", { cls: "lmp-small-btn", text }).addEventListener("click", () => run());
+    }
+    if (this.plugin.has("downloadCovers")) {
+      const more = tools.createEl("button", { cls: "lmp-small-btn", text: t("Cerca copertine mancanti") });
+      more.addEventListener("click", async () => {
+        more.disabled = true;
+        try {
+          const got = await this.plugin.ask("downloadCovers", (t2) => more.setText(t2));
+          new import_obsidian12.Notice(got ? t("{n} copertine aggiunte", { n: got }) : t("Nessuna nuova copertina trovata"));
+        } catch (e) {
+          new import_obsidian12.Notice(t("Copertine non scaricate: {msg}", { msg: e.message }));
+        }
+        this.navigate({ mode: "home" }, { push: false });
+      });
+    }
+    search.addEventListener("input", () => {
+      const q2 = norm(search.value).trim();
+      results.empty();
+      sections.style.display = q2 ? "none" : "";
+      if (q2.length < 2) return;
+      const url = search.value.trim();
+      if (/^https?:\/\//.test(url)) {
+        this.plugin.ask("linkAction", url).then((act) => {
+          if (!act || search.value.trim() !== url) return;
+          results.createEl("button", { cls: "mod-cta", text: act.text }).addEventListener("click", () => act.run());
+        }).catch((e) => console.warn("[lampada] link", e));
+        return;
+      }
+      const pubs = this.lib.pubs.filter((p) => norm(p.title).includes(q2) || norm(p.symbol) === q2);
+      if (pubs.length) {
+        results.createEl("h4", { cls: "lmp-section-title", text: t("Pubblicazioni") });
+        const grid = results.createDiv("lmp-lib-grid");
+        for (const p of pubs.slice(0, 24)) this.pubTile(grid, p);
+      }
+      const docs = [];
+      for (const p of this.lib.pubs) {
+        for (const d of p.docs) {
+          if (norm(d.title).includes(q2)) docs.push(d);
+          if (docs.length >= 80) break;
+        }
+        if (docs.length >= 80) break;
+      }
+      if (docs.length) {
+        results.createEl("h4", { cls: "lmp-section-title", text: t("Titoli") });
+        const list = results.createDiv("lmp-lib-doclist");
+        for (const d of docs) this.docRow(list, d, true);
+      }
+      if (!pubs.length && !docs.length) results.createDiv({ cls: "lmp-empty", text: t("Nessun risultato.") });
+      this.fillLabels(this.renderToken);
+    });
+  }
+  /** Una categoria del catalogo: le sue pubblicazioni con le copertine (e un filtro se sono tante). */
+  /** Pagina di un'estensione (hook libraryPage): la disegna lei; go() apre un'altra pagina con la cronologia della biblioteca. */
+  async renderExt(token) {
+    if (!this.state.url || !this.plugin.has("libraryPage")) return this.renderHome();
+    const wrap = this.mainEl.createDiv("lmp-lib-page");
+    const ctx = {
+      go: (url, title) => this.navigate({ mode: "ext", url, title }),
+      reload: () => this.navigate({ ...this.state }, { push: false }),
+      current: () => token === this.renderToken
+    };
+    try {
+      await this.plugin.ask("libraryPage", this.state.url, wrap, ctx);
+    } catch (e) {
+      wrap.createDiv({ cls: "lmp-empty", text: t("Pagina non caricata: {msg}", { msg: e.message || e }) });
+    }
+  }
+  renderCat() {
+    const cat = this.lib.categories().find((c) => c.id === this.state.cat);
+    if (!cat) return this.renderHome();
+    const wrap = this.mainEl.createDiv("lmp-lib-page");
+    wrap.createEl("h2", { cls: "lmp-lib-cat-heading", text: t(cat.label) });
+    const filter = cat.pubs.length > 12 ? wrap.createEl("input", { type: "search", cls: "lmp-lib-search", attr: { placeholder: t("Cerca in {nome}\u2026", { nome: lang() === "it" ? t(cat.label).toLowerCase() : t(cat.label) }) } }) : null;
+    const grid = wrap.createDiv("lmp-lib-grid");
+    const draw = () => {
+      grid.empty();
+      const q2 = filter ? norm(filter.value).trim() : "";
+      for (const p of cat.pubs) if (!q2 || norm(p.title).includes(q2) || norm(p.symbol) === q2) this.pubTile(grid, p);
+    };
+    if (filter) filter.addEventListener("input", draw);
+    draw();
+  }
+  /* ---------------- settimana ---------------- */
+  /** Home: la settimana in una scheda (lettura, infrasettimanale con le risposte scritte, Torre di Guardia). */
+  weekHomeCard(parent) {
+    renderWeekCard(this.plugin, parent, (st) => this.navigate(st));
+  }
+  /** Programma della settimana: lettura biblica, adunanza infrasettimanale (con le risposte), articolo di studio. */
+  async renderWeek(token) {
+    const today = mondayOf(/* @__PURE__ */ new Date());
+    const k = this.state.week || today;
+    const wt = (await this.lib.studyArticles()).get(k);
+    if (token !== this.renderToken) return;
+    const wrap = this.mainEl.createDiv("lmp-lib-page lmp-week");
+    const nav = wrap.createDiv("lmp-week-nav");
+    const shift = (n) => {
+      const d = /* @__PURE__ */ new Date(`${k}T12:00:00`);
+      d.setDate(d.getDate() + 7 * n);
+      this.navigate({ mode: "week", week: isoDate(d) }, { push: false });
+    };
+    const navBtn = (icon, label, fn) => {
+      const b = nav.createEl("button", { cls: "clickable-icon lmp-week-arrow", attr: { "aria-label": label } });
+      (0, import_obsidian12.setIcon)(b, icon);
+      b.addEventListener("click", fn);
+    };
+    navBtn("chevron-left", t("Settimana precedente"), () => shift(-1));
+    const head = nav.createDiv("lmp-week-head");
+    head.createEl("h2", { text: weekLabel(k) });
+    if (k !== today) {
+      const back = head.createEl("button", { cls: "lmp-small-btn", text: t("Torna a questa settimana") });
+      back.addEventListener("click", () => this.navigate({ mode: "week" }, { push: false }));
+    } else head.createDiv({ cls: "lmp-week-now", text: t("Questa settimana") });
+    navBtn("chevron-right", t("Settimana successiva"), () => shift(1));
+    const readingEl = wrap.createDiv();
+    if (wt) this.weekStudyCard(wrap, wt);
+    await this.weekMeeting(readingEl, wrap.createDiv(), k, token);
+  }
+  async weekMeeting(readingEl, el, k, token) {
+    const status = el.createDiv({ cls: "lmp-empty", text: t("Carico il programma\u2026") });
+    const [res, base] = await Promise.all([this.plugin.meetingWeek(k).catch((e) => ({ error: e })), this.plugin.baseAnswers()]);
+    if (token !== this.renderToken) return;
+    status.remove();
+    if (!res || res.error) {
+      const box2 = el.createDiv("lmp-week-card");
+      box2.createEl("h3", { text: t("Adunanza infrasettimanale") });
+      box2.createDiv({
+        cls: "lmp-empty",
+        text: !res || /non disponibile per|not available for/.test(res.error.message) ? t("Programma non disponibile per questa settimana.") : t("Programma non disponibile ({msg}). Se sei offline, riprova quando sei connesso.", { msg: res.error.message })
+      });
+      return;
+    }
+    const { id, items } = res;
+    const d = this.lib.byDocId.get(id);
+    const bible = this.plugin.bible;
+    const refOf = (seg) => refFromCodes(seg[1], seg[2] || void 0);
+    const ri = items.findIndex((x) => x.k === "h2" && !x.s && x.x.some((t2) => Array.isArray(t2)));
+    if (ri >= 0) {
+      const box2 = readingEl.createDiv("lmp-week-card lmp-week-reading");
+      box2.createEl("h3", { text: t("Lettura biblica") });
+      const link = items[ri].x.find((t2) => Array.isArray(t2));
+      const a = parseCode(link[1]);
+      const b = parseCode(link[2] || link[1]);
+      const chips = box2.createDiv("lmp-week-chips");
+      for (let c = a.chapter; a.book === b.book && c <= b.chapter; c++) {
+        const ref = { book: a.book, chapter: c };
+        const chip = chips.createEl("button", { cls: "lmp-week-chip", text: bible.refLabel(ref) });
+        chip.addEventListener("click", () => this.plugin.openReader(ref));
+      }
+      if (!chips.childElementCount) chips.createEl("button", { cls: "lmp-week-chip", text: link[0] }).addEventListener("click", () => this.plugin.openReader(refOf(link)));
+    }
+    const box = el.createDiv("lmp-week-card lmp-week-meeting");
+    box.createEl("h3", { text: t("Adunanza infrasettimanale") });
+    const body = box.createDiv("lmp-week-body");
+    for (const [i, it] of items.entries()) {
+      if (i === ri || it.k === "h1") continue;
+      if (it.k === "img") {
+        this.weekFigure(body, it);
+        continue;
+      }
+      if (it.k === "f") {
+        for (const tag of it.f) {
+          const ta = body.appendChild(this.plugin.answerBox(id, tag, t("La tua risposta"), base));
+          this.aiField(ta, () => this.weekAiCtx(items, i, k));
+        }
+        continue;
+      }
+      const min = typeof it.x[0] === "string" && /^\((\d+)\s+min\)\s*/.exec(it.x[0]);
+      const prev = body.lastElementChild;
+      if (min && it.k === "p" && it.x.length === 1 && min[0].length === it.x[0].length && prev && prev.hasClass("lmp-week-part")) {
+        prev.createSpan({ cls: "lmp-week-min", text: `${min[1]} min` });
+        continue;
+      }
+      const cls = it.k === "h2" ? `lmp-week-sec is-${it.s || "plain"}` : it.k === "h3" ? `lmp-week-part is-${it.s || "plain"}${it.song ? " is-song" : ""}` : "lmp-week-p";
+      const line = body.createDiv(cls);
+      if (it.song) (0, import_obsidian12.setIcon)(line.createSpan("lmp-week-song"), "music");
+      for (const [si, seg] of it.x.entries()) {
+        if (typeof seg === "string") {
+          if (si === 0 && min && it.k === "p") {
+            line.createSpan({ cls: "lmp-week-min", text: `${min[1]} min` });
+            line.appendText(` ${seg.slice(min[0].length)}`);
+          } else line.appendText(seg);
+          continue;
+        }
+        const a = line.createEl("a", { cls: "lmp-week-ref", text: Array.isArray(seg) ? seg[0] : seg.t, href: "#" });
+        if (seg.url) this.urlButtons(line, seg.url);
+        a.addEventListener("click", (evt) => {
+          evt.preventDefault();
+          if (seg.url) return window.open(seg.url);
+          const doc = !Array.isArray(seg) && this.lib.byDocId.get(seg.doc);
+          if (!Array.isArray(seg) && !doc && !seg.ex) return window.open(`https://www.jw.org/finder?wtlocale=${this.plugin.settings.bibleLang || "I"}&docid=${seg.doc}`);
+          const key = Array.isArray(seg) ? seg[1] + seg[2] : `${seg.doc || seg.t}:${seg.a}`;
+          const open = line.nextElementSibling && line.nextElementSibling.dataset.code === key;
+          body.querySelectorAll(".lmp-week-verse").forEach((e) => e.remove());
+          if (open) return;
+          const card = createDiv({ cls: "lmp-ref lmp-week-verse" });
+          card.dataset.code = key;
+          line.after(card);
+          if (doc) this.weekPubCard(card, doc, seg);
+          else if (seg.ex) {
+            card.createDiv({ cls: "lmp-ref-label", text: seg.t });
+            for (const t2 of seg.ex) card.createDiv({ cls: "lmp-ref-text", text: t2 });
+          } else this.weekVerseCard(card, refOf(seg));
+        });
+      }
+    }
+    if (d) {
+      const b = box.createEl("button", { cls: "lmp-small-btn", text: t("Apri nella biblioteca") });
+      b.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id }));
+    }
+  }
+  /** Icone delle estensioni accanto a un link (hook urlButton, es. la trascrizione di un video); dopo run() si ridisegna. */
+  urlButtons(parent, url) {
+    for (const p of this.plugin.providers) {
+      const b = typeof p.urlButton === "function" && p.urlButton(url);
+      if (!b) continue;
+      const el = parent.createSpan({ cls: "clickable-icon lmp-url-btn", attr: { "aria-label": b.label, role: "button", tabindex: "0" } });
+      (0, import_obsidian12.setIcon)(el, b.icon);
+      el.addEventListener("click", async () => {
+        if (el.hasClass("is-busy")) return;
+        el.addClass("is-busy");
+        try {
+          if (await b.run()) this.navigate({ ...this.state }, { push: false });
+        } catch (e) {
+          new import_obsidian12.Notice(`${b.label}: ${e.message || e}`);
+        } finally {
+          el.removeClass("is-busy");
+        }
+      });
+    }
+  }
+  /** Immagine del programma con didascalia e testo alternativo (senza file nel vault: solo i testi). */
+  weekFigure(el, it) {
+    const f = linkDest(this.app, it.file, "");
+    if (!f && !it.alt && !it.cap) return;
+    const fig = el.createEl("figure", { cls: "lmp-week-figure" });
+    if (f) {
+      fig.createEl("img", { attr: { src: fileSrc(this.app, f), alt: it.alt || "", loading: "lazy" } });
+    }
+    if (it.cap) fig.createEl("figcaption", { cls: "lmp-img-caption", text: it.cap });
+    if (it.alt && it.alt !== it.cap) fig.createDiv({ cls: "lmp-img-alt", text: it.alt, attr: { "data-label": t("Descrizione dell'immagine") } });
+  }
+  async weekVerseCard(card, ref) {
+    const bible = this.plugin.bible;
+    card.createDiv({ cls: "lmp-ref-label", text: bible.refLabel(ref) });
+    const txt = card.createDiv({ cls: "lmp-ref-text", text: "\u2026" });
+    card.addEventListener("click", () => this.plugin.openReader(ref));
+    const r = await bible.previewRef(ref, bible.refLabel(ref)).catch(() => null);
+    txt.setText(r ? r.text : t("Testo non trovato: tocca per aprire la Bibbia."));
+  }
+  /** Rimando a una pubblicazione del vault: i paragrafi citati (al massimo 4), tocca per aprirla lì. */
+  async weekPubCard(card, d, seg) {
+    card.createDiv({ cls: "lmp-ref-label", text: `${d.pub.title}${d.issue && d.issue !== "altro" ? ` \xB7 ${issueLabel(d.issue)}` : ""} \u2014 ${d.title}` });
+    const pars = [];
+    for (let p = seg.a; p && p <= seg.b && pars.length < 4; p++) pars.push(p);
+    card.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id, par: seg.a || void 0 }));
+    if (!pars.length) {
+      card.createDiv({ cls: "lmp-ref-text", text: t("Tocca per aprire.") });
+      return;
+    }
+    const texts = await Promise.all(pars.map((p) => this.lib.paragraphText(d, p).catch(() => "")));
+    for (const t2 of texts.filter(Boolean)) card.createDiv({ cls: "lmp-ref-text", text: t2 });
+    if (!texts.some(Boolean)) card.createDiv({ cls: "lmp-ref-text", text: t("Tocca per aprire.") });
+    if (seg.b - seg.a + 1 > pars.length) card.createDiv({ cls: "lmp-ref-text lmp-week-more", text: t("Continua nella pubblicazione\u2026") });
+  }
+  weekStudyCard(el, d) {
+    const box = el.createDiv("lmp-week-card lmp-week-study");
+    box.createEl("h3", { text: t("Studio Torre di Guardia") });
+    const row = box.createDiv({ cls: "lmp-week-article", attr: { role: "button", tabindex: "0" } });
+    row.createDiv({ cls: "lmp-week-article-title", text: d.title });
+    row.createDiv({ cls: "lmp-week-article-sub", text: `${t("La Torre di Guardia")} \xB7 ${issueLabel(d.issue)}` });
+    const go = () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id });
+    row.addEventListener("click", go);
+    row.addEventListener("keydown", (e) => e.key === "Enter" && go());
+  }
+  pubTile(grid, p) {
+    const tile = grid.createDiv({ cls: `lmp-lib-tile cat-lib-${p.category}` });
+    const cover = this.lib.pubCover(p);
+    const art = tile.createDiv("lmp-lib-cover");
+    if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), loading: "lazy", alt: "" } });
+    else this.fakeCover(art, p);
+    tile.createDiv({ cls: "lmp-lib-tile-title", text: p.title });
+    tile.createDiv({ cls: "lmp-lib-tile-meta", text: p.issues ? t("{n} numeri", { n: p.issues.length }) : p.docs.length === 1 ? t("1 documento") : t("{n} documenti", { n: p.docs.length }) });
+    tile.addEventListener("click", () => this.navigate({ mode: "pub", sym: p.symbol }));
+  }
+  /** Copertina disegnata per le pubblicazioni senza immagine: titolo e simbolo, nel colore della categoria. */
+  fakeCover(art, p, subtitle) {
+    art.addClass("is-fake");
+    art.createDiv({ cls: "lmp-lib-fake-title", text: subtitle || p.title });
+    art.createDiv({ cls: "lmp-lib-fake-sym", text: p.symbol });
+  }
+  docRow(list, d, showPub) {
+    const row = list.createDiv("lmp-lib-docrow");
+    const num = row.createDiv("lmp-lib-docnum");
+    const txt = row.createDiv("lmp-lib-docrow-text");
+    if (showPub) txt.createDiv({ cls: "lmp-lib-docrow-pub", text: `${d.pub.title}${d.issue && d.issue !== "altro" ? ` \xB7 ${issueLabel(d.issue)}` : ""}` });
+    const kind = txt.createDiv("lmp-lib-docrow-kind");
+    txt.createDiv({ cls: "lmp-lib-docrow-title", text: d.title });
+    row.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id }));
+    const fill = (label) => {
+      if (!label || !num.isConnected) return;
+      num.setText(String(label.num));
+      list.addClass("has-numbers");
+      if (label.kind !== "Capitolo") kind.setText(t(label.kind));
+    };
+    if (d.label !== void 0) fill(d.label);
+    else (this.pendingLabels = this.pendingLabels || []).push([d, fill]);
+  }
+  /** Legge i numeri dei capitoli dopo aver disegnato l'elenco, un po' per volta. */
+  async fillLabels(token) {
+    const queue = this.pendingLabels || [];
+    this.pendingLabels = [];
+    for (let i = 0; i < queue.length; i += 12) {
+      if (token !== this.renderToken) return;
+      await Promise.all(queue.slice(i, i + 12).map(([d, fill]) => this.lib.docLabel(d).then(fill)));
+    }
+  }
+  /* ---------------- pubblicazione ---------------- */
+  pubHeader(wrap, p, docs, subtitle, issue = "") {
+    const head = wrap.createDiv({ cls: `lmp-lib-head cat-lib-${p.category}` });
+    const cover = this.lib.coverOf(docs) || this.lib.symCovers.get(p.symbol);
+    const art = head.createDiv("lmp-lib-cover lmp-lib-cover-big");
+    if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), alt: "" } });
+    else this.fakeCover(art, p);
+    const txt = head.createDiv();
+    txt.createEl("h2", { text: p.title });
+    txt.createDiv({ cls: "lmp-lib-head-meta", text: subtitle });
+    if (!(p.issues && !issue) && this.plugin.has("pubSource")) this.pubSource(txt.createDiv("lmp-lib-head-src"), p, issue, docs);
+    pubLangButton(this.plugin, head, (evt) => this.pubLangMenu(evt, p, issue));
+    const del = head.createEl("button", { cls: "clickable-icon lmp-lib-del", attr: { "aria-label": issue ? t("Togli questo numero") : t("Togli la pubblicazione") } });
+    (0, import_obsidian12.setIcon)(del, "trash-2");
+    del.addEventListener("click", () => new RemovePubModal(this.app, issue ? `${p.title} \xB7 ${issueLabel(issue)}` : p.title, async () => {
+      await this.lib.remove(p.symbol, issue);
+      new import_obsidian12.Notice(t("Tolto: {nome}", { nome: issue ? issueLabel(issue) : p.title }));
+      this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: "pub", sym: p.symbol } : { mode: "home" }, { push: false });
+    }).open());
+  }
+  /** Lingue (codici) in cui c'è questa pubblicazione, oltre a quella attuale. */
+  async pubLangsOf(p) {
+    const cur2 = pubLang(this.plugin.settings);
+    const others = BIBLE_LANGS.filter(([code]) => code !== cur2);
+    const there = await Promise.all(others.map(([code]) => hasInLang(this.plugin, code, ["", ".epub", ".wol"].map((x) => p.symbol + x))));
+    return others.filter((_, i) => there[i]).map(([code]) => code);
+  }
+  /**
+   * Menu delle lingue della pubblicazione (ogni lingua è una biblioteca a parte): ✓ quella attuale, il nome se lì c'è già
+   * (apre lo stesso documento, numero o pubblicazione), "Scarica in English" (EPUB da jw.org) se lì c'è la Bibbia,
+   * altrimenti si passa a quella lingua e si scarica prima la Bibbia. d: il documento aperto, se c'è.
+   */
+  async pubLangMenu(evt, p, issue, d) {
+    const cur2 = pubLang(this.plugin.settings);
+    const [have, bibles] = await Promise.all([this.pubLangsOf(p), Promise.all(BIBLE_LANGS.map(([code]) => hasBibleIn(this.plugin, code)))]);
+    const menu = new import_obsidian12.Menu();
+    BIBLE_LANGS.forEach(([code, name], i) => {
+      menu.addItem((it) => {
+        if (code === cur2) return it.setTitle(name).setChecked(true);
+        if (have.includes(code)) return it.setTitle(name).onClick(() => this.openInLang(code, p, issue, d));
+        if (!bibles[i]) return it.setTitle(t("{lingua} \xB7 prima scarica la Bibbia", { lingua: name })).onClick(() => this.plugin.setPubLang(code));
+        it.setTitle(t("Scarica in {lingua}", { lingua: name })).setIcon("download").onClick(() => this.downloadInLang(code, name, p, issue));
+      });
+    });
+    menu.showAtMouseEvent(evt);
+  }
+  /**
+   * Passa alla lingua code e apre lì la stessa pagina. Il documento: stesso id (l'id dei documenti di JW è uguale in tutte le
+   * lingue), altrimenti (EPUB, id diversi) quello nella stessa posizione del numero, se i documenti sono tanti quanti.
+   */
+  async openInLang(code, p, issue, d) {
+    const listOf = (pub) => (issue ? (pub.issues || []).find((x) => x.key === issue)?.docs : pub.docs) || [];
+    const oldList = listOf(p);
+    await this.plugin.setPubLang(code);
+    await this.lib.ensureLoaded();
+    const np = this.lib.bySym.get(p.symbol);
+    if (!np) return this.navigate({ mode: "home" }, { push: false });
+    const list = listOf(np);
+    let target = issue && list.length ? { mode: "issue", sym: np.symbol, issue } : { mode: "pub", sym: np.symbol };
+    if (d) {
+      const same = this.lib.byDocId.get(d.id);
+      const nd = same && same.pub === np ? same : list.length === oldList.length ? list[oldList.indexOf(d)] : null;
+      if (nd) target = { mode: "doc", doc: nd.id };
+    }
+    this.navigate(target, { push: false });
+  }
+  async downloadInLang(code, name, p, issue) {
+    try {
+      if (!await epubInfo(code, p.symbol, issue || "")) return new import_obsidian12.Notice(t("Su jw.org non c\u2019\xE8 un EPUB in {lingua} di questa pubblicazione.", { lingua: name }));
+      await this.plugin.setPubLang(code);
+      if (await this.plugin.importFromJw(p.symbol, issue || "", () => {
+      }, p.category)) {
+        await this.plugin.openLibraryAt(issue ? { mode: "issue", sym: p.symbol, issue } : { mode: "pub", sym: p.symbol });
+      }
+    } catch (e) {
+      if (!e.cancelled) new import_obsidian12.Notice(`${t("Scarica in {lingua}", { lingua: name })}: ${e.message || e}`);
+    }
+  }
+  /** Da dove arriva la pubblicazione (o il numero), dai fornitori: { text, action?: { label, run } }. */
+  async pubSource(el, p, issue, docs) {
+    const r = await this.plugin.ask("pubSource", p, issue, docs).catch(() => null);
+    if (!r) return el.remove();
+    el.createSpan({ text: r.text });
+    if (!r.action) return;
+    const b = el.createEl("button", { cls: "mod-cta", text: r.action.label });
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      try {
+        if (await r.action.run()) this.navigate({ ...this.state }, { push: false });
+      } catch (e) {
+        if (!e.cancelled) new import_obsidian12.Notice(`${r.action.label}: ${e.message || e}`);
+      } finally {
+        b.disabled = false;
+      }
+    });
+  }
+  renderPub() {
+    const p = this.lib.bySym.get(this.state.sym);
+    if (!p) return this.renderHome();
+    const wrap = this.mainEl.createDiv("lmp-lib-page");
+    if (p.issues) {
+      this.pubHeader(wrap, p, p.issues[0].docs, t("{n} numeri \xB7 {m} articoli", { n: p.issues.length, m: p.docs.length }));
+      let year = "";
+      let grid = null;
+      for (const iss of p.issues) {
+        const y = iss.key.slice(0, 4);
+        if (y !== year) {
+          year = y;
+          wrap.createEl("h4", { cls: "lmp-section-title", text: /^\d{4}$/.test(y) ? y : t("Altro") });
+          grid = wrap.createDiv("lmp-lib-grid lmp-lib-grid-issues");
+        }
+        const tile = grid.createDiv("lmp-lib-tile");
+        const cover = this.lib.coverOf(iss.docs);
+        const art = tile.createDiv("lmp-lib-cover");
+        if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), loading: "lazy", alt: "" } });
+        else this.fakeCover(art, p, issueLabel(iss.key));
+        tile.createDiv({ cls: "lmp-lib-tile-title", text: issueLabel(iss.key) });
+        tile.createDiv({ cls: "lmp-lib-tile-meta", text: t("{n} articoli", { n: iss.docs.length }) });
+        tile.addEventListener("click", () => this.navigate({ mode: "issue", sym: p.symbol, issue: iss.key }));
+      }
+      return;
+    }
+    this.pubHeader(wrap, p, p.docs, p.docs.length === 1 ? t("1 documento") : t("{n} documenti", { n: p.docs.length }));
+    let docs = p.docs;
+    if (docs.length > 300) {
+      const letters = [...new Set(docs.map((d) => norm(d.title).replace(/[^a-z]/g, "").charAt(0).toUpperCase()).filter(Boolean))].sort();
+      const bar = wrap.createDiv("lmp-lib-letters");
+      const letter = this.state.letter || letters[0];
+      for (const l of letters) {
+        const b = bar.createEl("button", { cls: `lmp-lib-letter${l === letter ? " is-active" : ""}`, text: l });
+        b.addEventListener("click", () => this.navigate({ mode: "pub", sym: p.symbol, letter: l }, { push: false }));
+      }
+      const filter = wrap.createEl("input", { type: "search", cls: "lmp-lib-search", attr: { placeholder: t("Cerca in {nome}\u2026", { nome: p.title }) } });
+      const list2 = wrap.createDiv("lmp-lib-doclist");
+      const draw = () => {
+        list2.empty();
+        const q2 = norm(filter.value).trim();
+        const shown = q2 ? docs.filter((d) => norm(d.title).includes(q2)).slice(0, 200) : docs.filter((d) => norm(d.title).replace(/[^a-z]/g, "").charAt(0).toUpperCase() === letter);
+        for (const d of shown.sort((a, b) => compare(a.title, b.title))) this.docRow(list2, d);
+      };
+      filter.addEventListener("input", draw);
+      draw();
+      return;
+    }
+    const list = wrap.createDiv("lmp-lib-doclist");
+    for (const d of docs) this.docRow(list, d);
+  }
+  renderIssue() {
+    const p = this.lib.bySym.get(this.state.sym);
+    const iss = p && p.issues && p.issues.find((i) => i.key === this.state.issue);
+    if (!iss) return this.renderPub();
+    const wrap = this.mainEl.createDiv("lmp-lib-page");
+    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} \xB7 ${t("{n} articoli", { n: iss.docs.length })}`, iss.key);
+    const list = wrap.createDiv("lmp-lib-doclist");
+    for (const d of iss.docs) this.docRow(list, d);
+  }
+  /* ---------------- documento ---------------- */
+  docSiblings(d) {
+    if (d.issue && d.pub.issues) return (d.pub.issues.find((i) => i.key === d.issue) || { docs: [] }).docs;
+    return d.pub.docs;
+  }
+  stepDoc(delta) {
+    const d = this.state.mode === "doc" && this.lib.byDocId.get(this.state.doc);
+    if (!d) return;
+    const list = this.docSiblings(d);
+    const i = list.indexOf(d) + delta;
+    if (i >= 0 && i < list.length) this.navigate({ mode: "doc", sym: d.pub.symbol, doc: list[i].id });
+  }
+  async renderDoc(token) {
+    const d = this.lib.byDocId.get(this.state.doc);
+    if (!d) return this.renderHome();
+    const file = fileAt(this.app, `${d.pub.prefix}${d.rel}`);
+    const wrap = this.mainEl.createDiv("lmp-lib-doc");
+    const top = wrap.createDiv("lmp-lib-doc-top");
+    const crumbs = top.createDiv("lmp-lib-crumbs");
+    this.pubLangsOf(d.pub).then((have) => {
+      if (!have.length || token !== this.renderToken) return;
+      pubLangButton(this.plugin, top, (evt) => this.pubLangMenu(evt, d.pub, d.issue !== "altro" ? d.issue : "", d));
+      const par2 = this.plugin.ui.libPar2;
+      const on = have.includes(par2);
+      const mode = this.plugin.ui.libPar2Mode || "cols";
+      const MODES = [["cols", t("In colonne"), "columns-2"], ["below", t("Sotto ogni paragrafo"), "rows-2"], ["lines", t("Interlineare, frase per frase"), "list"]];
+      const code = (c) => (JW_LANGS[c] || c).toUpperCase();
+      const b = top.createEl("button", { cls: "lmp-lang-btn lmp-par2-btn", attr: { "aria-label": on ? t("Lingue affiancate: {lingua}", { lingua: langName(par2) }) : t("Affianca un\u2019altra lingua") } });
+      b.toggleClass("is-active", on);
+      (0, import_obsidian12.setIcon)(b.createSpan("lmp-lang-btn-icon"), (MODES.find(([k]) => k === mode) || MODES[0])[2]);
+      if (on) b.createSpan({ text: `${code(pubLang(this.plugin.settings))} \xB7 ${code(par2)}` });
+      b.addEventListener("click", (evt) => {
+        const menu = new import_obsidian12.Menu();
+        menu.addItem((it) => it.setTitle(t("Solo questa lingua")).setChecked(!on).onClick(() => this.setPar2(null)));
+        for (const code2 of have) menu.addItem((it) => it.setTitle(t("Affianca: {lingua}", { lingua: langName(code2) })).setChecked(code2 === par2).onClick(() => this.setPar2(code2)));
+        menu.addSeparator();
+        for (const [k, label2, icon] of MODES)
+          menu.addItem((it) => it.setTitle(label2).setIcon(icon).setChecked(k === mode).onClick(() => {
+            this.plugin.ui.libPar2Mode = k;
+            this.setPar2(on ? par2 : have[0]);
+          }));
+        menu.showAtMouseEvent(evt);
+      });
+    });
+    const pubLink = crumbs.createSpan({ cls: "lmp-lib-crumb", text: d.pub.title });
+    pubLink.addEventListener("click", () => this.navigate({ mode: "pub", sym: d.pub.symbol }));
+    if (d.issue && d.issue !== "altro") {
+      crumbs.appendText(" \u203A ");
+      const il = crumbs.createSpan({ cls: "lmp-lib-crumb", text: issueLabel(d.issue) });
+      il.addEventListener("click", () => this.navigate({ mode: "issue", sym: d.pub.symbol, issue: d.issue }));
+    }
+    if (!file) {
+      wrap.createDiv({ cls: "lmp-empty", text: t("File del documento non trovato.") });
+      return;
+    }
+    const text = await readFile(this.app, file);
+    if (token !== this.renderToken) return;
+    let body = stripFrontmatter(text).replace(/<!--[\s\S]*?-->/g, "").replace(/[ \t]+\^p(\d+)[ \t]*$/gm, ' <span class="lmp-pid lmp-pid-$1"></span>').replace(/[ \t]+\^[\w-]+[ \t]*$/gm, "");
+    const label = findDocLabel(body);
+    if (label) {
+      const lines = body.split("\n");
+      lines.splice(label.line, 1);
+      body = lines.join("\n");
+      wrap.createDiv({ cls: "lmp-lib-doc-kicker", text: `${t(label.kind)} ${label.num}` });
+    }
+    const titleEl = wrap.createEl("h1", { cls: "lmp-lib-doc-title", text: d.title });
+    const key = norm(d.title).replace(/[^a-z0-9]/g, "").slice(0, 24);
+    body = body.replace(/^#{1,2}\s+(.+)$/m, (h, t2, at) => {
+      if (!norm(t2).replace(/[^a-z0-9]/g, "").startsWith(key)) return h;
+      const before = [...body.slice(0, at).matchAll(/lmp-pid-(\d+)/g)].map((x) => +x[1]);
+      const pid = before.length ? Math.max(...before) + 1 : 1;
+      const own = /lmp-pid-(\d+)/.exec(t2);
+      const plain2 = t2.replace(/<span class="lmp-pid[^>]*><\/span>/, "").replace(/[*_]/g, "").trim();
+      if (own || !body.includes(`lmp-pid-${pid}"`)) {
+        titleEl.setText(plain2 || d.title);
+        titleEl.appendChild(createSpan({ cls: `lmp-pid lmp-pid-${own ? own[1] : pid}` }));
+        this.titlePidEl = titleEl;
+      }
+      return "";
+    });
+    const content = wrap.createDiv("lmp-lib-doc-body markdown-rendered");
+    content.dataset.sourcePath = file.path;
+    await renderMd(this.app, body, content, file.path, this.comp);
+    if (token !== this.renderToken) return;
+    this.docBody = wrap;
+    this.docWrap = wrap;
+    this.wrapDocWords(wrap);
+    this.applyDocMarks();
+    this.renderImageText(d, file, content, token);
+    this.renderAnswerFields(d, wrap, token);
+    this.renderParallel(d, wrap, token);
+    await this.renderDocNotes();
+    if (token !== this.renderToken) return;
+    const nav = wrap.createDiv("lmp-chapter-nav");
+    const sib = this.docSiblings(d);
+    const i = sib.indexOf(d);
+    const navBtn = (doc, icon, after) => {
+      const b = nav.createEl("button", { cls: "lmp-nav-btn" });
+      if (!doc) return b.addClass("is-hidden");
+      const ic = createSpan();
+      (0, import_obsidian12.setIcon)(ic, icon);
+      if (!after) b.appendChild(ic);
+      b.createSpan({ text: doc.title.length > 40 ? `${doc.title.slice(0, 40)}\u2026` : doc.title });
+      if (after) b.appendChild(ic);
+      b.addEventListener("click", () => this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id }));
+    };
+    navBtn(sib[i - 1], "chevron-left", false);
+    navBtn(sib[i + 1], "chevron-right", true);
+    this.plugin.addRecent({ doc: d.id });
+  }
+  /** Lingua da affiancare ai documenti (null = nessuna): vale per tutti i documenti che la hanno. */
+  setPar2(code) {
+    this.plugin.ui.libPar2 = code;
+    this.plugin.requestSave();
+    this.navigate({ ...this.state }, { push: false });
+  }
+  /**
+   * Lo stesso documento in un'altra lingua, dagli indici di quella lingua: stesso id (uguale in tutte le lingue),
+   * altrimenti la stessa posizione tra i documenti della pubblicazione, se sono tanti quanti. { path, title } o null.
+   */
+  async docInLang(code, d) {
+    const root = (0, import_obsidian12.normalizePath)(langRoot(this.plugin.settings, code));
+    const pre = root && root !== "/" ? `${root}/` : "";
+    const docs = [];
+    for (const x of ["", ".epub", ".wol"]) {
+      const idx = await this.app.vault.adapter.read(`${pre}index/${d.pub.symbol}${x}.json`).then(JSON.parse, () => null);
+      for (const [id, o2] of Object.entries(idx && idx.docs || {})) if (o2 && o2.rel && !docs.some((y) => y.id === String(id))) docs.push({ ...o2, id: String(id) });
+    }
+    const o = docs.find((y) => y.id === d.id) || (docs.length === d.pub.docs.length ? docs[d.pub.docs.indexOf(d)] : null);
+    return o ? { path: `${pre}${o.rel}`, title: o.title || "" } : null;
+  }
+  /**
+   * Lingue affiancate: dopo ogni paragrafo (data-pid) lo stesso paragrafo nell'altra lingua (^pN uguale in tutte le
+   * lingue, come in JW Library). Largo: in due colonne allineate; stretto o a pagine: sotto, più piccolo.
+   */
+  async renderParallel(d, wrap, token) {
+    const code = this.plugin.ui.libPar2;
+    if (!code || code === pubLang(this.plugin.settings)) return;
+    const o = await this.docInLang(code, d).catch(() => null);
+    const text = o && await this.app.vault.adapter.read(o.path).catch(() => null);
+    if (token !== this.renderToken) return;
+    if (!text) return;
+    const file = { path: o.path };
+    const pars = new Map(paragraphsOf(stripFrontmatter(text)).map((x) => [x.pid, x.md]));
+    if (token !== this.renderToken || !pars.size) return;
+    const mode = this.plugin.ui.libPar2Mode || "cols";
+    wrap.addClass("lmp-par2-on");
+    wrap.addClass(`lmp-par2-${mode}`);
+    const title = wrap.querySelector(".lmp-lib-doc-title");
+    if (title && o.title) title.after(createDiv({ cls: "lmp-par2 lmp-par2-title", text: o.title }));
+    for (const block of wrap.querySelectorAll(".lmp-lib-doc-body [data-pid]")) {
+      const md = pars.get(+block.dataset.pid);
+      if (!md || isLabelBlock(block)) continue;
+      const el = createDiv("lmp-par2");
+      await renderMd(this.app, md.replace(/[ \t]+\^p\d+[ \t]*$/, "").replace(/!\[\[[^\]]*\]\]/g, ""), el, file.path, this.comp);
+      if (token !== this.renderToken) return;
+      if (mode === "lines" && interline(block, textOf(el))) continue;
+      block.addClass("lmp-par2-src");
+      block.after(el);
+    }
+    if (this.pager) this.pager.layout();
+  }
+  /**
+   * Immagini: la riga subito sotto senza codice di paragrafo è la didascalia e si mostra come tale; il testo alternativo
+   * (quando si conosce) va sotto la didascalia, con l'etichetta «Descrizione dell'immagine».
+   */
+  async renderImageText(d, file, content, token) {
+    const figs = [...content.querySelectorAll(".internal-embed[src]")].filter((e) => /\.(png|jpe?g|gif|webp|avif)$/i.test(e.getAttribute("src"))).map((e) => {
+      const block = e.closest("p") || e;
+      const next = block.nextElementSibling;
+      const cap = next && next.tagName === "P" && !next.dataset.pid && !next.querySelector("[data-pid], .lmp-pid, .internal-embed") ? next : null;
+      if (cap) cap.addClass("lmp-img-caption");
+      return { e, block, cap };
+    });
+    for (const ol of content.querySelectorAll("ol")) {
+      const items = [...ol.children].filter((li) => li.tagName === "LI");
+      if (items.length && items.every((li, i) => +(/^(\d+)\.\s/.exec(li.innerText.trim()) || [])[1] === i + (ol.start || 1))) ol.addClass("lmp-ol-plain");
+    }
+    for (const p of content.querySelectorAll("p + p")) {
+      const text = (el) => el.textContent.replace(/\s+/g, " ").trim();
+      const t2 = text(p);
+      if (t2 && t2.length < 40 && t2 === text(p.previousElementSibling)) p.addClass("lmp-dup-label");
+    }
+    if (!figs.length) return;
+    const files = figs.map((f) => f.e.getAttribute("src").split("/").pop());
+    const alts = await this.plugin.imageAlts(d, files, fileMeta(this.app, file)?.frontmatter?.source);
+    if (token !== this.renderToken) return;
+    for (const [i, { e, block, cap }] of figs.entries()) {
+      const alt = alts[files[i]];
+      if (!alt || cap && norm(cap.textContent) === norm(alt)) continue;
+      e.setAttribute("alt", alt);
+      const img = e.querySelector("img");
+      if (img) img.setAttribute("alt", alt);
+      (cap || block).after(createDiv({ cls: "lmp-img-alt", text: alt, attr: { "data-label": t("Descrizione dell'immagine") } }));
+    }
+  }
+  /**
+   * Paragrafi numerati come in JW Library (data-pid) e parole contate con la stessa regola,
+   * così le evidenziazioni del backup cadono sulle parole giuste. Il numero del paragrafo (<sup>) non conta.
+   */
+  wrapDocWords(root) {
+    root.querySelectorAll(".lmp-pid").forEach((mk) => {
+      const pid = /lmp-pid-(\d+)/.exec(mk.className);
+      const block = mk.closest("p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, figcaption") || mk.parentElement;
+      mk.remove();
+      if (!pid || !block || block.dataset.pid) return;
+      block.dataset.pid = pid[1];
+      const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT, {
+        acceptNode: (n2) => n2.parentElement.closest("sup, .lmp-w, .lmp-sp, img, svg") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+      });
+      const nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      let n = 0;
+      for (const node of nodes) {
+        const frag = document.createDocumentFragment();
+        for (const chunk of node.nodeValue.split(/(\[\^[^\]\s]+\])/)) {
+          if (/^\[\^[^\]\s]+\]$/.test(chunk)) {
+            frag.appendChild(createSpan({ cls: "lmp-fn-ref", text: chunk }));
+            continue;
+          }
+          for (const part of splitJwTokens(chunk)) {
+            if (part.w) frag.appendChild(createSpan({ cls: "lmp-w", text: part.s, attr: { "data-t": String(n++) } }));
+            else if (n > 0) frag.appendChild(createSpan({ cls: "lmp-sp", text: part.s, attr: { "data-a": String(n - 1) } }));
+            else frag.appendChild(document.createTextNode(part.s));
+          }
+        }
+        node.replaceWith(frag);
+      }
+    });
+  }
+  /** Dove sei: il paragrafo aperto nel pannello, altrimenti il primo visibile. */
+  herePlace() {
+    const d = this.state.mode === "doc" && this.lib.byDocId.get(this.state.doc);
+    if (!d || !this.docWrap) return null;
+    let par = this.panePar;
+    if (par == null) {
+      const top = this.mainEl.getBoundingClientRect().top;
+      const b = [...this.docWrap.querySelectorAll("[data-pid]")].find((x) => x.getBoundingClientRect().bottom > top + 4);
+      par = b ? +b.dataset.pid : void 0;
+    }
+    return { place: { doc: d.id, par }, label: d.title };
+  }
+  /** Campi "La tua risposta" come in JW Library: la risposta del backup o quella scritta qui, modificabile. */
+  async renderAnswerFields(d, wrap, token) {
+    const labels = [...wrap.querySelectorAll("[data-pid]")].filter((b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(b.textContent.trim()));
+    if (!labels.length) return;
+    const [fields, base] = await Promise.all([this.plugin.docAnswerFields(d), this.plugin.baseAnswers()]);
+    if (token !== this.renderToken || !fields) return;
+    for (const block of labels) {
+      const label = block.textContent.trim();
+      let after = block;
+      const tas = [];
+      for (const tag of fields[block.dataset.pid] || []) {
+        const ta = this.plugin.answerBox(d.id, tag, label, base);
+        after.after(ta);
+        after = ta;
+        tas.push(ta);
+      }
+      if (after === block) continue;
+      block.addClass("lmp-answer-label");
+      for (const ta of tas) this.aiField(ta, () => this.docAiCtx({ label: block }));
+    }
+  }
+  /** Lampadina dentro un campo di risposta: prompt rapidi, poi gli spunti sotto il campo, con "Usa" per metterli lì. */
+  aiField(ta, getCtx, qpid) {
+    const wrap = createDiv("lmp-answer-wrap");
+    ta.before(wrap);
+    wrap.appendChild(ta);
+    const btn = wrap.createEl("button", { cls: "clickable-icon lmp-ai-btn", attr: { "aria-label": t("Spunti per il commento") } });
+    (0, import_obsidian12.setIcon)(btn, "lightbulb");
+    btn.addEventListener(
+      "click",
+      (evt) => aiMenu(
+        this.plugin,
+        evt,
+        (preset) => this.runAi(preset, getCtx, {
+          btn,
+          ta,
+          qpid,
+          place: (box) => {
+            const old = wrap.nextElementSibling;
+            if (old && old.hasClass("lmp-ai-box")) old.remove();
+            wrap.after(box);
+          }
+        })
+      )
+    );
+  }
+  /** Spunti su un paragrafo (o sul testo selezionato), nel pannello del paragrafo. */
+  aiOnParagraph(evt, pid, focus) {
+    aiMenu(this.plugin, evt, (preset) => {
+      if (this.paneMode !== "par" || this.panePar !== pid) this.openParPane(pid);
+      const f = this.docAiFocus(pid);
+      this.runAi(preset, () => this.docAiCtx({ ...f, focus }), {
+        ta: f.ta,
+        qpid: pid,
+        place: (box) => {
+          if (this.paneAi && this.paneAi.box !== box) this.paneAi.box.remove();
+          this.paneAi = { doc: this.state.doc, pid, box };
+          const content = this.paneEl && this.paneEl.querySelector(".lmp-pane-content");
+          if (content) content.prepend(box);
+        }
+      });
+    });
+  }
+  /**
+   * Domanda e paragrafi per un paragrafo qualsiasi: se è una domanda, i paragrafi che seguono; altrimenti il paragrafo
+   * stesso e la domanda stampata prima (se c'è), con il suo campo di risposta per "Usa".
+   */
+  docAiFocus(pid) {
+    const blocks = [...this.docWrap.querySelectorAll("[data-pid]")];
+    const i = blocks.findIndex((b) => +b.dataset.pid === pid);
+    let q2 = null;
+    for (let j = i; j >= 0 && j > i - 12; j--) {
+      if (isQuestionBlock(blocks[j])) {
+        q2 = blocks[j];
+        break;
+      }
+      if (j < i && /^H[1-6]$/.test(blocks[j].tagName)) break;
+    }
+    const label = q2 && blocks[blocks.indexOf(q2) + 1];
+    const wrap = label && isLabelBlock(label) && label.nextElementSibling;
+    const ta = wrap && wrap.hasClass && wrap.hasClass("lmp-answer-wrap") ? wrap.querySelector("textarea") : null;
+    return { q: q2, used: q2 === blocks[i] ? null : [blocks[i]], ta };
+  }
+  /**
+   * Contesto per gli spunti in un documento. Al modello vanno l'articolo intero, la domanda e i suoi paragrafi, le
+   * scritture citate con note di studio, note in calce, riferimenti a margine e "Citato in", e le tue note sui paragrafi.
+   */
+  async docAiCtx({ label, q: q2, used, focus }) {
+    const d = this.currentDoc();
+    const blocks = [...this.docWrap.querySelectorAll("[data-pid]")];
+    if (label) q2 = blocks[blocks.indexOf(label) - 1];
+    const review = !!(label && q2 && !isQuestionBlock(q2));
+    if (review) used = [];
+    if (!used) {
+      used = [];
+      for (let j = blocks.indexOf(q2) + 1; q2 && j < blocks.length && used.length < 6; j++) {
+        if (isQuestionBlock(blocks[j])) break;
+        if (!isLabelBlock(blocks[j]) && blockText(blocks[j])) used.push(blocks[j]);
+      }
+    }
+    const sources = new SourceList();
+    const parIds = /* @__PURE__ */ new Map();
+    for (const b of blocks) {
+      if (isLabelBlock(b) || !blockText(b)) continue;
+      const id = sources.add(this.parLabel(+b.dataset.pid), blockText(b), { par: +b.dataset.pid });
+      if (id) parIds.set(b, id);
+    }
+    for (const el of this.docWrap.querySelectorAll(".lmp-img-alt, p.lmp-img-caption")) {
+      const prev = blocks.filter((b) => b.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING).pop();
+      const pid = prev ? +prev.dataset.pid : null;
+      const where = pid ? this.parLabel(pid) : t("Paragrafo");
+      sources.add(where === t("Paragrafo") ? t("Immagine") : t("Immagine dopo {where}", { where }), blockText(el), pid ? { par: pid } : {});
+    }
+    const refs = /* @__PURE__ */ new Map();
+    for (const b of [q2, ...used].filter(Boolean))
+      for (const a of b.querySelectorAll('a[href*="bible="]')) {
+        const codes = codesFromJwUrl(a.getAttribute("href"));
+        const ref = codes && refFromCodes(codes[0], codes[1]);
+        const lbl = ref && ref.chapter && this.plugin.bible.refLabel(ref);
+        if (lbl && !refs.has(lbl)) refs.set(lbl, ref);
+      }
+    const shared = sources.items.length;
+    await addScriptureSources(this.plugin, [...refs.values()], sources, d ? d.file : "");
+    const pids = new Set([q2, ...used].filter(Boolean).map((b) => +b.dataset.pid));
+    return {
+      title: d ? d.title : "",
+      question: q2 ? blockText(q2) : "",
+      review,
+      shared,
+      paragraphIds: used.map((b) => parIds.get(b)).filter(Boolean),
+      focus: focus ? focus.replace(/\s+/g, " ").trim().slice(0, 1500) : "",
+      sources,
+      notes: (this.docNotes || []).filter((x) => pids.has(x.pid)).map((x) => [x.n.title, x.n.content].filter((t2) => t2 && t2 !== "Nota").join(": ")).filter(Boolean),
+      qpid: q2 ? +q2.dataset.pid : null
+    };
+  }
+  /** Contesto per un campo della Guida per l'adunanza: la parte del programma, le scritture e i paragrafi citati. */
+  async weekAiCtx(items, fi, k) {
+    const segText = (s) => typeof s === "string" ? s : Array.isArray(s) ? s[0] : s.t;
+    const part = [];
+    for (let j = fi - 1; j >= 0 && part.length < 12; j--) {
+      const it = items[j];
+      if (it.k === "f") continue;
+      if (it.k === "h1" || it.k === "h2") break;
+      part.unshift(it);
+      if (it.k === "h3") break;
+    }
+    const last = part.filter((it) => it.k === "p").pop();
+    const q2 = last ? last.x.map(segText).join("").replace(/^\(\d+\s+min\)\s*/, "") : "";
+    if (/gemme spirituali|spiritual gems/i.test(q2) && /lettura|reading/i.test(q2)) {
+      const reading = items.find((x) => x.k === "h2" && !x.s && x.x.some((t2) => Array.isArray(t2)));
+      const link = reading && reading.x.find((t2) => Array.isArray(t2));
+      const ctx = link && await this.readingAiCtx(link, q2);
+      if (ctx) return ctx;
+    }
+    const sources = new SourceList();
+    const text = (it) => it.k === "img" ? [it.cap, it.alt].filter(Boolean).join(" \u2014 ") : it.x.map(segText).join("");
+    const label = (it) => it.k === "h3" ? t("Parte del programma") : it.k === "img" ? t("Immagine del programma") : t("Guida per l\u2019adunanza");
+    const ids = part.map((it) => sources.add(label(it), text(it), {})).filter(Boolean);
+    const refs = [];
+    for (const it of part)
+      for (const s of it.x || []) {
+        if (Array.isArray(s)) {
+          const ref = refFromCodes(s[1], s[2] || void 0);
+          if (ref && ref.chapter) refs.push(ref);
+          continue;
+        }
+        if (s && s.ex) sources.add(s.t, s.ex.join("\n"), {});
+        const d = s && s.doc && this.lib.byDocId.get(s.doc);
+        if (!d) continue;
+        for (let p = s.a; p && p <= s.b && p < s.a + 6; p++) {
+          const t2 = await this.lib.paragraphText(d, p).catch(() => "");
+          if (t2) sources.add(`\xAB${d.title}\xBB \xB6${p}`, t2, { cite: d.file, par: p });
+        }
+      }
+    await addScriptureSources(this.plugin, refs, sources, "");
+    return { title: t("Guida per l\u2019adunanza, {settimana}", { settimana: weekLabel(k) }), question: q2, paragraphIds: ids, sources, notes: [] };
+  }
+  /**
+   * Gemme spirituali: i capitoli della lettura (in cache, uguali per ogni richiesta della settimana), poi per ogni
+   * versetto note di studio, note in calce, "Citato in" e riferimenti a margine, e le tue note che citano i versetti.
+   * `link` è il link della lettura nel programma: [testo, codice inizio, codice fine].
+   */
+  async readingAiCtx(link, q2) {
+    const bible = this.plugin.bible;
+    const a = parseCode(link[1]);
+    const b = parseCode(link[2] || link[1]);
+    if (a.book !== b.book) return null;
+    const sources = new SourceList(4e5);
+    const ids = [];
+    const refs = [];
+    for (let c = a.chapter; c <= b.chapter && c < a.chapter + 8; c++) {
+      const d = await bible.getChapter(a.book, c).catch(() => null);
+      if (!d) continue;
+      for (const v of [...d.verseLines.keys()].sort((x, y) => x - y)) {
+        if (c === a.chapter && a.verse && v < a.verse || c === b.chapter && b.verse && v > b.verse) continue;
+        const ref = { book: a.book, chapter: c, verse: v };
+        const id = sources.add(bible.refLabel(ref), bible.verseText(d, v), { verse: ref });
+        if (id) ids.push(id);
+        refs.push(ref);
+      }
+    }
+    if (!ids.length) return null;
+    const shared = sources.items.length;
+    const seen = /* @__PURE__ */ new Set();
+    for (const r of refs)
+      for (const e of this.plugin.noteIndex ? this.plugin.noteIndex.lookup(r.book, r.chapter, r.verse) : []) {
+        const key = `${e.path}:${e.line}`;
+        if (seen.has(key) || seen.size >= 30) continue;
+        seen.add(key);
+        sources.add(t("Mia nota \xAB{nome}\xBB (cita {ref})", { nome: e.path.split("/").pop().replace(/\.md$/, ""), ref: bible.refLabel(r) }), e.snippet, { note: e.path, line: e.line });
+      }
+    await addScriptureSources(this.plugin, refs, sources, "", { maxVerses: Infinity, citesFirst: true });
+    return {
+      title: t("Lettura biblica della settimana: {ref}", { ref: `${bible.refLabel({ book: a.book, chapter: a.chapter })}${b.chapter !== a.chapter ? `-${b.chapter}` : ""}` }),
+      question: `${q2} ${t("(Ogni commento parte da un versetto preciso della lettura, che va nominato all'inizio, e aggiunge un dettaglio che lo rende prezioso: una nota di studio, un riferimento a margine o una pubblicazione che lo cita. Tre versetti diversi.)")}`,
+      paragraphIds: ids,
+      sources,
+      shared,
+      notes: []
+    };
+  }
+  runAi(preset, getCtx, { btn, ta, qpid, place }) {
+    return showAiSuggestions(this.plugin, preset, getCtx, {
+      btn,
+      ta,
+      place,
+      onSource: (t2, ctx) => this.openCommentSource(t2, qpid ?? ctx.qpid),
+      onClose: (box) => {
+        if (this.paneAi && this.paneAi.box === box) this.paneAi = null;
+      }
+    });
+  }
+  /** Fonte di uno spunto: paragrafo dell'articolo, versetto (nel pannello "approfondisci") o pubblicazione citata. */
+  openCommentSource(t2, qpid) {
+    if (!t2) return;
+    if (t2.note) return this.app.workspace.openLinkText(t2.note, "", true);
+    if (t2.verse && this.state.mode !== "doc") return this.plugin.openReader(t2.verse);
+    if (t2.par != null && !t2.cite) return this.openParPane(t2.par);
+    if (t2.verse) {
+      if (qpid != null) this.openParPane(qpid);
+      return this.goDeep(t2.verse, true);
+    }
+    const doc = t2.cite && this.plugin.library.byFile && this.plugin.library.byFile.get(t2.cite);
+    if (doc) this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id, par: t2.par || void 0 });
+  }
+  applyDocMarks() {
+    const root = this.docBody;
+    if (!root || this.state.mode !== "doc") return;
+    root.querySelectorAll(".lmp-w[data-hl], .lmp-sp[data-hl]").forEach((e) => {
+      delete e.dataset.hl;
+      delete e.dataset.mid;
+    });
+    const marks = this.plugin.marksForDoc(this.state.doc);
+    if (!marks.length) return;
+    const blocks = /* @__PURE__ */ new Map();
+    root.querySelectorAll("[data-pid]").forEach((b) => blocks.set(+b.dataset.pid, b));
+    for (const m of marks) {
+      for (const r of m.ranges) {
+        const b = blocks.get(r.v);
+        if (!b) continue;
+        const end = r.e < 0 ? Infinity : r.e;
+        b.querySelectorAll(".lmp-w, .lmp-sp").forEach((e) => {
+          const w = e.hasClass("lmp-w");
+          const t2 = w ? +e.dataset.t : +e.dataset.a;
+          if (t2 >= r.s && (w ? t2 <= end : t2 < end)) {
+            e.dataset.hl = m.color;
+            e.dataset.mid = m.id;
+          }
+        });
+      }
+    }
+  }
+  /**
+   * Note di JW Library sul documento, come nell'app: un quadratino nel margine sulla riga dove inizia
+   * l'evidenziazione collegata (del suo colore), o all'inizio del paragrafo. Toccandolo si apre il
+   * pannello del paragrafo con la nota. A destra, un segno sui paragrafi usati come fonte da schede SCRABB.
+   */
+  async renderDocNotes() {
+    const wrap = this.docWrap;
+    if (!wrap || !wrap.isConnected || this.state.mode !== "doc") return;
+    const doc = this.state.doc;
+    const notes = await this.plugin.pubNotesFor(doc);
+    if (this.state.doc !== doc || !wrap.isConnected) return;
+    wrap.querySelectorAll(".lmp-doc-notes-btn").forEach((e) => e.remove());
+    this.docNotes = [];
+    const marks = new Map(this.plugin.marksForDoc(doc).map((m) => [m.id, m]));
+    for (const n of notes) {
+      const mark = n.mark ? marks.get(n.mark) : null;
+      const par = n.par || mark && mark.ranges[0] && mark.ranges[0].v || null;
+      const block = this.docBlock(par);
+      const anchor = mark && wrap.querySelector(`.lmp-w[data-mid="${mark.id}"]`) || block && block.querySelector(".lmp-w") || block;
+      this.docNotes.push({ n, mark, block, anchor, pid: block ? +block.dataset.pid : null });
+    }
+    if (notes.length) {
+      const crumbs = wrap.querySelector(".lmp-lib-crumbs");
+      if (crumbs) {
+        const btn = crumbs.createSpan({ cls: "lmp-doc-notes-btn", attr: { "aria-label": t("Tutte le note del documento") } });
+        (0, import_obsidian12.setIcon)(btn.createSpan(), "sticky-note");
+        btn.createSpan({ text: notes.length === 1 ? t("1 nota") : t("{n} note", { n: notes.length }) });
+        btn.addEventListener("click", () => this.openNotesPane());
+      }
+    }
+    this.layoutDocNoteSquares();
+    if (this.paneMode) this.renderLibPane();
+  }
+  /** Blocco del paragrafo; se manca nel file esportato, il più vicino prima di lui. */
+  docBlock(par) {
+    const wrap = this.docWrap;
+    if (!wrap || par == null) return null;
+    let block = wrap.querySelector(`[data-pid="${par}"]`);
+    if (!block) {
+      wrap.querySelectorAll("[data-pid]").forEach((b) => {
+        const p = +b.dataset.pid;
+        if (p < par && (!block || p > +block.dataset.pid)) block = b;
+      });
+    }
+    return block;
+  }
+  currentDoc() {
+    return this.state.mode === "doc" ? this.lib.byDocId.get(this.state.doc) : null;
+  }
+  /**
+   * Nome del paragrafo come lo si legge nella pagina: "par. 3", "domanda 4", il titolo per i titoletti.
+   * (Il numero interno di JW Library, ^p11, non coincide con quello stampato.)
+   */
+  parLabel(pid) {
+    const b = this.docWrap && this.docWrap.querySelector(`[data-pid="${pid}"]`);
+    if (!b) return t("Paragrafo");
+    const sup = b.querySelector("sup");
+    if (sup && /^\d+$/.test(sup.textContent.trim())) return t("par. {n}", { n: sup.textContent.trim() });
+    const txt = ownBlock(b).textContent.replace(/\s+/g, " ").trim();
+    const q2 = /^(\d+(?:[-–]\d+)?)\.\s/.exec(txt);
+    if (q2) return t("domanda {n}", { n: q2[1] });
+    if (/^H[1-6]$/.test(b.tagName)) return txt.length > 40 ? `${txt.slice(0, 40)}\u2026` : txt;
+    return t("Paragrafo");
+  }
+  /** Schede SCRABB che usano un paragrafo di questo documento come fonte. */
+  docFonti(par) {
+    const d = this.currentDoc();
+    const sc = this.plugin.scrabb;
+    if (!d || !d.file || !sc || !sc.ready) return [];
+    return sc.fontiOf(d.file, par);
+  }
+  /** Quadratini delle note (a sinistra) e segni delle schede SCRABB (a destra), riga per riga. */
+  layoutDocNoteSquares() {
+    const wrap = this.docWrap;
+    if (!wrap || !wrap.isConnected) return;
+    wrap.querySelectorAll(".lmp-doc-note-margin, .lmp-doc-scrabb-margin").forEach((e) => e.remove());
+    const base = wrap.getBoundingClientRect().top;
+    const list = (this.docNotes || []).filter((x) => x.anchor && x.anchor.isConnected);
+    if (list.length) {
+      const margin = wrap.createDiv("lmp-doc-note-margin");
+      const rows = /* @__PURE__ */ new Map();
+      for (const x of list) {
+        const r = x.anchor.getClientRects()[0] || x.anchor.getBoundingClientRect();
+        const key = Math.round((r.top - base) / 12);
+        if (!rows.has(key)) rows.set(key, { top: r.top - base, h: r.height, items: [] });
+        rows.get(key).items.push(x);
+      }
+      for (const row of rows.values()) {
+        const many = row.items.length > 1;
+        const size = many ? 15 : 12;
+        const sq = margin.createDiv({ cls: `lmp-margin-square${many ? " is-many" : ""}`, attr: { "aria-label": row.items.map((x) => x.n.title).join(" \xB7 ") } });
+        const colored = row.items.find((x) => x.mark);
+        if (colored) sq.dataset.hl = colored.mark.color;
+        if (many) sq.setText(String(row.items.length));
+        if (this.paneMode === "par" && row.items.some((x) => x.pid === this.panePar)) sq.addClass("is-open");
+        sq.style.top = `${row.top + (row.h - size) / 2}px`;
+        sq.addEventListener("click", () => row.items[0].pid != null && this.openParPane(row.items[0].pid));
+      }
+    }
+    const byPar = /* @__PURE__ */ new Map();
+    for (const f of this.docFonti()) {
+      if (f.par == null) continue;
+      if (!byPar.has(f.par)) byPar.set(f.par, []);
+      byPar.get(f.par).push(f.e);
+    }
+    if (byPar.size) {
+      const margin = wrap.createDiv("lmp-doc-scrabb-margin");
+      for (const [par, ents] of byPar) {
+        const block = wrap.querySelector(`[data-pid="${par}"]`);
+        const first = block && (block.querySelector(".lmp-w") || block);
+        if (!first) continue;
+        const r = first.getClientRects()[0] || first.getBoundingClientRect();
+        const ic = margin.createDiv({ cls: `lmp-doc-scrabb-mark scrabb-t-${ents[0].tipo}`, attr: { "aria-label": ents.map((e) => e.name).join(" \xB7 ") } });
+        (0, import_obsidian12.setIcon)(ic, SCRABB_TYPES[ents[0].tipo].icon);
+        if (ents.length > 1) ic.createSpan({ cls: "lmp-doc-scrabb-n", text: String(ents.length) });
+        ic.style.top = `${r.top - base + (r.height - 16) / 2}px`;
+        ic.addEventListener("click", () => this.openParPane(par));
+      }
+    }
+  }
+  /** Tocco su parole evidenziate che hanno una nota: si apre il pannello di quel paragrafo. */
+  toggleDocNoteForMark(mid) {
+    const x = (this.docNotes || []).find((y) => y.mark && y.mark.id === mid);
+    if (!x || x.pid == null) return false;
+    this.openParPane(x.pid);
+    return true;
+  }
+  /* ---------- pannello laterale della biblioteca ---------- */
+  openParPane(pid) {
+    this.paneMode = "par";
+    this.panePar = pid;
+    this.paneDeep = [];
+    this.renderLibPane();
+  }
+  openNotesPane() {
+    this.paneMode = "notes";
+    this.panePar = null;
+    this.renderLibPane();
+  }
+  closeLibPane() {
+    this.paneMode = null;
+    this.panePar = null;
+    this.paneDeep = [];
+    this.renderLibPane();
+  }
+  libSection(parent, title, count) {
+    const det = parent.createEl("details", { cls: "lmp-section" });
+    det.open = true;
+    const sum = det.createEl("summary", { text: title });
+    if (count) sum.createSpan({ cls: "lmp-badge", text: String(count) });
+    return det.createDiv("lmp-section-body");
+  }
+  async renderLibPane() {
+    const pane = this.paneEl;
+    if (!pane) return;
+    const token = this.libPaneToken = (this.libPaneToken || 0) + 1;
+    const d = this.currentDoc();
+    const show = !!(d && this.paneMode);
+    this.bodyEl.toggleClass("has-pane", show);
+    if (!show) this.bodyEl.removeClass("pane-expanded");
+    if (this.docWrap) this.docWrap.querySelectorAll(".is-par-selected").forEach((b) => b.removeClass("is-par-selected"));
+    pane.empty();
+    if (!show) {
+      this.layoutDocNoteSquares();
+      return;
+    }
+    if (this.paneComp) this.removeChild(this.paneComp);
+    this.paneComp = this.addChild(new import_obsidian12.Component());
+    const handle = pane.createDiv({ cls: "lmp-pane-handle", attr: { "aria-label": t("Ingrandisci o riduci") } });
+    handle.createDiv("lmp-pane-handle-bar");
+    handle.addEventListener("click", () => this.bodyEl.toggleClass("pane-expanded", !this.bodyEl.hasClass("pane-expanded")));
+    const header = pane.createDiv("lmp-pane-header");
+    const iconBtn = (icon, label, fn) => {
+      const b = header.createEl("button", { cls: "clickable-icon lmp-pane-btn", attr: { "aria-label": label } });
+      (0, import_obsidian12.setIcon)(b, icon);
+      b.addEventListener("click", fn);
+      return b;
+    };
+    const content = createDiv("lmp-pane-content");
+    if (this.paneMode === "notes") {
+      header.createDiv({ cls: "lmp-pane-title", text: `${t("Note")} \xB7 ${d.title}` });
+      iconBtn("x", t("Chiudi"), () => this.closeLibPane());
+      pane.appendChild(content);
+      const notes2 = (this.docNotes || []).slice().sort((a, b) => (a.pid ?? 1e9) - (b.pid ?? 1e9));
+      if (!notes2.length) content.createDiv({ cls: "lmp-empty", text: t("Nessuna nota su questo documento.") });
+      let last = void 0;
+      let list = null;
+      for (const x of notes2) {
+        if (x.pid !== last) {
+          last = x.pid;
+          const pl2 = x.pid != null ? this.parLabel(x.pid) : t("Documento");
+          const h = content.createDiv({ cls: "lmp-cite-pub lmp-lib-pane-par", text: pl2.charAt(0).toUpperCase() + pl2.slice(1) });
+          if (x.pid != null) h.addEventListener("click", () => this.openParPane(x.pid));
+          list = content.createDiv("lmp-notes");
+        }
+        await this.renderDocNoteCard(list, x);
+        if (token !== this.libPaneToken) return;
+      }
+      this.layoutDocNoteSquares();
+      return;
+    }
+    if (this.paneDeep && this.paneDeep.length) return this.renderDeepVerse(pane, header, iconBtn, content, token);
+    const pid = this.panePar;
+    const block = this.docWrap && this.docWrap.querySelector(`[data-pid="${pid}"]`);
+    if (block) block.addClass("is-par-selected");
+    const pl = this.parLabel(pid);
+    header.createDiv({ cls: "lmp-pane-title", text: `${pl.charAt(0).toUpperCase()}${pl.slice(1)} \xB7 ${d.title}` });
+    const pids = this.docWrap ? [...this.docWrap.querySelectorAll("[data-pid]")].map((b) => +b.dataset.pid) : [];
+    const i = pids.indexOf(pid);
+    iconBtn("chevron-up", t("Paragrafo precedente"), () => i > 0 && this.openParPane(pids[i - 1]));
+    iconBtn("chevron-down", t("Paragrafo successivo"), () => i >= 0 && i < pids.length - 1 && this.openParPane(pids[i + 1]));
+    iconBtn("x", t("Chiudi"), () => this.closeLibPane());
+    const actions = pane.createDiv("lmp-actions");
+    const tools = actions.createDiv("lmp-tools");
+    const tool = (icon, label, fn) => {
+      const b = tools.createEl("button", { cls: "clickable-icon lmp-tool lmp-tool-labeled", attr: { "aria-label": label } });
+      (0, import_obsidian12.setIcon)(b.createSpan(), icon);
+      b.createSpan({ cls: "lmp-tool-text", text: label });
+      b.addEventListener("click", fn);
+    };
+    const parText = () => block ? blockText(block).replace(/^\d+\s+/, "") : "";
+    tool("waypoints", t("Collega a SCRABB"), () => this.linkToScrabb(pid, parText()));
+    tool("copy", t("Copia"), async () => {
+      await navigator.clipboard.writeText(parText());
+      new import_obsidian12.Notice(t("Paragrafo copiato"));
+    });
+    tool("smartphone", "JW Library", () => window.open(`jwlibrary:///finder?docid=${d.id}&par=${pid}`));
+    tool("lightbulb", t("Spunti"), (evt) => this.aiOnParagraph(evt, pid));
+    pane.appendChild(content);
+    if ((this.plugin.settings.openrouterKey || "").trim()) {
+      this.paneChats = this.paneChats || /* @__PURE__ */ new Map();
+      const key = `${this.state.doc}:${pid}`;
+      if (!this.paneChats.has(key)) this.paneChats.set(key, { turns: [] });
+      if (this.paneChats.size > 30) this.paneChats.delete(this.paneChats.keys().next().value);
+      const ask = renderAskBox(this.plugin, () => this.docAiCtx({ ...this.docAiFocus(pid) }), this.paneChats.get(key), (t2) => this.openCommentSource(t2, pid));
+      content.prepend(ask);
+    }
+    if (this.paneAi && this.paneAi.doc === this.state.doc && this.paneAi.pid === pid) content.prepend(this.paneAi.box);
+    const notes = (this.docNotes || []).filter((x) => x.pid === pid);
+    if (notes.length) {
+      const sec = this.libSection(content, paneLabel("Note"), notes.length);
+      const list = sec.createDiv("lmp-notes");
+      for (const x of notes) {
+        await this.renderDocNoteCard(list, x);
+        if (token !== this.libPaneToken) return;
+      }
+    }
+    const fonti = this.docFonti(pid);
+    if (fonti.length) {
+      const sec = this.libSection(content, t("SCRABB"), fonti.length);
+      const chips = sec.createDiv("scrabb-chips");
+      for (const { e } of fonti) {
+        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { "aria-label": t(SCRABB_TYPES[e.tipo].label) } });
+        chip.createSpan("scrabb-dot");
+        chip.createSpan({ text: e.name });
+        chip.addEventListener("click", () => this.plugin.showInScrabb(e.path));
+      }
+    }
+    const refs = [];
+    if (block) {
+      for (const a of block.querySelectorAll("a")) {
+        const href = a.getAttribute("href") || "";
+        const codes = /bible=/.test(href) ? codesFromJwUrl(href) : null;
+        let ref = codes ? refFromCodes(codes[0], codes[1]) : null;
+        if (!ref && a.hasClass("internal-link")) ref = this.plugin.bible.refFromLinkpath((a.dataset.href || href).split("#")[0]);
+        if (!ref || !ref.chapter) continue;
+        const label = this.plugin.bible.refLabel(ref);
+        if (!refs.some((r) => r.label === label)) refs.push({ ref, label });
+      }
+    }
+    if (refs.length) {
+      const sec = this.libSection(content, t("Scritture"), refs.length);
+      for (const r of refs) {
+        const item = sec.createDiv("lmp-ref");
+        item.createDiv({ cls: "lmp-ref-label", text: r.label });
+        const txt = item.createDiv({ cls: "lmp-ref-text", text: "\u2026" });
+        this.plugin.bible.previewRef(r.ref, r.label).then((x) => txt.setText(x ? x.text : "")).catch(() => txt.setText(""));
+        item.addEventListener("click", () => this.goDeep(r.ref));
+      }
+    }
+    if (!notes.length && !fonti.length && !refs.length)
+      content.createDiv({ cls: "lmp-empty", text: t("Nessuna nota, scheda o scrittura su questo paragrafo. Seleziona del testo per evidenziarlo o collegarlo a una scheda SCRABB.") });
+    this.layoutDocNoteSquares();
+  }
+  /* ---------- approfondire un versetto senza lasciare la pubblicazione ---------- */
+  goDeep(ref, reset) {
+    if (reset) this.paneDeep = [];
+    this.paneDeep = [...this.paneDeep || [], ref];
+    this.renderLibPane();
+  }
+  /**
+   * Un versetto citato nel paragrafo: testo, approfondimenti, note in calce e riferimenti.
+   * Ogni riferimento (o versetto citato negli approfondimenti) porta un livello più in giù; ← risale.
+   */
+  async renderDeepVerse(pane, header, iconBtn, content, token) {
+    const bible = this.plugin.bible;
+    const stack = this.paneDeep;
+    const ref = stack[stack.length - 1];
+    const up = () => {
+      stack.pop();
+      this.renderLibPane();
+    };
+    iconBtn("arrow-left", stack.length > 1 ? t("Torna a {ref}", { ref: bible.refLabel(stack[stack.length - 2]) }) : t("Torna al paragrafo"), up);
+    header.createDiv({ cls: "lmp-pane-title", text: bible.refLabel(ref) });
+    iconBtn("book-open", t("Apri nella Bibbia"), () => this.plugin.openReader(ref));
+    iconBtn("external-link", t("Apri in una nuova scheda"), () => this.plugin.openReaderInNewTab(ref));
+    iconBtn("x", t("Chiudi"), () => this.closeLibPane());
+    pane.appendChild(content);
+    content.addClass("lmp-deep");
+    const crumbs = content.createDiv("lmp-deep-crumbs");
+    const pl = this.parLabel(this.panePar);
+    const steps = [pl.charAt(0).toUpperCase() + pl.slice(1), ...stack.map((r) => bible.refLabel(r))];
+    steps.forEach((label2, i) => {
+      if (i) crumbs.createSpan({ cls: "lmp-deep-sep", text: "\u203A" });
+      const last2 = i === steps.length - 1;
+      const b = crumbs.createEl(last2 ? "span" : "a", { cls: "lmp-deep-step", text: label2, attr: last2 ? {} : { href: "#" } });
+      if (!last2)
+        b.addEventListener("click", (evt) => {
+          evt.preventDefault();
+          stack.length = i;
+          this.renderLibPane();
+        });
+    });
+    const data = await bible.getChapter(ref.book, ref.chapter).catch(() => null);
+    if (token !== this.libPaneToken) return;
+    const first = ref.verse || 1;
+    const last = Math.max(first, ref.verseEnd || first);
+    const parts = [];
+    for (let v = first; data && v <= last; v++) {
+      const t2 = bible.verseText(data, v);
+      if (t2) parts.push(last > first ? `${v} ${t2}` : t2);
+    }
+    content.createDiv({ cls: "lmp-deep-text", text: parts.join(" ") || t("Testo non trovato.") });
+    const book = bible.byNum.get(ref.book);
+    const label = bible.refLabel(ref);
+    const sc = this.plugin.scrabb;
+    const hasAi = !!(this.plugin.settings.openrouterKey || "").trim() && !!data;
+    const acts = content.createDiv("lmp-deep-actions");
+    const act = (text, fn) => acts.createEl("button", { cls: "lmp-small-btn", text }).addEventListener("click", fn);
+    act(t("Apri nella Bibbia"), () => this.plugin.openReader(ref));
+    if (sc && sc.ready) act(t("Collega a SCRABB"), () => linkVerseToScrabb(this.plugin, label, () => this.renderLibPane()));
+    const verses = [];
+    for (let v = first; data && v <= last; v++) verses.push(v);
+    const getCtx = () => verseAiCtx(this.plugin, data, ref.verse ? verses : null, label);
+    const onSource = (t2) => t2 && t2.verse ? this.goDeep(t2.verse) : this.openCommentSource(t2, this.panePar);
+    let aiAnchor = acts;
+    if (hasAi) {
+      act(
+        t("Spunti"),
+        (evt) => aiMenu(
+          this.plugin,
+          evt,
+          (preset) => showAiSuggestions(this.plugin, preset, getCtx, {
+            place: (box) => {
+              if (this.paneAi && this.paneAi.box !== box) this.paneAi.box.remove();
+              this.paneAi = { doc: this.state.doc, pid: null, deep: label, box };
+              aiAnchor.after(box);
+            },
+            onSource,
+            onClose: (box) => {
+              if (this.paneAi && this.paneAi.box === box) this.paneAi = null;
+            }
+          })
+        )
+      );
+      this.paneChats = this.paneChats || /* @__PURE__ */ new Map();
+      const key = `${this.state.doc}:${label}`;
+      if (!this.paneChats.has(key)) this.paneChats.set(key, { turns: [] });
+      if (this.paneChats.size > 30) this.paneChats.delete(this.paneChats.keys().next().value);
+      aiAnchor = renderAskBox(this.plugin, getCtx, this.paneChats.get(key), onSource, t("Chiedi qualcosa su questo versetto\u2026"));
+      acts.after(aiAnchor);
+      if (this.paneAi && this.paneAi.doc === this.state.doc && this.paneAi.deep === label) aiAnchor.after(this.paneAi.box);
+    }
+    let shown = 0;
+    const noteFile = book && ref.verse ? this.plugin.verseNoteFile(book, ref.chapter, ref.verse) : null;
+    const parsed = noteFile ? parseNoteFile(await this.app.vault.cachedRead(noteFile)) : null;
+    if (token !== this.libPaneToken) return;
+    if (parsed && (parsed.blocks.length || noteFreeText(parsed.rest))) {
+      shown++;
+      const sec = this.libSection(content, paneLabel("Note"), parsed.blocks.length || 1);
+      const list = sec.createDiv("lmp-notes");
+      const card = (title, md, line) => {
+        const c = list.createDiv("lmp-note-card lmp-doc-note-card");
+        const head = c.createDiv("lmp-note-card-head");
+        head.createDiv({ cls: "lmp-note-card-title", text: title });
+        const edit = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": t("Apri nel file delle note") } });
+        (0, import_obsidian12.setIcon)(edit, "pencil");
+        edit.addEventListener("click", () => this.plugin.openNoteAt(noteFile, line));
+        if (md) renderMd(this.app, md, c.createDiv("lmp-md lmp-note-card-body"), noteFile.path, this.paneComp);
+      };
+      for (const b of parsed.blocks) card(b.title && b.title !== "Nota" ? b.title : t("Nota"), b.content, b.start);
+      const free = noteFreeText(parsed.rest);
+      if (free) card(t("Appunti"), free, 0);
+    }
+    const details = ref.verse && book ? await bible.getVerseDetails(book, ref.chapter, ref.verse).catch(() => null) : null;
+    if (token !== this.libPaneToken) return;
+    const src = details && details.file ? details.file.path : "";
+    for (const title of ["Approfondimenti", "Note in calce", "Riferimenti"]) {
+      const s = details && details.sections.find((x) => x.title === title);
+      if (!s) continue;
+      shown++;
+      const sec = this.libSection(content, paneLabel(title));
+      if (title !== "Riferimenti") {
+        await this.renderStudyMd(sec, s.body, src);
+        if (token !== this.libPaneToken) return;
+        continue;
+      }
+      for (const l of parseRefLinks(s.body)) {
+        const item = sec.createDiv("lmp-ref lmp-deep-ref");
+        item.createDiv({ cls: "lmp-ref-label", text: l.label });
+        const txt = item.createDiv({ cls: "lmp-ref-text", text: "\u2026" });
+        let target = l.ref || null;
+        (l.ref ? bible.previewRef(l.ref, l.label) : bible.refPreview(l.link, l.label, src)).then((r) => {
+          if (r) target = r.ref;
+          txt.setText(r ? r.text : "");
+        }).catch(() => txt.setText(""));
+        item.addEventListener("click", () => target && this.goDeep(target));
+      }
+    }
+    if (book && ref.verse) {
+      shown++;
+      const sec = this.libSection(content, paneLabel("Bibbia con riferimenti"));
+      renderRbi8Verse(this.plugin, sec, ref, {
+        alive: () => token === this.libPaneToken && sec.isConnected,
+        onRef: (link, to) => this.goDeep(to),
+        refresh: () => this.renderLibPane()
+      }).catch((e) => console.warn("[lampada] Bibbia con riferimenti", e));
+    }
+    if (book && ref.verse) {
+      const cites = this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse).filter((e) => !noteFile || e.path !== noteFile.path);
+      if (cites.length) {
+        shown++;
+        const sec = this.libSection(content, t("Nelle mie note"), new Set(cites.map((e) => e.path)).size);
+        renderNoteCites(this.plugin, sec, cites, (file, line, evt) => this.plugin.openNoteAt(file, line, evt));
+      }
+    }
+    const cited = details && details.sections.find((x) => x.title === "Citato in");
+    if (cited) {
+      shown++;
+      const sec = this.libSection(content, t("Citato in"));
+      await renderCitedIn(this.plugin, sec, cited.body, src, this.paneComp);
+      if (token !== this.libPaneToken) return;
+    }
+    const ents = sc && sc.ready && book && ref.verse ? sc.lookup(book.num, ref.chapter, ref.verse) : [];
+    if (ents.length) {
+      shown++;
+      const sec = this.libSection(content, t("SCRABB"), ents.length);
+      const chips = sec.createDiv("scrabb-chips");
+      for (const e of ents) {
+        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { "aria-label": t(SCRABB_TYPES[e.tipo].label) } });
+        chip.createSpan("scrabb-dot");
+        chip.createSpan({ text: e.name });
+        chip.addEventListener("click", () => this.plugin.showInScrabb(e.path));
+      }
+    }
+    if (!shown) content.createDiv({ cls: "lmp-empty", text: t("Nessun approfondimento per questo versetto.") });
+    content.addEventListener("click", (evt) => {
+      const a = evt.target instanceof HTMLElement && evt.target.closest("a");
+      if (!a || a.hasClass("lmp-deep-step")) return;
+      const href = a.dataset.href || a.getAttribute("href") || "";
+      let r = null;
+      const codes = /^jwlibrary:/.test(href) && /bible=/.test(href) ? codesFromJwUrl(href) : null;
+      if (codes) r = refFromCodes(codes[0], codes[1]);
+      else if (a.hasClass("internal-link")) {
+        const f = bible.resolveLink(href, src);
+        r = f && bible.refFromFile(f) || bible.refFromLinkpath(href.split("#")[0]);
+        const doc = !r && f && this.lib.byFile && this.lib.byFile.get(f.basename);
+        if (doc) {
+          evt.preventDefault();
+          evt.stopPropagation();
+          const go = (par) => this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id, par: par || void 0 });
+          const pars = citedPars(a, href);
+          if (pars.length && !(evt.metaKey || evt.ctrlKey)) new CitePreviewModal(this.plugin, doc, pars, go).open();
+          else go(pars[0]);
+          return;
+        }
+      }
+      if (!r || !r.chapter) return;
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.goDeep(r);
+    }, true);
+  }
+  /** Approfondimenti: i blocchi incorporati (![[file#^id]]) si mostrano con il loro testo. */
+  async renderStudyMd(el, md, src) {
+    const bible = this.plugin.bible;
+    const re = /!\[\[([^\]#|]+)#\^([^\]|]+)(?:\|[^\]]*)?\]\]/g;
+    const embeds = [...md.matchAll(re)];
+    if (!embeds.length) return renderMd(this.app, md, el.createDiv("lmp-md"), src, this.paneComp);
+    for (const m of embeds) {
+      const r = await bible.getBlock(m[1], m[2], src).catch(() => null);
+      if (r) await renderMd(this.app, r.md, el.createDiv("lmp-study-card"), r.file.path, this.paneComp);
+    }
+  }
+  async renderDocNoteCard(list, x) {
+    const { n, mark } = x;
+    const card = list.createDiv("lmp-note-card lmp-doc-note-card");
+    if (mark) {
+      card.dataset.hl = mark.color;
+      const quote = [...this.docWrap ? this.docWrap.querySelectorAll(`.lmp-w[data-mid="${mark.id}"], .lmp-sp[data-mid="${mark.id}"]`) : []].map((e) => e.textContent).join("").trim();
+      if (quote && quote !== n.title) card.createDiv({ cls: "lmp-note-quote", text: `\xAB${quote.length > 140 ? `${quote.slice(0, 140)}\u2026` : quote}\xBB` });
+    }
+    const head = card.createDiv("lmp-note-card-head");
+    head.createDiv({ cls: "lmp-note-card-title", text: n.title && n.title !== "Nota" ? n.title : t("Nota") });
+    const open = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": t("Apri nel file delle note") } });
+    (0, import_obsidian12.setIcon)(open, "pencil");
+    open.addEventListener("click", () => this.plugin.openNoteAt(n.file, n.line));
+    if (n.content) await renderMd(this.app, n.content.replace(/([^\n])\n(?!\n)/g, "$1  \n"), card.createDiv("lmp-md lmp-note-card-body"), n.file.path, this.paneComp || this.comp);
+    const meta = [n.tags.length ? n.tags.map((t2) => this.plugin.tagLabel(t2)).join(" \xB7 ") : "", n.date.replace(/\*/g, "")].filter(Boolean).join(" \xB7 ");
+    if (meta) card.createDiv({ cls: "lmp-note-card-meta", text: meta });
+  }
+  /** Collega un paragrafo (o il testo selezionato) a una scheda SCRABB esistente o nuova. */
+  async linkToScrabb(pid, quote) {
+    const d = this.currentDoc();
+    const sc = this.plugin.scrabb;
+    if (!d || !d.file || !sc) return;
+    await sc.ensure();
+    const pl = this.parLabel(pid);
+    const link = `[[${d.file}#^p${pid}|${d.title.replace(/[\[\]|]/g, "")}, ${pl}]]`;
+    const text = (quote || "").replace(/\s+/g, " ").trim().slice(0, 600);
+    const refresh = () => window.setTimeout(() => {
+      this.layoutDocNoteSquares();
+      if (this.paneMode) this.renderLibPane();
+    }, 1500);
+    new ScrabbPickModal(this.plugin, { placeholder: t("Collega {par} a una scheda (illustrazione, principio, persona\u2026)", { par: pl }), allowCreate: true }, async (e) => {
+      if (e.create) {
+        new ScrabbNewModal(this.plugin, { name: e.name, tipo: "illustrazione", fonti: [link], body: text ? `> ${text}
+> \u2014 ${link}` : "" }, refresh).open();
+        return;
+      }
+      await sc.addFonte(e, link, text);
+      new import_obsidian12.Notice(t("{par} collegato a {nome}", { par: `${pl.charAt(0).toUpperCase()}${pl.slice(1)}`, nome: e.name }));
+      refresh();
+    }).open();
+  }
+  /** Parole selezionate in un documento, raggruppate per paragrafo. */
+  docSelectionWords() {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount || !this.docBody || this.state.mode !== "doc") return null;
+    const range = sel.getRangeAt(0);
+    if (!this.docBody.contains(range.commonAncestorContainer)) return null;
+    const byP = /* @__PURE__ */ new Map();
+    this.docBody.querySelectorAll("[data-pid] .lmp-w").forEach((el) => {
+      if (!range.intersectsNode(el)) return;
+      const v = +el.closest("[data-pid]").dataset.pid;
+      const t2 = +el.dataset.t;
+      const r = byP.get(v);
+      if (!r) byP.set(v, { v, s: t2, e: t2 });
+      else {
+        r.s = Math.min(r.s, t2);
+        r.e = Math.max(r.e, t2);
+      }
+    });
+    if (!byP.size) return null;
+    return { ranges: [...byP.values()].sort((a, b) => a.v - b.v), rect: range.getBoundingClientRect(), text: sel.toString() };
+  }
+  buildSelectionBar() {
+    const bar = this.selBar = this.contentEl.createDiv("lmp-selbar");
+    bar.hide();
+    bar.addEventListener("mousedown", (e) => e.preventDefault());
+    for (const h of HIGHLIGHTS) {
+      const dot = bar.createEl("button", { cls: `lmp-color-dot hl-${h.id}`, attr: { "aria-label": t("Evidenzia: {colore}", { colore: t(h.label) }) } });
+      dot.addEventListener("click", () => this.applySelection(h.id));
+    }
+    const erase = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Rimuovi evidenziazione") } });
+    (0, import_obsidian12.setIcon)(erase, "eraser");
+    erase.addEventListener("click", () => this.applySelection(null));
+    const scr = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Collega a una scheda SCRABB") } });
+    (0, import_obsidian12.setIcon)(scr, "waypoints");
+    scr.addEventListener("click", () => {
+      const info = this.selInfo;
+      if (!info) return;
+      window.getSelection().removeAllRanges();
+      this.hideSelectionBar();
+      this.linkToScrabb(info.ranges[0].v, info.text);
+    });
+    const copy = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Copia") } });
+    (0, import_obsidian12.setIcon)(copy, "copy");
+    copy.addEventListener("click", async () => {
+      if (!this.selInfo) return;
+      await navigator.clipboard.writeText(this.selInfo.text);
+      new import_obsidian12.Notice(t("Testo copiato"));
+      this.hideSelectionBar();
+    });
+    const ai = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Spunti sul testo selezionato") } });
+    (0, import_obsidian12.setIcon)(ai, "lightbulb");
+    ai.addEventListener("click", (evt) => {
+      const info = this.selInfo;
+      if (!info) return;
+      window.getSelection().removeAllRanges();
+      this.hideSelectionBar();
+      this.aiOnParagraph(evt, info.ranges[0].v, info.text);
+    });
+    this.selDef = bar.createDiv("lmp-selbar-def");
+    this.selDef.hide();
+  }
+  onSelectionChange() {
+    const info = this.docSelectionWords();
+    if (!info) return this.hideSelectionBar();
+    const same = this.selInfo && this.selInfo.text === info.text;
+    this.selInfo = info;
+    this.selBar.show();
+    if (!same) {
+      showDefinition(this, this.selDef, info.text, (def) => {
+        window.getSelection().removeAllRanges();
+        this.hideSelectionBar();
+        this.plugin.openPerspicacia({ perspicacia: def.file.basename, path: def.file.path });
+      }, () => placeSelBar(this));
+    }
+    placeSelBar(this);
+  }
+  hideSelectionBar() {
+    if (this.selBar) this.selBar.hide();
+    this.selInfo = null;
+  }
+  applySelection(color) {
+    const info = this.selInfo;
+    if (!info || this.state.mode !== "doc") return;
+    this.plugin.cutDocMarks(this.state.doc, info.ranges);
+    if (color) {
+      this.plugin.addDocMark(this.state.doc, color, info.ranges);
+      this.plugin.ui.lastColor = color;
+    }
+    window.getSelection().removeAllRanges();
+    this.hideSelectionBar();
+    this.applyDocMarks();
+  }
+  /** Link nei documenti: altri documenti si aprono qui, i versetti nel lettore della Bibbia. */
+  onLinkClick(evt) {
+    const target = evt.target;
+    if (!(target instanceof HTMLElement)) return;
+    const a = target.closest("a");
+    if (!a) {
+      const sel = window.getSelection();
+      if (this.state.mode !== "doc" || sel && !sel.isCollapsed) return;
+      const w = target.closest(".lmp-w[data-mid], .lmp-sp[data-mid]");
+      if (w && this.toggleDocNoteForMark(w.dataset.mid)) return;
+      const block2 = target.closest("[data-pid]");
+      if (!block2 || !this.docWrap || !this.docWrap.contains(block2)) return;
+      const pid = +block2.dataset.pid;
+      if (this.paneMode === "par" && this.panePar === pid) this.closeLibPane();
+      else this.openParPane(pid);
+      return;
+    }
+    const href = a.getAttribute("href") || "";
+    const block = this.state.mode === "doc" && !(evt.metaKey || evt.ctrlKey) && a.closest("[data-pid]");
+    if (block) {
+      const codes = /bible=/.test(href) ? codesFromJwUrl(href) : null;
+      const vref = codes ? refFromCodes(codes[0], codes[1]) : a.hasClass("internal-link") ? this.plugin.bible.refFromLinkpath((a.dataset.href || href).split("#")[0]) : null;
+      if (vref && vref.chapter) {
+        evt.preventDefault();
+        evt.stopPropagation();
+        this.paneMode = "par";
+        this.panePar = +block.dataset.pid;
+        this.goDeep(vref, true);
+        return;
+      }
+    }
+    const docid = /jwlibrary:\/\/\/finder\?[^)]*docid=(\d+)/.exec(href);
+    if (docid && this.lib.byDocId.has(docid[1])) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      const d2 = this.lib.byDocId.get(docid[1]);
+      this.navigate({ mode: "doc", sym: d2.pub.symbol, doc: d2.id });
+      return;
+    }
+    if (!a.hasClass("internal-link")) return;
+    const link = (a.dataset.href || href).split("#")[0];
+    const ref = this.plugin.bible.refFromLinkpath(link);
+    if (ref && ref.chapter) return;
+    const d = this.lib.byFile.get(link.split("/").pop().replace(/\.md$/, ""));
+    if (d) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id });
+    }
+  }
+};
+function renderWeekCard(plugin, parent, go) {
+  const k = mondayOf(/* @__PURE__ */ new Date());
+  const card = parent.createDiv("lmp-week-home");
+  const head = card.createEl("button", { cls: "lmp-week-entry" });
+  (0, import_obsidian12.setIcon)(head.createSpan("lmp-week-entry-icon"), "calendar-days");
+  const tx = head.createSpan();
+  tx.createDiv({ cls: "lmp-week-entry-title", text: t("Adunanze della settimana") });
+  tx.createDiv({ cls: "lmp-week-entry-sub", text: weekLabel(k) });
+  (0, import_obsidian12.setIcon)(head.createSpan("lmp-week-entry-go"), "chevron-right");
+  head.addEventListener("click", () => go({ mode: "week" }));
+  const rows = card.createDiv("lmp-week-rows");
+  const row = (icon, label, value, fn, done) => {
+    const r = rows.createEl("button", { cls: `lmp-week-row${done ? " is-done" : ""}` });
+    (0, import_obsidian12.setIcon)(r.createSpan("lmp-week-row-icon"), done ? "check-circle-2" : icon);
+    r.createSpan({ cls: "lmp-week-row-label", text: label });
+    r.createSpan({ cls: "lmp-week-row-value", text: value });
+    r.addEventListener("click", fn);
+  };
+  const ownTags = (docId) => new Set(Object.values(plugin.answers).filter((a) => a.doc === String(docId) && (a.v || "").trim()).map((a) => a.tag));
+  Promise.all([plugin.meetingWeek(k, true).catch(() => null), plugin.library.studyArticles().catch(() => null)]).then(([mw, arts]) => {
+    if (!card.isConnected) return;
+    if (mw) {
+      const reading = mw.items.find((x) => x.k === "h2" && !x.s && x.x.some((s) => Array.isArray(s)));
+      const link = reading && reading.x.find((s) => Array.isArray(s));
+      if (link) {
+        const x = parseCode(link[1]);
+        const y = parseCode(link[2] || link[1]);
+        const lbl = plugin.bible.refLabel({ book: x.book, chapter: x.chapter });
+        row("book-open", t("Lettura biblica"), x.book === y.book && y.chapter > x.chapter ? `${lbl}-${y.chapter}` : lbl || link[0], () => plugin.openReader({ book: x.book, chapter: x.chapter }));
+      }
+      const tags = mw.items.filter((x) => x.k === "f").flatMap((x) => x.f);
+      const own = ownTags(mw.id);
+      const n = tags.filter((tag) => own.has(tag)).length;
+      row("users", t("Infrasettimanale"), tags.length ? t("{n}/{tot} risposte", { n, tot: tags.length }) : t("programma"), () => go({ mode: "week" }), tags.length > 0 && n === tags.length);
+    } else row("users", t("Infrasettimanale"), t("apri per scaricare il programma"), () => go({ mode: "week" }));
+    const wt = arts && arts.get(k);
+    if (wt) {
+      const n = ownTags(wt.id).size;
+      row("tower-control", t("Torre di Guardia"), `${wt.title}${n ? ` \xB7 ${t("{n} risposte", { n })}` : ""}`, () => go({ mode: "doc", sym: wt.pub.symbol, doc: wt.id }));
+    }
+  });
+}
+var RemovePubModal = class extends import_obsidian12.Modal {
+  constructor(app, name, run) {
+    super(app);
+    Object.assign(this, { name, run });
+  }
+  onOpen() {
+    this.titleEl.setText(t("Togliere dalla biblioteca?"));
+    const el = this.contentEl;
+    el.createEl("p", { text: t("\xAB{nome}\xBB: note e immagini vengono cancellate dal vault. Le tue note personali e le evidenziazioni restano. Potrai scaricarla di nuovo.", { nome: this.name }) });
+    const status = el.createDiv({ cls: "lmp-bible-dl-status", attr: { "aria-live": "polite" } });
+    const row = el.createDiv("modal-button-container");
+    row.createEl("button", { text: t("Annulla") }).addEventListener("click", () => this.close());
+    const ok = row.createEl("button", { cls: "mod-warning", text: t("Togli") });
+    ok.addEventListener("click", async () => {
+      ok.disabled = true;
+      status.setText(t("Cancello\u2026"));
+      try {
+        await this.run();
+        this.close();
+      } catch (e) {
+        ok.disabled = false;
+        status.setText(e.message || String(e));
+      }
+    });
+  }
+  onClose() {
+    this.contentEl.empty();
+  }
+};
+
 // src/bibbia-vista.js
-var BibleView = class _BibleView extends import_obsidian12.ItemView {
+var BibleView = class _BibleView extends import_obsidian13.ItemView {
   constructor(leaf, plugin) {
     super(leaf);
     this.plugin = plugin;
@@ -7014,9 +9772,9 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.popoverEl = root.createDiv("lmp-fn-popover");
     this.popoverEl.hide();
     this.buildSelectionBar();
-    this.registerDomEvent(document, "selectionchange", (0, import_obsidian12.debounce)(() => this.onSelectionChange(), 200, true));
+    this.registerDomEvent(document, "selectionchange", (0, import_obsidian13.debounce)(() => this.onSelectionChange(), 200, true));
     this.buildToolbar();
-    if (import_obsidian12.Platform.isPhone && this.addAction && !this.inShell) {
+    if (import_obsidian13.Platform.isPhone && this.addAction && !this.inShell) {
       this.addAction("chevron-right", t("Capitolo successivo"), () => this.stepChapter(1));
       this.addAction("chevron-left", t("Capitolo precedente"), () => this.stepChapter(-1));
       this.addAction("search", t("Cerca ovunque"), () => this.plugin.openSearch(this));
@@ -7064,7 +9822,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       ["ArrowDown", () => this.primary == null ? true : (this.stepVerse(1), false)],
       ["Escape", () => (this.clearSelection(), false)]
     ]);
-    const relayout = (0, import_obsidian12.debounce)(() => this.applyLayout(), 120, true);
+    const relayout = (0, import_obsidian13.debounce)(() => this.applyLayout(), 120, true);
     const ro = new ResizeObserver(() => relayout());
     ro.observe(this.bodyEl);
     this.register(() => ro.disconnect());
@@ -7090,7 +9848,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.contentEl.empty();
   }
   onVaultChange(file) {
-    const folder = (0, import_obsidian12.normalizePath)(this.plugin.settings.notesFolder || "");
+    const folder = (0, import_obsidian13.normalizePath)(this.plugin.settings.notesFolder || "");
     if (this.state.mode === "reader" && file && file.path.startsWith(folder)) {
       this.decorateVerses();
       this.renderPane();
@@ -7115,7 +9873,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     tb.empty();
     const btn = (icon, label, onClick, cls = "") => {
       const b = tb.createEl("button", { cls: `lmp-tb-btn clickable-icon ${cls}`, attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b, icon);
+      (0, import_obsidian13.setIcon)(b, icon);
       b.addEventListener("click", onClick);
       return b;
     };
@@ -7136,12 +9894,12 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.histBtn = btn("history", t("Aperti di recente"), () => new PlacesModal(this.plugin, null, "recent").open(), "lmp-desktop-only");
     btn("bookmark", t("Segnalibri"), () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open(), "lmp-desktop-only lmp-rail-keep");
     btn("type", t("Aspetto del testo"), () => new ReadingModal(this.plugin).open(), "lmp-desktop-only");
-    this.paneBtn = btn("panel-right", t("Mostra/nascondi pannello di studio"), () => this.togglePane(), `lmp-reader-only lmp-desktop-only${import_obsidian12.Platform.isPhone ? "" : " lmp-rail-keep"}`);
+    this.paneBtn = btn("panel-right", t("Mostra/nascondi pannello di studio"), () => this.togglePane(), `lmp-reader-only lmp-desktop-only${import_obsidian13.Platform.isPhone ? "" : " lmp-rail-keep"}`);
     btn("more-vertical", t("Altre opzioni"), (evt) => this.showMoreMenu(evt));
     this.updateToolbar();
   }
   isPhoneNavigator() {
-    return import_obsidian12.Platform.isPhone && this.leaf && this.plugin.leafLocation(this.leaf) !== "tab" && this.plugin.settings.readerLocation === "tab";
+    return import_obsidian13.Platform.isPhone && this.leaf && this.plugin.leafLocation(this.leaf) !== "tab" && this.plugin.settings.readerLocation === "tab";
   }
   openGoto() {
     new GotoModal(this.plugin, (ref) => this.navigate(ref)).open();
@@ -7152,21 +9910,107 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.renderPane();
     this.updateToolbar();
   }
+  /**
+   * Lingue affiancate (la stessa scelta della Biblioteca, plugin.ui.libPar2): sotto ogni versetto lo stesso versetto
+   * nella Bibbia dell'altra lingua. Fuori da .lmp-verse, così parole, evidenziazioni e note non cambiano.
+   */
+  par2Key() {
+    return `${this.plugin.ui.libPar2 || ""}|${this.plugin.ui.libPar2Mode || "cols"}`;
+  }
+  /** Nel guscio, tornando alla Bibbia: lingua o modo cambiati nella Biblioteca si vedono subito. */
+  onShown() {
+    if (this.state.mode === "reader" && this.par2Shown !== void 0 && this.par2Shown !== this.par2Key()) this.setOtherLang(this.plugin.ui.libPar2);
+  }
+  async renderOtherLang(wrap, book, chapter, token) {
+    this.par2Shown = this.par2Key();
+    const code = this.plugin.ui.libPar2;
+    if (!code || code === pubLang(this.plugin.settings)) return;
+    const other = await this.bible.chapterInLang(code, book.num, chapter).catch(() => null);
+    if (!other || token !== this.renderToken) return;
+    const mode = this.plugin.ui.libPar2Mode || "cols";
+    const last = /* @__PURE__ */ new Map();
+    for (const el of wrap.querySelectorAll(".lmp-verse[data-v]")) last.set(+el.dataset.v, el);
+    if (mode === "lines") {
+      for (const [v, el] of last) {
+        const text = this.bible.verseText(other, v);
+        if (!text) continue;
+        const pieces = wrap.querySelectorAll(`.lmp-verse[data-v="${v}"]`).length;
+        if (pieces > 1 || !interline(el, text)) el.after(createSpan({ cls: "lmp-par2-line lmp-par2-verse", text }));
+      }
+    } else {
+      const started = /* @__PURE__ */ new Set();
+      const groups = [];
+      for (const el of wrap.children) {
+        if (!el.matches("p.lmp-p")) {
+          if (!el.matches("p")) groups.push(null);
+          continue;
+        }
+        const vs = [...new Set([...el.querySelectorAll(".lmp-verse[data-v]")].map((x) => +x.dataset.v))].filter((v) => !started.has(v));
+        vs.forEach((v) => started.add(v));
+        const g = groups[groups.length - 1];
+        if (vs.length || !g) groups.push(vs.length ? { ps: [el], vs } : null);
+        else g.ps.push(el);
+      }
+      const boxes = /* @__PURE__ */ new Map();
+      for (const g of groups) {
+        if (!g) continue;
+        const box = createDiv("lmp-par2 lmp-par2-bible");
+        for (const v of g.vs) {
+          const text = this.bible.verseText(other, v);
+          if (!text) continue;
+          box.createSpan({ cls: "lmp-par2-vnum", text: String(v) });
+          box.appendText(`${text} `);
+        }
+        if (!box.childNodes.length) continue;
+        g.ps.forEach((p) => p.addClass("lmp-par2-src"));
+        g.ps[g.ps.length - 1].after(box);
+        boxes.set(g.ps[0], box);
+      }
+      let row = 0;
+      const from = /* @__PURE__ */ new Map();
+      for (const el of wrap.children) {
+        if (el.hasClass("lmp-par2")) {
+          el.style.gridRow = `${from.get(el) || row} / ${row + 1}`;
+          continue;
+        }
+        el.style.gridRow = String(++row);
+        if (boxes.has(el)) from.set(boxes.get(el), row);
+      }
+    }
+    wrap.addClass("lmp-par2-on");
+    wrap.addClass(`lmp-par2-${mode}`);
+    this.pager.refresh();
+    this.applyLayout();
+  }
+  /** Lingue con una Bibbia, oltre a quella in uso (per il menu ⋯): calcolate in anticipo, il menu non aspetta. */
+  async loadOtherLangs() {
+    const cur2 = pubLang(this.plugin.settings);
+    const others = BIBLE_LANGS.map(([c]) => c).filter((c) => c !== cur2);
+    const ok = await Promise.all(others.map((c) => hasBibleIn(this.plugin, c)));
+    this.otherLangs = others.filter((_, i) => ok[i]);
+  }
+  setOtherLang(code) {
+    this.plugin.ui.libPar2 = code;
+    this.plugin.requestSave();
+    if (this.state.mode !== "reader") return;
+    this.chapterData = null;
+    this.navigate({ ...this.state }, { push: false });
+  }
   showMoreMenu(evt) {
-    const menu = new import_obsidian12.Menu();
+    const menu = new import_obsidian13.Menu();
     this.fillMenu(menu);
     menu.showAtMouseEvent(evt);
   }
   /** Sul telefono le opzioni stanno nel menu ⋮ di Obsidian della scheda. */
   onPaneMenu(menu, source) {
     if (super.onPaneMenu) super.onPaneMenu(menu, source);
-    if (!import_obsidian12.Platform.isPhone) return;
+    if (!import_obsidian13.Platform.isPhone) return;
     menu.addSeparator();
     this.fillMenu(menu);
   }
   fillMenu(menu) {
     const s = this.plugin.settings;
-    if (import_obsidian12.Platform.isPhone || this.histBtn && !this.histBtn.offsetParent) {
+    if (import_obsidian13.Platform.isPhone || this.histBtn && !this.histBtn.offsetParent) {
       menu.addItem((i) => i.setTitle(t("Segnalibri")).setIcon("bookmark").onClick(() => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open()));
       menu.addItem((i) => i.setTitle(t("Aperti di recente")).setIcon("history").onClick(() => new PlacesModal(this.plugin, null, "recent").open()));
       menu.addSeparator();
@@ -7178,17 +10022,30 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       for (const b of this.bible.bibles) menu.addItem((i) => i.setTitle(b.title).setIcon("book").setChecked(b.symbol === this.bible.symbol).onClick(() => this.plugin.setBible(b.symbol)));
       menu.addSeparator();
     }
+    const langs = this.otherLangs || [];
+    if (langs.length) {
+      const par2 = this.plugin.ui.libPar2;
+      menu.addItem((i) => i.setTitle(t("Solo questa lingua")).setIcon("languages").setChecked(!langs.includes(par2)).onClick(() => this.setOtherLang(null)));
+      for (const code of langs) menu.addItem((i) => i.setTitle(t("Affianca: {lingua}", { lingua: langName(code) })).setIcon("languages").setChecked(code === par2).onClick(() => this.setOtherLang(code)));
+      const mode = this.plugin.ui.libPar2Mode || "cols";
+      for (const [k, label, icon] of [["cols", t("In colonne"), "columns-2"], ["below", t("Sotto ogni paragrafo"), "rows-2"], ["lines", t("Interlineare, frase per frase"), "list"]])
+        menu.addItem((i) => i.setTitle(label).setIcon(icon).setChecked(langs.includes(par2) && k === mode).onClick(() => {
+          this.plugin.ui.libPar2Mode = k;
+          this.setOtherLang(langs.includes(par2) ? par2 : langs[0]);
+        }));
+      menu.addSeparator();
+    }
     menu.addItem((i) => i.setTitle(t("Etichette")).setIcon("tags").onClick(() => this.navigate({ mode: "tags" })));
     menu.addSeparator();
     menu.addItem((i) => i.setTitle(t("Aspetto del testo\u2026")).setIcon("type").onClick(() => new ReadingModal(this.plugin).open()));
     menu.addSeparator();
     if (this.state.mode === "reader") {
-      if (import_obsidian12.Platform.isPhone || this.outlineBtn && !this.outlineBtn.offsetParent)
+      if (import_obsidian13.Platform.isPhone || this.outlineBtn && !this.outlineBtn.offsetParent)
         menu.addItem((i) => i.setTitle(t("Schema del capitolo")).setIcon("list-tree").onClick(() => this.openOutline()));
       menu.addItem(
         (i) => i.setTitle(this.paneVisible ? t("Nascondi pannello di studio") : t("Mostra pannello di studio")).setIcon("panel-right").onClick(() => this.togglePane())
       );
-      if (!import_obsidian12.Platform.isPhone)
+      if (!import_obsidian13.Platform.isPhone)
         menu.addItem(
           (i) => i.setTitle(t("Apri i riferimenti in un riquadro a parte")).setIcon("columns-2").setChecked(!!this.plugin.ui.splitRefs).onClick(() => {
             this.plugin.ui.splitRefs = !this.plugin.ui.splitRefs;
@@ -7312,7 +10169,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
   }
   /** Modalità "riquadro a parte" (non sul telefono, dove non si può dividere lo schermo). */
   wantSplit() {
-    return !!this.plugin.ui.splitRefs && !import_obsidian12.Platform.isPhone;
+    return !!this.plugin.ui.splitRefs && !import_obsidian13.Platform.isPhone;
   }
   /**
    * Apre un versetto, un documento della biblioteca o una nota in un riquadro accanto al lettore.
@@ -7508,7 +10365,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.plugin.readPositions().catch(() => ({})).then(({ bible }) => {
       const last = [this.plugin.last, bible].filter(Boolean).sort((a, b) => (b.t || 0) - (a.t || 0))[0];
       if (!last || !this.bible.byNum.get(last.book) || !card.isConnected) return;
-      (0, import_obsidian12.setIcon)(card.createDiv("lmp-continue-icon"), "book-open");
+      (0, import_obsidian13.setIcon)(card.createDiv("lmp-continue-icon"), "book-open");
       const txt = card.createDiv();
       txt.createDiv({ cls: "lmp-continue-label", text: t("Continua a leggere") });
       txt.createDiv({ cls: "lmp-continue-ref", text: this.bible.refLabel({ book: last.book, chapter: last.chapter, verse: last.verse }) });
@@ -7516,7 +10373,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       card.show();
     });
     const tagsCard = quick.createDiv("lmp-continue lmp-tags-card");
-    (0, import_obsidian12.setIcon)(tagsCard.createDiv("lmp-continue-icon"), "tags");
+    (0, import_obsidian13.setIcon)(tagsCard.createDiv("lmp-continue-icon"), "tags");
     const tagsTxt = tagsCard.createDiv();
     tagsTxt.createDiv({ cls: "lmp-continue-label", text: t("Note di JW Library") });
     tagsTxt.createDiv({ cls: "lmp-continue-ref", text: t("Etichette") });
@@ -7590,7 +10447,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
         const label = this.plugin.tagLabel(tag);
         if (q2 && !norm(label).includes(q2)) continue;
         const row = list.createDiv("lmp-tag-row");
-        (0, import_obsidian12.setIcon)(row.createSpan("lmp-tag-icon"), "tag");
+        (0, import_obsidian13.setIcon)(row.createSpan("lmp-tag-icon"), "tag");
         row.createSpan({ cls: "lmp-tag-name", text: label });
         row.createSpan({ cls: "lmp-badge", text: String(n) });
         row.addEventListener("click", () => this.navigate({ mode: "tag", tag }));
@@ -7605,7 +10462,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     main.scrollTop = 0;
     const wrap = main.createDiv("lmp-tags");
     const head = wrap.createDiv("lmp-tag-head");
-    (0, import_obsidian12.setIcon)(head.createSpan("lmp-tag-icon"), "tag");
+    (0, import_obsidian13.setIcon)(head.createSpan("lmp-tag-icon"), "tag");
     head.createEl("h2", { text: this.plugin.tagLabel(tag) });
     const notes = (await this.plugin.collectTaggedNotes()).filter((n) => n.tags.includes(tag));
     if (token !== this.renderToken) return;
@@ -7706,6 +10563,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     if (token === this.renderToken) this.chapterNotes = notes;
     if (token !== this.renderToken) return;
     this.chapterData = data;
+    this.loadOtherLangs();
     this.plugin.addRecent({ book: book.num, chapter });
     this.selected.clear();
     this.primary = null;
@@ -7769,7 +10627,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
         return;
       }
       const i = createSpan();
-      (0, import_obsidian12.setIcon)(i, icon);
+      (0, import_obsidian13.setIcon)(i, icon);
       if (!after) b.appendChild(i);
       b.createSpan({ text: label + " " + this.bible.refLabel(ref) });
       if (after) b.appendChild(i);
@@ -7781,6 +10639,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.decorateParallels();
     this.pager.refresh();
     this.applyTargetSelection(target);
+    this.renderOtherLang(wrap, book, chapter, token);
     this.marginEl = wrap.createDiv("lmp-margin");
     window.requestAnimationFrame(() => this.applyLayout());
   }
@@ -7935,7 +10794,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
    */
   showSelectedNoteLinks() {
     this.clearNoteLinks();
-    if (this.plugin.ui.autoLinks === false || !this.paneEl || import_obsidian12.Platform.isPhone) return;
+    if (this.plugin.ui.autoLinks === false || !this.paneEl || import_obsidian13.Platform.isPhone) return;
     this.paneEl.querySelectorAll(".lmp-note-card[data-mid]").forEach((card) => card.offsetParent && this.drawNoteConnector(card.dataset.mid, card));
   }
   /** Dopo uno scorrimento le linee si ridisegnano quando il testo è fermo. */
@@ -8019,7 +10878,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       if (vNotes || this.plugin.verseNoteFile(d.book, c, v)) {
         const n = vNotes ? vNotes.length : 0;
         const mark = createSpan({ cls: "lmp-note-mark", attr: { "aria-label": n ? n === 1 ? t("1 nota") : t("{n} note", { n }) : t("Nota su questo versetto") } });
-        (0, import_obsidian12.setIcon)(mark, "sticky-note");
+        (0, import_obsidian13.setIcon)(mark, "sticky-note");
         if (vNotes && vNotes[0].color) mark.dataset.hl = vNotes[0].color;
         if (n > 1) mark.createSpan({ cls: "lmp-note-count", text: String(n) });
         mark.addEventListener("click", (evt) => {
@@ -8108,24 +10967,24 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       dot.addEventListener("click", () => this.applySelection(h.id));
     }
     const erase = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Rimuovi evidenziazione") } });
-    (0, import_obsidian12.setIcon)(erase, "eraser");
+    (0, import_obsidian13.setIcon)(erase, "eraser");
     erase.addEventListener("click", () => this.applySelection(null));
     const note = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Nota sul testo selezionato") } });
-    (0, import_obsidian12.setIcon)(note, "sticky-note");
+    (0, import_obsidian13.setIcon)(note, "sticky-note");
     note.addEventListener("click", () => this.noteFromSelection());
     const word = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Studia la parola") } });
-    (0, import_obsidian12.setIcon)(word, "book-a");
+    (0, import_obsidian13.setIcon)(word, "book-a");
     word.addEventListener("click", () => this.studyWord());
     const copy = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Copia") } });
-    (0, import_obsidian12.setIcon)(copy, "copy");
+    (0, import_obsidian13.setIcon)(copy, "copy");
     copy.addEventListener("click", async () => {
       if (!this.selInfo) return;
       await navigator.clipboard.writeText(this.selInfo.text);
-      new import_obsidian12.Notice(t("Testo copiato"));
+      new import_obsidian13.Notice(t("Testo copiato"));
       this.hideSelectionBar();
     });
     const ai = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Spunti sul testo selezionato") } });
-    (0, import_obsidian12.setIcon)(ai, "lightbulb");
+    (0, import_obsidian13.setIcon)(ai, "lightbulb");
     ai.addEventListener("click", (evt) => {
       const info = this.selInfo;
       if (!info) return;
@@ -8207,7 +11066,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     }
     this.hidePopover();
     const verseEl = target.closest(".lmp-verse");
-    if (!verseEl && import_obsidian12.Platform.isMobile && this.state.mode === "reader" && !target.closest("button, a, .lmp-margin-square, .lmp-print-refs")) {
+    if (!verseEl && import_obsidian13.Platform.isMobile && this.state.mode === "reader" && !target.closest("button, a, .lmp-margin-square, .lmp-print-refs")) {
       if (this.selected.size) this.clearSelection();
       else setBarsHidden(this, !this.barsHidden);
       return;
@@ -8334,7 +11193,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     this.paneEl.empty();
     this.paneEl.removeClass("lmp-tabbed");
     if (!show) return;
-    const comp = this.paneComponent = this.addChild(new import_obsidian12.Component());
+    const comp = this.paneComponent = this.addChild(new import_obsidian13.Component());
     const top = this.paneStack[this.paneStack.length - 1];
     if (top && top.word) await this.renderPaneWord(top, comp, token);
     else if (top && top.ai) {
@@ -8362,7 +11221,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     const header = this.paneEl.createDiv("lmp-pane-header");
     const iconBtn = (icon, label, fn) => {
       const b = header.createEl("button", { cls: "clickable-icon lmp-pane-btn", attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b, icon);
+      (0, import_obsidian13.setIcon)(b, icon);
       b.addEventListener("click", fn);
       return b;
     };
@@ -8377,7 +11236,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
   async openOutline(scope = "chapter") {
     if (this.state.mode !== "reader" || !this.chapterData) return;
     const items = await this.bible.getOutline(this.chapterData.book);
-    if (!items.length) return new import_obsidian12.Notice(t("Questa Bibbia non ha lo schema dei libri."));
+    if (!items.length) return new import_obsidian13.Notice(t("Questa Bibbia non ha lo schema dei libri."));
     this.selected.clear();
     this.primary = null;
     this.decorateVerses();
@@ -8456,12 +11315,12 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       });
     }
     const erase = colors.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Rimuovi evidenziazione") } });
-    (0, import_obsidian12.setIcon)(erase, "eraser");
+    (0, import_obsidian13.setIcon)(erase, "eraser");
     erase.addEventListener("click", () => this.setHighlight(null));
     const tools = actions.createDiv("lmp-tools");
     const tool = (icon, label, fn, active) => {
       const b = tools.createEl("button", { cls: "clickable-icon lmp-tool", attr: { "aria-label": label } });
-      (0, import_obsidian12.setIcon)(b, icon);
+      (0, import_obsidian13.setIcon)(b, icon);
       if (active) b.addClass("is-active");
       b.addEventListener("click", fn);
       return b;
@@ -8473,15 +11332,15 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     }, !!bm);
     tool("copy", t("Copia testo"), async () => {
       await navigator.clipboard.writeText(`${info.text} (${info.label})`);
-      new import_obsidian12.Notice(t("Versetto copiato"));
+      new import_obsidian13.Notice(t("Versetto copiato"));
     });
     tool("lightbulb", t("Spunti su questi versetti"), (evt) => this.bibleAi(evt, [...this.selected]));
     tool("smartphone", t("Apri in JW Library"), () => this.plugin.openInJwLibrary(info.ref));
     tool("more-horizontal", t("Altre azioni"), (evt) => {
-      const menu = new import_obsidian12.Menu();
+      const menu = new import_obsidian13.Menu();
       menu.addItem((it) => it.setTitle(t("Copia link")).setIcon("link").onClick(async () => {
         await navigator.clipboard.writeText(info.link);
-        new import_obsidian12.Notice(t("Link copiato"));
+        new import_obsidian13.Notice(t("Link copiato"));
       }));
       menu.addItem((it) => it.setTitle(t("Inserisci nella nota aperta")).setIcon("text-cursor-input").onClick(() => this.plugin.insertIntoNote(info)));
       if (this.plugin.scrabb && this.plugin.scrabb.ready)
@@ -8648,14 +11507,14 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     sec.dataset.sourcePath = file ? file.path : "";
     const list = sec.createDiv("lmp-notes");
     for (const blk of blocks) await this.renderNoteCard(list, blk, ctx, comp);
-    if (!import_obsidian12.Platform.isPhone && list.querySelector(".lmp-note-card[data-mid]")) {
+    if (!import_obsidian13.Platform.isPhone && list.querySelector(".lmp-note-card[data-mid]")) {
       const summary = sec.parentElement.querySelector("summary");
       const tg = summary.createEl("button", { cls: "clickable-icon lmp-links-toggle" });
       const paint = () => {
         const on = this.plugin.ui.autoLinks !== false;
         tg.toggleClass("is-active", on);
         tg.setAttr("aria-label", on ? t("Nascondi le linee di collegamento") : t("Mostra le linee di collegamento"));
-        (0, import_obsidian12.setIcon)(tg, on ? "spline" : "unlink");
+        (0, import_obsidian13.setIcon)(tg, on ? "spline" : "unlink");
       };
       paint();
       tg.addEventListener("click", (evt) => {
@@ -8712,7 +11571,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     const head = card.createDiv("lmp-note-card-head");
     head.createDiv({ cls: "lmp-note-card-title", text: blk.title && blk.title !== "Nota" ? blk.title : t("Nota") });
     const edit = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": t("Modifica") } });
-    (0, import_obsidian12.setIcon)(edit, "pencil");
+    (0, import_obsidian13.setIcon)(edit, "pencil");
     if (blk.content) await renderMd(this.app, blk.content, card.createDiv("lmp-md lmp-note-card-body"), ctx.file ? ctx.file.path : "", comp);
     if (blk.tags.length || blk.date) {
       const foot = card.createDiv("lmp-tag-chips");
@@ -8813,7 +11672,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     save.addEventListener("click", async () => {
       addTag();
       if (!title.value.trim() && !body.value.trim()) {
-        new import_obsidian12.Notice(t("Scrivi un titolo o un testo"));
+        new import_obsidian13.Notice(t("Scrivi un titolo o un testo"));
         return;
       }
       save.disabled = true;
@@ -8832,7 +11691,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
         this.renderPane();
       } catch (e) {
         console.error("[lampada] salvataggio della nota non riuscito", e);
-        new import_obsidian12.Notice(t("Nota non salvata: {errore}", { errore: e.message }));
+        new import_obsidian13.Notice(t("Nota non salvata: {errore}", { errore: e.message }));
         save.disabled = false;
       }
     });
@@ -8999,7 +11858,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
       if (!first) continue;
       for (const ev of events) {
         const mark = createSpan({ cls: "lmp-par-mark", attr: { "aria-label": t("Confronta i racconti paralleli") } });
-        (0, import_obsidian12.setIcon)(mark.createSpan("lmp-par-icon"), "columns-3");
+        (0, import_obsidian13.setIcon)(mark.createSpan("lmp-par-icon"), "columns-3");
         mark.createSpan({ cls: "lmp-par-title", text: ev.title });
         const others = GOSPELS.filter((b, i) => b !== d.book.num && ev.refs[i].length).map(abbr);
         mark.createSpan({ cls: "lmp-par-books", text: others.join(" \xB7 ") });
@@ -9302,7 +12161,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
     const txt = parts.join(" ");
     pop.createDiv({ cls: "lmp-ref-pop-text", text: txt ? txt + (ref.verse ? "" : " \u2026") : t("Testo non trovato.") });
     const bar = pop.createDiv("lmp-cite-pop-actions");
-    if (!import_obsidian12.Platform.isPhone) bar.createEl("button", { text: t("A lato") }).addEventListener("click", () => open(true));
+    if (!import_obsidian13.Platform.isPhone) bar.createEl("button", { text: t("A lato") }).addEventListener("click", () => open(true));
     bar.createEl("button", { cls: "mod-cta", text: t("Apri") }).addEventListener("click", () => open(false));
     this.positionPopover(anchor, 420);
   }
@@ -9331,7 +12190,7 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
         else this.navigate(ref2);
         return;
       }
-      new import_obsidian12.Notice(t("Collegamento non trovato: {link}", { link: linktext }));
+      new import_obsidian13.Notice(t("Collegamento non trovato: {link}", { link: linktext }));
       return;
     }
     const hash = linktext.indexOf("#");
@@ -9370,2205 +12229,8 @@ var BibleView = class _BibleView extends import_obsidian12.ItemView {
   }
 };
 
-// src/biblioteca-vista.js
-var import_obsidian13 = require("obsidian");
-var blockText = (b) => b.innerText.replace(/\s+/g, " ").trim();
-var isQuestionBlock = (b) => /^\d+(\s*[-–,]\s*\d+)*\.\s/.test(blockText(b));
-var isLabelBlock = (b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(blockText(b));
-var LibraryView = class extends import_obsidian13.ItemView {
-  constructor(leaf, plugin) {
-    super(leaf);
-    this.plugin = plugin;
-    this.lib = plugin.library;
-    this.state = { mode: "home" };
-    this.history = [];
-    this.renderToken = 0;
-    this.comp = null;
-  }
-  getViewType() {
-    return LIB_VIEW_TYPE;
-  }
-  getIcon() {
-    return "library-big";
-  }
-  getDisplayText() {
-    const s = this.state;
-    const pub = s.sym && this.lib.bySym.get(s.sym);
-    if (s.mode === "doc" && s.doc) return this.lib.byDocId.get(s.doc)?.title || t("Biblioteca");
-    if (s.mode === "week") return t("Adunanze della settimana");
-    if (s.mode === "ext") return s.title || t("Biblioteca");
-    if (s.mode === "cat") return t((this.lib.categories().find((c) => c.id === s.cat) || {}).label || "Biblioteca");
-    if (s.mode === "issue" && pub) return `${pub.title.replace(/\s*\(\d{4}\)$/, "")} \xB7 ${issueLabel(s.issue)}`;
-    if (pub) return pub.title;
-    return t("Biblioteca");
-  }
-  /** Titolo nella barra: niente nella home (lo dice il selettore), il percorso dentro una pubblicazione. */
-  toolbarTitle() {
-    const s = this.state;
-    if (s.mode === "home" || !s.mode) return "";
-    const d = s.mode === "doc" && s.doc && this.lib.byDocId.get(s.doc);
-    if (d && d.pub) {
-      const pub = d.pub.title.replace(/\s*\(\d{4}\)$/, "");
-      return `${pub}${d.issue && d.issue !== "altro" ? ` ${issueLabel(d.issue)}` : ""} \u203A ${d.title}`;
-    }
-    return this.getDisplayText();
-  }
-  getState() {
-    return { ...this.state };
-  }
-  async setState(state, result) {
-    await super.setState(state, result);
-    if (state && state.mode) await this.navigate(state, { push: false });
-  }
-  async onOpen() {
-    const root = this.contentEl;
-    root.empty();
-    root.addClass("lmp-lib");
-    root.dataset.ignoreSwipe = "true";
-    this.plugin.applyFont(root);
-    this.toolbarEl = root.createDiv("lmp-toolbar");
-    this.bodyEl = root.createDiv("lmp-body");
-    this.mainEl = this.bodyEl.createDiv("lmp-lib-main lmp-main");
-    this.paneEl = this.bodyEl.createDiv("lmp-pane lmp-lib-pane");
-    paneResizer(this);
-    this.pager = new Pager(this, this.mainEl, this.bodyEl, {
-      content: () => this.state.mode === "doc" ? this.docWrap : null,
-      label: () => (this.lib.byDocId.get(this.state.doc) || {}).title || "",
-      edge: (d) => this.stepDoc(d),
-      settle: () => this.savePlace(),
-      anchor: () => this.panePar != null && this.docWrap ? this.docBlock(this.panePar) : null
-    });
-    const ro = new ResizeObserver(() => {
-      this.bodyEl.toggleClass("is-narrow", this.bodyEl.clientWidth < 760);
-      this.layoutDocNoteSquares();
-    });
-    ro.observe(this.bodyEl);
-    this.register(() => ro.disconnect());
-    viewKeys(this, [
-      ["Escape", () => this.paneMode ? (this.closeLibPane(), false) : true],
-      ["ArrowLeft", () => pageKey(this.pager, -1)],
-      ["ArrowRight", () => pageKey(this.pager, 1)]
-    ]);
-    const btn = (icon, label, fn) => {
-      const b = this.toolbarEl.createEl("button", { cls: "lmp-tb-btn clickable-icon", attr: { "aria-label": label } });
-      (0, import_obsidian13.setIcon)(b, icon);
-      b.addEventListener("click", fn);
-      return b;
-    };
-    this.backBtn = btn("arrow-left", t("Indietro"), () => this.goBack());
-    addViewSwitch(this.toolbarEl, this.plugin, "lib", () => this.navigate({ mode: "home" }), this.inShell);
-    this.titleEl2 = this.toolbarEl.createDiv("lmp-tb-title lmp-lib-title");
-    this.toolbarEl.createDiv("lmp-tb-spacer");
-    this.prevBtn = btn("chevron-left", t("Documento precedente"), () => this.stepDoc(-1));
-    this.nextBtn = btn("chevron-right", t("Documento successivo"), () => this.stepDoc(1));
-    btn("search", t("Cerca ovunque"), () => this.plugin.openSearch());
-    btn("history", t("Aperti di recente"), () => new PlacesModal(this.plugin, null, "recent").open());
-    btn("bookmark", t("Segnalibri"), () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
-    btn("type", t("Aspetto del testo"), () => new ReadingModal(this.plugin).open());
-    if (import_obsidian13.Platform.isPhone && this.addAction && !this.inShell) {
-      this.addAction("type", t("Aspetto del testo"), () => new ReadingModal(this.plugin).open());
-      this.addAction("chevron-right", t("Documento successivo"), () => this.stepDoc(1));
-      this.addAction("chevron-left", t("Documento precedente"), () => this.stepDoc(-1));
-      this.addAction("bookmark", t("Segnalibri"), () => new PlacesModal(this.plugin, this.herePlace(), "bookmarks").open());
-      this.addAction("history", t("Aperti di recente"), () => new PlacesModal(this.plugin, null, "recent").open());
-      this.addAction("search", t("Cerca ovunque"), () => this.plugin.openSearch());
-      addGoToAction(this, "lib", () => this.navigate({ mode: "home" }));
-      root.addClass("lmp-native-header");
-    }
-    this.registerDomEvent(this.mainEl, "click", (evt) => this.onLinkClick(evt), { capture: true });
-    this.buildSelectionBar();
-    this.registerDomEvent(document, "selectionchange", (0, import_obsidian13.debounce)(() => this.onSelectionChange(), 200, true));
-    this.registerDomEvent(this.mainEl, "scroll", () => this.hideSelectionBar());
-    autoHideBars(this, this.mainEl);
-    this.registerEvent(this.app.workspace.on("lampada:scrabb-changed", () => {
-      this.layoutDocNoteSquares();
-      if (this.paneMode === "par") this.renderLibPane();
-    }));
-    if (!this.renderToken) await this.navigate(this.plugin.ui.libLast || { mode: "home" }, { push: false });
-  }
-  async onClose() {
-    setBarsHidden(this, false);
-    this.contentEl.empty();
-  }
-  applyTypography() {
-    this.plugin.applyFont(this.contentEl);
-    if (this.pager) this.pager.layout();
-  }
-  /** Documento aperto senza un paragrafo preciso: dove si era arrivati a leggere (anche su un altro dispositivo). */
-  async resumeDoc(token) {
-    const pos = (await this.plugin.readPositions().catch(() => ({ docs: {} }))).docs[this.state.doc];
-    const block = pos && pos.par > 1 && token === this.renderToken && this.docBlock(+pos.par);
-    if (block) this.pager.reveal(block, "start");
-  }
-  /** Il paragrafo in cima: riaprendo il documento (anche su un altro dispositivo) si riprende da lì. */
-  savePlace() {
-    const el = this.pager.anchorEl();
-    if (this.state.mode === "doc" && el) this.plugin.savePosition(this.state.doc, { par: +el.dataset.pid });
-  }
-  snapshot() {
-    return { ...this.state, scroll: this.mainEl ? this.mainEl.scrollTop : 0 };
-  }
-  /** Prima di cambiare pagina: dove si era (nella vista unica la cronologia è del guscio). */
-  pushHistory() {
-    if (this.inShell) return this.inShell.push(this, this.snapshot());
-    this.history.push(this.snapshot());
-    if (this.history.length > 100) this.history.shift();
-  }
-  canGoBack() {
-    return this.inShell ? this.inShell.stack.length > 0 : this.history.length > 0;
-  }
-  async goBack() {
-    if (this.inShell) return this.inShell.goBack();
-    const prev = this.history.pop();
-    if (prev) await this.restore(prev);
-  }
-  async restore(prev) {
-    await this.navigate(prev, { push: false });
-    if (prev.scroll) this.mainEl.scrollTop = prev.scroll;
-  }
-  async navigate(target, opts = {}) {
-    const token = ++this.renderToken;
-    if (!this.mainEl) return;
-    try {
-      await this.lib.ensureLoaded();
-    } catch (e) {
-      this.mainEl.empty();
-      if (e && e.noBible) {
-        pubLangButton(this.plugin, this.mainEl.createDiv("lmp-pub-lang-row"));
-        renderBibleDownload(this.plugin, this.mainEl.createDiv("lmp-error"), { onDone: () => this.plugin.openReader({ book: 1, chapter: 1 }) });
-      } else this.mainEl.createDiv({ cls: "lmp-empty", text: t("Biblioteca non disponibile: {msg}", { msg: e.message }) });
-      return;
-    }
-    if (token !== this.renderToken) return;
-    if (opts.push !== false && this.state.mode) this.pushHistory();
-    this.state = { mode: target.mode || "home", sym: target.sym, issue: target.issue, doc: target.doc, letter: target.letter, week: target.week, cat: target.cat, url: target.url, title: target.title };
-    this.paneMode = null;
-    this.panePar = null;
-    this.docWrap = null;
-    this.docNotes = [];
-    if (this.paneEl) {
-      this.paneEl.empty();
-      this.bodyEl.removeClass("has-pane");
-    }
-    if (this.comp) this.removeChild(this.comp);
-    this.comp = this.addChild(new import_obsidian13.Component());
-    this.mainEl.empty();
-    this.mainEl.scrollTop = 0;
-    this.docBody = null;
-    this.hideSelectionBar();
-    const m = this.state.mode;
-    this.pendingLabels = [];
-    if (m === "doc") {
-      await this.renderDoc(token);
-      if (token === this.renderToken) this.pager.refresh();
-      const block = target.par != null && this.docBlock(+target.par);
-      if (!block && token === this.renderToken) this.resumeDoc(token);
-      if (block && token === this.renderToken) {
-        window.setTimeout(() => {
-          this.pager.reveal(block, "center");
-          block.addClass("is-flash");
-          window.setTimeout(() => block.removeClass("is-flash"), 1400);
-          this.openParPane(+block.dataset.pid);
-        }, 50);
-      }
-    } else if (m === "week") await this.renderWeek(token);
-    else if (m === "issue") this.renderIssue();
-    else if (m === "pub") this.renderPub();
-    else if (m === "cat") this.renderCat();
-    else if (m === "ext") await this.renderExt(token);
-    else this.renderHome();
-    if (m !== "doc") this.pager.refresh();
-    if (m === "pub" || m === "issue") this.fillLabels(token);
-    if (token !== this.renderToken) return;
-    this.titleEl2.setText(this.toolbarTitle());
-    this.backBtn.toggleClass("is-disabled", !this.canGoBack());
-    const inDoc = m === "doc";
-    this.prevBtn.style.display = inDoc ? "" : "none";
-    this.nextBtn.style.display = inDoc ? "" : "none";
-    this.plugin.ui.libLast = { ...this.state };
-    this.plugin.requestSave();
-    this.leaf.updateHeader?.();
-    this.app.workspace.requestSaveLayout();
-  }
-  /* ---------------- home ---------------- */
-  renderHome() {
-    const wrap = this.mainEl.createDiv("lmp-lib-home");
-    const top = wrap.createDiv("lmp-lib-top");
-    const search = top.createEl("input", { type: "search", cls: "lmp-lib-search", attr: { placeholder: t("Cerca una pubblicazione o un titolo\u2026") } });
-    pubLangButton(this.plugin, top);
-    const results = wrap.createDiv("lmp-lib-results");
-    const sections = wrap.createDiv();
-    if (!this.inShell) {
-      this.weekHomeCard(sections);
-      this.plugin.renderPlaces(sections.createDiv(), null, true);
-    }
-    const cats = sections.createDiv("lmp-lib-cats");
-    for (const cat of this.lib.categories()) {
-      const row = cats.createEl("button", { cls: `lmp-lib-cat cat-lib-${cat.id}` });
-      const covers = row.createDiv("lmp-lib-cat-covers");
-      for (const p of cat.pubs.slice(0, 3)) {
-        const art = covers.createDiv("lmp-lib-cat-cover");
-        const cover = this.lib.pubCover(p);
-        if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), loading: "lazy", alt: "" } });
-        else art.addClass("is-fake");
-      }
-      const tx = row.createDiv("lmp-lib-cat-text");
-      tx.createDiv({ cls: "lmp-lib-cat-title", text: t(cat.label) });
-      const one = cat.pubs.length === 1 && cat.pubs[0];
-      tx.createDiv({ cls: "lmp-lib-cat-meta", text: one ? one.issues ? t("{n} numeri", { n: one.issues.length }) : t("{n} documenti", { n: one.docs.length }) : t("{n} pubblicazioni", { n: cat.pubs.length }) });
-      (0, import_obsidian13.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
-      row.addEventListener("click", () => this.navigate(one ? { mode: "pub", sym: one.symbol } : { mode: "cat", cat: cat.id }));
-    }
-    for (const p of this.plugin.providers) {
-      const b = typeof p.libraryBrowse === "function" && p.libraryBrowse();
-      if (!b) continue;
-      const row = cats.createEl("button", { cls: "lmp-lib-cat lmp-lib-ext" });
-      (0, import_obsidian13.setIcon)(row.createDiv("lmp-lib-cat-covers"), b.icon || "globe");
-      const tx = row.createDiv("lmp-lib-cat-text");
-      tx.createDiv({ cls: "lmp-lib-cat-title", text: b.text });
-      if (b.meta) tx.createDiv({ cls: "lmp-lib-cat-meta", text: b.meta });
-      (0, import_obsidian13.setIcon)(row.createSpan("lmp-lib-cat-go"), "chevron-right");
-      row.addEventListener("click", () => this.navigate({ mode: "ext", url: b.url, title: b.text }));
-    }
-    const tools = sections.createDiv("lmp-lib-tools");
-    tools.createEl("button", { cls: "lmp-small-btn", text: t("Importa\u2026") }).addEventListener("click", () => new EpubImportModal(this.plugin).open());
-    for (const p of this.plugin.providers) {
-      if (typeof p.libraryActions !== "function") continue;
-      for (const { text, run } of p.libraryActions() || []) tools.createEl("button", { cls: "lmp-small-btn", text }).addEventListener("click", () => run());
-    }
-    if (this.plugin.has("downloadCovers")) {
-      const more = tools.createEl("button", { cls: "lmp-small-btn", text: t("Cerca copertine mancanti") });
-      more.addEventListener("click", async () => {
-        more.disabled = true;
-        try {
-          const got = await this.plugin.ask("downloadCovers", (t2) => more.setText(t2));
-          new import_obsidian13.Notice(got ? t("{n} copertine aggiunte", { n: got }) : t("Nessuna nuova copertina trovata"));
-        } catch (e) {
-          new import_obsidian13.Notice(t("Copertine non scaricate: {msg}", { msg: e.message }));
-        }
-        this.navigate({ mode: "home" }, { push: false });
-      });
-    }
-    search.addEventListener("input", () => {
-      const q2 = norm(search.value).trim();
-      results.empty();
-      sections.style.display = q2 ? "none" : "";
-      if (q2.length < 2) return;
-      const url = search.value.trim();
-      if (/^https?:\/\//.test(url)) {
-        this.plugin.ask("linkAction", url).then((act) => {
-          if (!act || search.value.trim() !== url) return;
-          results.createEl("button", { cls: "mod-cta", text: act.text }).addEventListener("click", () => act.run());
-        }).catch((e) => console.warn("[lampada] link", e));
-        return;
-      }
-      const pubs = this.lib.pubs.filter((p) => norm(p.title).includes(q2) || norm(p.symbol) === q2);
-      if (pubs.length) {
-        results.createEl("h4", { cls: "lmp-section-title", text: t("Pubblicazioni") });
-        const grid = results.createDiv("lmp-lib-grid");
-        for (const p of pubs.slice(0, 24)) this.pubTile(grid, p);
-      }
-      const docs = [];
-      for (const p of this.lib.pubs) {
-        for (const d of p.docs) {
-          if (norm(d.title).includes(q2)) docs.push(d);
-          if (docs.length >= 80) break;
-        }
-        if (docs.length >= 80) break;
-      }
-      if (docs.length) {
-        results.createEl("h4", { cls: "lmp-section-title", text: t("Titoli") });
-        const list = results.createDiv("lmp-lib-doclist");
-        for (const d of docs) this.docRow(list, d, true);
-      }
-      if (!pubs.length && !docs.length) results.createDiv({ cls: "lmp-empty", text: t("Nessun risultato.") });
-      this.fillLabels(this.renderToken);
-    });
-  }
-  /** Una categoria del catalogo: le sue pubblicazioni con le copertine (e un filtro se sono tante). */
-  /** Pagina di un'estensione (hook libraryPage): la disegna lei; go() apre un'altra pagina con la cronologia della biblioteca. */
-  async renderExt(token) {
-    if (!this.state.url || !this.plugin.has("libraryPage")) return this.renderHome();
-    const wrap = this.mainEl.createDiv("lmp-lib-page");
-    const ctx = {
-      go: (url, title) => this.navigate({ mode: "ext", url, title }),
-      reload: () => this.navigate({ ...this.state }, { push: false }),
-      current: () => token === this.renderToken
-    };
-    try {
-      await this.plugin.ask("libraryPage", this.state.url, wrap, ctx);
-    } catch (e) {
-      wrap.createDiv({ cls: "lmp-empty", text: t("Pagina non caricata: {msg}", { msg: e.message || e }) });
-    }
-  }
-  renderCat() {
-    const cat = this.lib.categories().find((c) => c.id === this.state.cat);
-    if (!cat) return this.renderHome();
-    const wrap = this.mainEl.createDiv("lmp-lib-page");
-    wrap.createEl("h2", { cls: "lmp-lib-cat-heading", text: t(cat.label) });
-    const filter = cat.pubs.length > 12 ? wrap.createEl("input", { type: "search", cls: "lmp-lib-search", attr: { placeholder: t("Cerca in {nome}\u2026", { nome: lang() === "it" ? t(cat.label).toLowerCase() : t(cat.label) }) } }) : null;
-    const grid = wrap.createDiv("lmp-lib-grid");
-    const draw = () => {
-      grid.empty();
-      const q2 = filter ? norm(filter.value).trim() : "";
-      for (const p of cat.pubs) if (!q2 || norm(p.title).includes(q2) || norm(p.symbol) === q2) this.pubTile(grid, p);
-    };
-    if (filter) filter.addEventListener("input", draw);
-    draw();
-  }
-  /* ---------------- settimana ---------------- */
-  /** Home: la settimana in una scheda (lettura, infrasettimanale con le risposte scritte, Torre di Guardia). */
-  weekHomeCard(parent) {
-    renderWeekCard(this.plugin, parent, (st) => this.navigate(st));
-  }
-  /** Programma della settimana: lettura biblica, adunanza infrasettimanale (con le risposte), articolo di studio. */
-  async renderWeek(token) {
-    const today = mondayOf(/* @__PURE__ */ new Date());
-    const k = this.state.week || today;
-    const wt = (await this.lib.studyArticles()).get(k);
-    if (token !== this.renderToken) return;
-    const wrap = this.mainEl.createDiv("lmp-lib-page lmp-week");
-    const nav = wrap.createDiv("lmp-week-nav");
-    const shift = (n) => {
-      const d = /* @__PURE__ */ new Date(`${k}T12:00:00`);
-      d.setDate(d.getDate() + 7 * n);
-      this.navigate({ mode: "week", week: isoDate(d) }, { push: false });
-    };
-    const navBtn = (icon, label, fn) => {
-      const b = nav.createEl("button", { cls: "clickable-icon lmp-week-arrow", attr: { "aria-label": label } });
-      (0, import_obsidian13.setIcon)(b, icon);
-      b.addEventListener("click", fn);
-    };
-    navBtn("chevron-left", t("Settimana precedente"), () => shift(-1));
-    const head = nav.createDiv("lmp-week-head");
-    head.createEl("h2", { text: weekLabel(k) });
-    if (k !== today) {
-      const back = head.createEl("button", { cls: "lmp-small-btn", text: t("Torna a questa settimana") });
-      back.addEventListener("click", () => this.navigate({ mode: "week" }, { push: false }));
-    } else head.createDiv({ cls: "lmp-week-now", text: t("Questa settimana") });
-    navBtn("chevron-right", t("Settimana successiva"), () => shift(1));
-    const readingEl = wrap.createDiv();
-    if (wt) this.weekStudyCard(wrap, wt);
-    await this.weekMeeting(readingEl, wrap.createDiv(), k, token);
-  }
-  async weekMeeting(readingEl, el, k, token) {
-    const status = el.createDiv({ cls: "lmp-empty", text: t("Carico il programma\u2026") });
-    const [res, base] = await Promise.all([this.plugin.meetingWeek(k).catch((e) => ({ error: e })), this.plugin.baseAnswers()]);
-    if (token !== this.renderToken) return;
-    status.remove();
-    if (!res || res.error) {
-      const box2 = el.createDiv("lmp-week-card");
-      box2.createEl("h3", { text: t("Adunanza infrasettimanale") });
-      box2.createDiv({
-        cls: "lmp-empty",
-        text: !res || /non disponibile per|not available for/.test(res.error.message) ? t("Programma non disponibile per questa settimana.") : t("Programma non disponibile ({msg}). Se sei offline, riprova quando sei connesso.", { msg: res.error.message })
-      });
-      return;
-    }
-    const { id, items } = res;
-    const d = this.lib.byDocId.get(id);
-    const bible = this.plugin.bible;
-    const refOf = (seg) => refFromCodes(seg[1], seg[2] || void 0);
-    const ri = items.findIndex((x) => x.k === "h2" && !x.s && x.x.some((t2) => Array.isArray(t2)));
-    if (ri >= 0) {
-      const box2 = readingEl.createDiv("lmp-week-card lmp-week-reading");
-      box2.createEl("h3", { text: t("Lettura biblica") });
-      const link = items[ri].x.find((t2) => Array.isArray(t2));
-      const a = parseCode(link[1]);
-      const b = parseCode(link[2] || link[1]);
-      const chips = box2.createDiv("lmp-week-chips");
-      for (let c = a.chapter; a.book === b.book && c <= b.chapter; c++) {
-        const ref = { book: a.book, chapter: c };
-        const chip = chips.createEl("button", { cls: "lmp-week-chip", text: bible.refLabel(ref) });
-        chip.addEventListener("click", () => this.plugin.openReader(ref));
-      }
-      if (!chips.childElementCount) chips.createEl("button", { cls: "lmp-week-chip", text: link[0] }).addEventListener("click", () => this.plugin.openReader(refOf(link)));
-    }
-    const box = el.createDiv("lmp-week-card lmp-week-meeting");
-    box.createEl("h3", { text: t("Adunanza infrasettimanale") });
-    const body = box.createDiv("lmp-week-body");
-    for (const [i, it] of items.entries()) {
-      if (i === ri || it.k === "h1") continue;
-      if (it.k === "img") {
-        this.weekFigure(body, it);
-        continue;
-      }
-      if (it.k === "f") {
-        for (const tag of it.f) {
-          const ta = body.appendChild(this.plugin.answerBox(id, tag, t("La tua risposta"), base));
-          this.aiField(ta, () => this.weekAiCtx(items, i, k));
-        }
-        continue;
-      }
-      const min = typeof it.x[0] === "string" && /^\((\d+)\s+min\)\s*/.exec(it.x[0]);
-      const prev = body.lastElementChild;
-      if (min && it.k === "p" && it.x.length === 1 && min[0].length === it.x[0].length && prev && prev.hasClass("lmp-week-part")) {
-        prev.createSpan({ cls: "lmp-week-min", text: `${min[1]} min` });
-        continue;
-      }
-      const cls = it.k === "h2" ? `lmp-week-sec is-${it.s || "plain"}` : it.k === "h3" ? `lmp-week-part is-${it.s || "plain"}${it.song ? " is-song" : ""}` : "lmp-week-p";
-      const line = body.createDiv(cls);
-      if (it.song) (0, import_obsidian13.setIcon)(line.createSpan("lmp-week-song"), "music");
-      for (const [si, seg] of it.x.entries()) {
-        if (typeof seg === "string") {
-          if (si === 0 && min && it.k === "p") {
-            line.createSpan({ cls: "lmp-week-min", text: `${min[1]} min` });
-            line.appendText(` ${seg.slice(min[0].length)}`);
-          } else line.appendText(seg);
-          continue;
-        }
-        const a = line.createEl("a", { cls: "lmp-week-ref", text: Array.isArray(seg) ? seg[0] : seg.t, href: "#" });
-        if (seg.url) this.urlButtons(line, seg.url);
-        a.addEventListener("click", (evt) => {
-          evt.preventDefault();
-          if (seg.url) return window.open(seg.url);
-          const doc = !Array.isArray(seg) && this.lib.byDocId.get(seg.doc);
-          if (!Array.isArray(seg) && !doc && !seg.ex) return window.open(`https://www.jw.org/finder?wtlocale=${this.plugin.settings.bibleLang || "I"}&docid=${seg.doc}`);
-          const key = Array.isArray(seg) ? seg[1] + seg[2] : `${seg.doc || seg.t}:${seg.a}`;
-          const open = line.nextElementSibling && line.nextElementSibling.dataset.code === key;
-          body.querySelectorAll(".lmp-week-verse").forEach((e) => e.remove());
-          if (open) return;
-          const card = createDiv({ cls: "lmp-ref lmp-week-verse" });
-          card.dataset.code = key;
-          line.after(card);
-          if (doc) this.weekPubCard(card, doc, seg);
-          else if (seg.ex) {
-            card.createDiv({ cls: "lmp-ref-label", text: seg.t });
-            for (const t2 of seg.ex) card.createDiv({ cls: "lmp-ref-text", text: t2 });
-          } else this.weekVerseCard(card, refOf(seg));
-        });
-      }
-    }
-    if (d) {
-      const b = box.createEl("button", { cls: "lmp-small-btn", text: t("Apri nella biblioteca") });
-      b.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id }));
-    }
-  }
-  /** Icone delle estensioni accanto a un link (hook urlButton, es. la trascrizione di un video); dopo run() si ridisegna. */
-  urlButtons(parent, url) {
-    for (const p of this.plugin.providers) {
-      const b = typeof p.urlButton === "function" && p.urlButton(url);
-      if (!b) continue;
-      const el = parent.createSpan({ cls: "clickable-icon lmp-url-btn", attr: { "aria-label": b.label, role: "button", tabindex: "0" } });
-      (0, import_obsidian13.setIcon)(el, b.icon);
-      el.addEventListener("click", async () => {
-        if (el.hasClass("is-busy")) return;
-        el.addClass("is-busy");
-        try {
-          if (await b.run()) this.navigate({ ...this.state }, { push: false });
-        } catch (e) {
-          new import_obsidian13.Notice(`${b.label}: ${e.message || e}`);
-        } finally {
-          el.removeClass("is-busy");
-        }
-      });
-    }
-  }
-  /** Immagine del programma con didascalia e testo alternativo (senza file nel vault: solo i testi). */
-  weekFigure(el, it) {
-    const f = linkDest(this.app, it.file, "");
-    if (!f && !it.alt && !it.cap) return;
-    const fig = el.createEl("figure", { cls: "lmp-week-figure" });
-    if (f) {
-      fig.createEl("img", { attr: { src: fileSrc(this.app, f), alt: it.alt || "", loading: "lazy" } });
-    }
-    if (it.cap) fig.createEl("figcaption", { cls: "lmp-img-caption", text: it.cap });
-    if (it.alt && it.alt !== it.cap) fig.createDiv({ cls: "lmp-img-alt", text: it.alt });
-  }
-  async weekVerseCard(card, ref) {
-    const bible = this.plugin.bible;
-    card.createDiv({ cls: "lmp-ref-label", text: bible.refLabel(ref) });
-    const txt = card.createDiv({ cls: "lmp-ref-text", text: "\u2026" });
-    card.addEventListener("click", () => this.plugin.openReader(ref));
-    const r = await bible.previewRef(ref, bible.refLabel(ref)).catch(() => null);
-    txt.setText(r ? r.text : t("Testo non trovato: tocca per aprire la Bibbia."));
-  }
-  /** Rimando a una pubblicazione del vault: i paragrafi citati (al massimo 4), tocca per aprirla lì. */
-  async weekPubCard(card, d, seg) {
-    card.createDiv({ cls: "lmp-ref-label", text: `${d.pub.title}${d.issue && d.issue !== "altro" ? ` \xB7 ${issueLabel(d.issue)}` : ""} \u2014 ${d.title}` });
-    const pars = [];
-    for (let p = seg.a; p && p <= seg.b && pars.length < 4; p++) pars.push(p);
-    card.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id, par: seg.a || void 0 }));
-    if (!pars.length) {
-      card.createDiv({ cls: "lmp-ref-text", text: t("Tocca per aprire.") });
-      return;
-    }
-    const texts = await Promise.all(pars.map((p) => this.lib.paragraphText(d, p).catch(() => "")));
-    for (const t2 of texts.filter(Boolean)) card.createDiv({ cls: "lmp-ref-text", text: t2 });
-    if (!texts.some(Boolean)) card.createDiv({ cls: "lmp-ref-text", text: t("Tocca per aprire.") });
-    if (seg.b - seg.a + 1 > pars.length) card.createDiv({ cls: "lmp-ref-text lmp-week-more", text: t("Continua nella pubblicazione\u2026") });
-  }
-  weekStudyCard(el, d) {
-    const box = el.createDiv("lmp-week-card lmp-week-study");
-    box.createEl("h3", { text: t("Studio Torre di Guardia") });
-    const row = box.createDiv({ cls: "lmp-week-article", attr: { role: "button", tabindex: "0" } });
-    row.createDiv({ cls: "lmp-week-article-title", text: d.title });
-    row.createDiv({ cls: "lmp-week-article-sub", text: `${t("La Torre di Guardia")} \xB7 ${issueLabel(d.issue)}` });
-    const go = () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id });
-    row.addEventListener("click", go);
-    row.addEventListener("keydown", (e) => e.key === "Enter" && go());
-  }
-  pubTile(grid, p) {
-    const tile = grid.createDiv({ cls: `lmp-lib-tile cat-lib-${p.category}` });
-    const cover = this.lib.pubCover(p);
-    const art = tile.createDiv("lmp-lib-cover");
-    if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), loading: "lazy", alt: "" } });
-    else this.fakeCover(art, p);
-    tile.createDiv({ cls: "lmp-lib-tile-title", text: p.title });
-    tile.createDiv({ cls: "lmp-lib-tile-meta", text: p.issues ? t("{n} numeri", { n: p.issues.length }) : p.docs.length === 1 ? t("1 documento") : t("{n} documenti", { n: p.docs.length }) });
-    tile.addEventListener("click", () => this.navigate({ mode: "pub", sym: p.symbol }));
-  }
-  /** Copertina disegnata per le pubblicazioni senza immagine: titolo e simbolo, nel colore della categoria. */
-  fakeCover(art, p, subtitle) {
-    art.addClass("is-fake");
-    art.createDiv({ cls: "lmp-lib-fake-title", text: subtitle || p.title });
-    art.createDiv({ cls: "lmp-lib-fake-sym", text: p.symbol });
-  }
-  docRow(list, d, showPub) {
-    const row = list.createDiv("lmp-lib-docrow");
-    const num = row.createDiv("lmp-lib-docnum");
-    const txt = row.createDiv("lmp-lib-docrow-text");
-    if (showPub) txt.createDiv({ cls: "lmp-lib-docrow-pub", text: `${d.pub.title}${d.issue && d.issue !== "altro" ? ` \xB7 ${issueLabel(d.issue)}` : ""}` });
-    const kind = txt.createDiv("lmp-lib-docrow-kind");
-    txt.createDiv({ cls: "lmp-lib-docrow-title", text: d.title });
-    row.addEventListener("click", () => this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id }));
-    const fill = (label) => {
-      if (!label || !num.isConnected) return;
-      num.setText(String(label.num));
-      list.addClass("has-numbers");
-      if (label.kind !== "Capitolo") kind.setText(t(label.kind));
-    };
-    if (d.label !== void 0) fill(d.label);
-    else (this.pendingLabels = this.pendingLabels || []).push([d, fill]);
-  }
-  /** Legge i numeri dei capitoli dopo aver disegnato l'elenco, un po' per volta. */
-  async fillLabels(token) {
-    const queue = this.pendingLabels || [];
-    this.pendingLabels = [];
-    for (let i = 0; i < queue.length; i += 12) {
-      if (token !== this.renderToken) return;
-      await Promise.all(queue.slice(i, i + 12).map(([d, fill]) => this.lib.docLabel(d).then(fill)));
-    }
-  }
-  /* ---------------- pubblicazione ---------------- */
-  pubHeader(wrap, p, docs, subtitle, issue = "") {
-    const head = wrap.createDiv({ cls: `lmp-lib-head cat-lib-${p.category}` });
-    const cover = this.lib.coverOf(docs) || this.lib.symCovers.get(p.symbol);
-    const art = head.createDiv("lmp-lib-cover lmp-lib-cover-big");
-    if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), alt: "" } });
-    else this.fakeCover(art, p);
-    const txt = head.createDiv();
-    txt.createEl("h2", { text: p.title });
-    txt.createDiv({ cls: "lmp-lib-head-meta", text: subtitle });
-    if (!(p.issues && !issue) && this.plugin.has("pubSource")) this.pubSource(txt.createDiv("lmp-lib-head-src"), p, issue, docs);
-    pubLangButton(this.plugin, head, (evt) => this.pubLangMenu(evt, p, issue));
-    const del = head.createEl("button", { cls: "clickable-icon lmp-lib-del", attr: { "aria-label": issue ? t("Togli questo numero") : t("Togli la pubblicazione") } });
-    (0, import_obsidian13.setIcon)(del, "trash-2");
-    del.addEventListener("click", () => new RemovePubModal(this.app, issue ? `${p.title} \xB7 ${issueLabel(issue)}` : p.title, async () => {
-      await this.lib.remove(p.symbol, issue);
-      new import_obsidian13.Notice(t("Tolto: {nome}", { nome: issue ? issueLabel(issue) : p.title }));
-      this.navigate(issue && this.lib.bySym.has(p.symbol) ? { mode: "pub", sym: p.symbol } : { mode: "home" }, { push: false });
-    }).open());
-  }
-  /** Lingue (codici) in cui c'è questa pubblicazione, oltre a quella attuale. */
-  async pubLangsOf(p) {
-    const cur2 = pubLang(this.plugin.settings);
-    const others = BIBLE_LANGS.filter(([code]) => code !== cur2);
-    const there = await Promise.all(others.map(([code]) => hasInLang(this.plugin, code, ["", ".epub", ".wol"].map((x) => p.symbol + x))));
-    return others.filter((_, i) => there[i]).map(([code]) => code);
-  }
-  /**
-   * Menu delle lingue della pubblicazione (ogni lingua è una biblioteca a parte): ✓ quella attuale, il nome se lì c'è già
-   * (apre lo stesso documento, numero o pubblicazione), "Scarica in English" (EPUB da jw.org) se lì c'è la Bibbia,
-   * altrimenti si passa a quella lingua e si scarica prima la Bibbia. d: il documento aperto, se c'è.
-   */
-  async pubLangMenu(evt, p, issue, d) {
-    const cur2 = pubLang(this.plugin.settings);
-    const [have, bibles] = await Promise.all([this.pubLangsOf(p), Promise.all(BIBLE_LANGS.map(([code]) => hasBibleIn(this.plugin, code)))]);
-    const menu = new import_obsidian13.Menu();
-    BIBLE_LANGS.forEach(([code, name], i) => {
-      menu.addItem((it) => {
-        if (code === cur2) return it.setTitle(name).setChecked(true);
-        if (have.includes(code)) return it.setTitle(name).onClick(() => this.openInLang(code, p, issue, d));
-        if (!bibles[i]) return it.setTitle(t("{lingua} \xB7 prima scarica la Bibbia", { lingua: name })).onClick(() => this.plugin.setPubLang(code));
-        it.setTitle(t("Scarica in {lingua}", { lingua: name })).setIcon("download").onClick(() => this.downloadInLang(code, name, p, issue));
-      });
-    });
-    menu.showAtMouseEvent(evt);
-  }
-  /**
-   * Passa alla lingua code e apre lì la stessa pagina. Il documento: stesso id (l'id dei documenti di JW è uguale in tutte le
-   * lingue), altrimenti (EPUB, id diversi) quello nella stessa posizione del numero, se i documenti sono tanti quanti.
-   */
-  async openInLang(code, p, issue, d) {
-    const listOf = (pub) => (issue ? (pub.issues || []).find((x) => x.key === issue)?.docs : pub.docs) || [];
-    const oldList = listOf(p);
-    await this.plugin.setPubLang(code);
-    await this.lib.ensureLoaded();
-    const np = this.lib.bySym.get(p.symbol);
-    if (!np) return this.navigate({ mode: "home" }, { push: false });
-    const list = listOf(np);
-    let target = issue && list.length ? { mode: "issue", sym: np.symbol, issue } : { mode: "pub", sym: np.symbol };
-    if (d) {
-      const same = this.lib.byDocId.get(d.id);
-      const nd = same && same.pub === np ? same : list.length === oldList.length ? list[oldList.indexOf(d)] : null;
-      if (nd) target = { mode: "doc", doc: nd.id };
-    }
-    this.navigate(target, { push: false });
-  }
-  async downloadInLang(code, name, p, issue) {
-    try {
-      if (!await epubInfo(code, p.symbol, issue || "")) return new import_obsidian13.Notice(t("Su jw.org non c\u2019\xE8 un EPUB in {lingua} di questa pubblicazione.", { lingua: name }));
-      await this.plugin.setPubLang(code);
-      if (await this.plugin.importFromJw(p.symbol, issue || "", () => {
-      }, p.category)) {
-        await this.plugin.openLibraryAt(issue ? { mode: "issue", sym: p.symbol, issue } : { mode: "pub", sym: p.symbol });
-      }
-    } catch (e) {
-      if (!e.cancelled) new import_obsidian13.Notice(`${t("Scarica in {lingua}", { lingua: name })}: ${e.message || e}`);
-    }
-  }
-  /** Da dove arriva la pubblicazione (o il numero), dai fornitori: { text, action?: { label, run } }. */
-  async pubSource(el, p, issue, docs) {
-    const r = await this.plugin.ask("pubSource", p, issue, docs).catch(() => null);
-    if (!r) return el.remove();
-    el.createSpan({ text: r.text });
-    if (!r.action) return;
-    const b = el.createEl("button", { cls: "mod-cta", text: r.action.label });
-    b.addEventListener("click", async () => {
-      b.disabled = true;
-      try {
-        if (await r.action.run()) this.navigate({ ...this.state }, { push: false });
-      } catch (e) {
-        if (!e.cancelled) new import_obsidian13.Notice(`${r.action.label}: ${e.message || e}`);
-      } finally {
-        b.disabled = false;
-      }
-    });
-  }
-  renderPub() {
-    const p = this.lib.bySym.get(this.state.sym);
-    if (!p) return this.renderHome();
-    const wrap = this.mainEl.createDiv("lmp-lib-page");
-    if (p.issues) {
-      this.pubHeader(wrap, p, p.issues[0].docs, t("{n} numeri \xB7 {m} articoli", { n: p.issues.length, m: p.docs.length }));
-      let year = "";
-      let grid = null;
-      for (const iss of p.issues) {
-        const y = iss.key.slice(0, 4);
-        if (y !== year) {
-          year = y;
-          wrap.createEl("h4", { cls: "lmp-section-title", text: /^\d{4}$/.test(y) ? y : t("Altro") });
-          grid = wrap.createDiv("lmp-lib-grid lmp-lib-grid-issues");
-        }
-        const tile = grid.createDiv("lmp-lib-tile");
-        const cover = this.lib.coverOf(iss.docs);
-        const art = tile.createDiv("lmp-lib-cover");
-        if (cover) art.createEl("img", { attr: { src: fileSrc(this.app, cover), loading: "lazy", alt: "" } });
-        else this.fakeCover(art, p, issueLabel(iss.key));
-        tile.createDiv({ cls: "lmp-lib-tile-title", text: issueLabel(iss.key) });
-        tile.createDiv({ cls: "lmp-lib-tile-meta", text: t("{n} articoli", { n: iss.docs.length }) });
-        tile.addEventListener("click", () => this.navigate({ mode: "issue", sym: p.symbol, issue: iss.key }));
-      }
-      return;
-    }
-    this.pubHeader(wrap, p, p.docs, p.docs.length === 1 ? t("1 documento") : t("{n} documenti", { n: p.docs.length }));
-    let docs = p.docs;
-    if (docs.length > 300) {
-      const letters = [...new Set(docs.map((d) => norm(d.title).replace(/[^a-z]/g, "").charAt(0).toUpperCase()).filter(Boolean))].sort();
-      const bar = wrap.createDiv("lmp-lib-letters");
-      const letter = this.state.letter || letters[0];
-      for (const l of letters) {
-        const b = bar.createEl("button", { cls: `lmp-lib-letter${l === letter ? " is-active" : ""}`, text: l });
-        b.addEventListener("click", () => this.navigate({ mode: "pub", sym: p.symbol, letter: l }, { push: false }));
-      }
-      const filter = wrap.createEl("input", { type: "search", cls: "lmp-lib-search", attr: { placeholder: t("Cerca in {nome}\u2026", { nome: p.title }) } });
-      const list2 = wrap.createDiv("lmp-lib-doclist");
-      const draw = () => {
-        list2.empty();
-        const q2 = norm(filter.value).trim();
-        const shown = q2 ? docs.filter((d) => norm(d.title).includes(q2)).slice(0, 200) : docs.filter((d) => norm(d.title).replace(/[^a-z]/g, "").charAt(0).toUpperCase() === letter);
-        for (const d of shown.sort((a, b) => compare(a.title, b.title))) this.docRow(list2, d);
-      };
-      filter.addEventListener("input", draw);
-      draw();
-      return;
-    }
-    const list = wrap.createDiv("lmp-lib-doclist");
-    for (const d of docs) this.docRow(list, d);
-  }
-  renderIssue() {
-    const p = this.lib.bySym.get(this.state.sym);
-    const iss = p && p.issues && p.issues.find((i) => i.key === this.state.issue);
-    if (!iss) return this.renderPub();
-    const wrap = this.mainEl.createDiv("lmp-lib-page");
-    this.pubHeader(wrap, p, iss.docs, `${issueLabel(iss.key)} \xB7 ${t("{n} articoli", { n: iss.docs.length })}`, iss.key);
-    const list = wrap.createDiv("lmp-lib-doclist");
-    for (const d of iss.docs) this.docRow(list, d);
-  }
-  /* ---------------- documento ---------------- */
-  docSiblings(d) {
-    if (d.issue && d.pub.issues) return (d.pub.issues.find((i) => i.key === d.issue) || { docs: [] }).docs;
-    return d.pub.docs;
-  }
-  stepDoc(delta) {
-    const d = this.state.mode === "doc" && this.lib.byDocId.get(this.state.doc);
-    if (!d) return;
-    const list = this.docSiblings(d);
-    const i = list.indexOf(d) + delta;
-    if (i >= 0 && i < list.length) this.navigate({ mode: "doc", sym: d.pub.symbol, doc: list[i].id });
-  }
-  async renderDoc(token) {
-    const d = this.lib.byDocId.get(this.state.doc);
-    if (!d) return this.renderHome();
-    const file = fileAt(this.app, `${d.pub.prefix}${d.rel}`);
-    const wrap = this.mainEl.createDiv("lmp-lib-doc");
-    const top = wrap.createDiv("lmp-lib-doc-top");
-    const crumbs = top.createDiv("lmp-lib-crumbs");
-    this.pubLangsOf(d.pub).then((have) => {
-      if (have.length && token === this.renderToken) pubLangButton(this.plugin, top, (evt) => this.pubLangMenu(evt, d.pub, d.issue !== "altro" ? d.issue : "", d));
-    });
-    const pubLink = crumbs.createSpan({ cls: "lmp-lib-crumb", text: d.pub.title });
-    pubLink.addEventListener("click", () => this.navigate({ mode: "pub", sym: d.pub.symbol }));
-    if (d.issue && d.issue !== "altro") {
-      crumbs.appendText(" \u203A ");
-      const il = crumbs.createSpan({ cls: "lmp-lib-crumb", text: issueLabel(d.issue) });
-      il.addEventListener("click", () => this.navigate({ mode: "issue", sym: d.pub.symbol, issue: d.issue }));
-    }
-    if (!file) {
-      wrap.createDiv({ cls: "lmp-empty", text: t("File del documento non trovato.") });
-      return;
-    }
-    const text = await readFile(this.app, file);
-    if (token !== this.renderToken) return;
-    let body = stripFrontmatter(text).replace(/<!--[\s\S]*?-->/g, "").replace(/[ \t]+\^p(\d+)[ \t]*$/gm, ' <span class="lmp-pid lmp-pid-$1"></span>').replace(/[ \t]+\^[\w-]+[ \t]*$/gm, "");
-    const label = findDocLabel(body);
-    if (label) {
-      const lines = body.split("\n");
-      lines.splice(label.line, 1);
-      body = lines.join("\n");
-      wrap.createDiv({ cls: "lmp-lib-doc-kicker", text: `${t(label.kind)} ${label.num}` });
-    }
-    const titleEl = wrap.createEl("h1", { cls: "lmp-lib-doc-title", text: d.title });
-    const key = norm(d.title).replace(/[^a-z0-9]/g, "").slice(0, 24);
-    body = body.replace(/^#{1,2}\s+(.+)$/m, (h, t2, at) => {
-      if (!norm(t2).replace(/[^a-z0-9]/g, "").startsWith(key)) return h;
-      const before = [...body.slice(0, at).matchAll(/lmp-pid-(\d+)/g)].map((x) => +x[1]);
-      const pid = before.length ? Math.max(...before) + 1 : 1;
-      const own = /lmp-pid-(\d+)/.exec(t2);
-      const plain2 = t2.replace(/<span class="lmp-pid[^>]*><\/span>/, "").replace(/[*_]/g, "").trim();
-      if (own || !body.includes(`lmp-pid-${pid}"`)) {
-        titleEl.setText(plain2 || d.title);
-        titleEl.appendChild(createSpan({ cls: `lmp-pid lmp-pid-${own ? own[1] : pid}` }));
-        this.titlePidEl = titleEl;
-      }
-      return "";
-    });
-    const content = wrap.createDiv("lmp-lib-doc-body markdown-rendered");
-    content.dataset.sourcePath = file.path;
-    await renderMd(this.app, body, content, file.path, this.comp);
-    if (token !== this.renderToken) return;
-    this.docBody = wrap;
-    this.docWrap = wrap;
-    this.wrapDocWords(wrap);
-    this.applyDocMarks();
-    this.renderImageText(d, file, content, token);
-    this.renderAnswerFields(d, wrap, token);
-    await this.renderDocNotes();
-    if (token !== this.renderToken) return;
-    const nav = wrap.createDiv("lmp-chapter-nav");
-    const sib = this.docSiblings(d);
-    const i = sib.indexOf(d);
-    const navBtn = (doc, icon, after) => {
-      const b = nav.createEl("button", { cls: "lmp-nav-btn" });
-      if (!doc) return b.addClass("is-hidden");
-      const ic = createSpan();
-      (0, import_obsidian13.setIcon)(ic, icon);
-      if (!after) b.appendChild(ic);
-      b.createSpan({ text: doc.title.length > 40 ? `${doc.title.slice(0, 40)}\u2026` : doc.title });
-      if (after) b.appendChild(ic);
-      b.addEventListener("click", () => this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id }));
-    };
-    navBtn(sib[i - 1], "chevron-left", false);
-    navBtn(sib[i + 1], "chevron-right", true);
-    this.plugin.addRecent({ doc: d.id });
-  }
-  /**
-   * Immagini: la riga subito sotto senza codice di paragrafo è la didascalia e si mostra come tale; il testo alternativo
-   * (quando si conosce) va sotto l'immagine.
-   */
-  async renderImageText(d, file, content, token) {
-    const figs = [...content.querySelectorAll(".internal-embed[src]")].filter((e) => /\.(png|jpe?g|gif|webp|avif)$/i.test(e.getAttribute("src"))).map((e) => {
-      const block = e.closest("p") || e;
-      const next = block.nextElementSibling;
-      const cap = next && next.tagName === "P" && !next.dataset.pid && !next.querySelector("[data-pid], .lmp-pid, .internal-embed") ? next : null;
-      if (cap) cap.addClass("lmp-img-caption");
-      return { e, block, cap };
-    });
-    for (const ol of content.querySelectorAll("ol")) {
-      const items = [...ol.children].filter((li) => li.tagName === "LI");
-      if (items.length && items.every((li, i) => +(/^(\d+)\.\s/.exec(li.innerText.trim()) || [])[1] === i + (ol.start || 1))) ol.addClass("lmp-ol-plain");
-    }
-    for (const p of content.querySelectorAll("p + p")) {
-      const text = (el) => el.textContent.replace(/\s+/g, " ").trim();
-      const t2 = text(p);
-      if (t2 && t2.length < 40 && t2 === text(p.previousElementSibling)) p.addClass("lmp-dup-label");
-    }
-    if (!figs.length) return;
-    const files = figs.map((f) => f.e.getAttribute("src").split("/").pop());
-    const alts = await this.plugin.imageAlts(d, files, fileMeta(this.app, file)?.frontmatter?.source);
-    if (token !== this.renderToken) return;
-    for (const [i, { e, block, cap }] of figs.entries()) {
-      const alt = alts[files[i]];
-      if (!alt || cap && norm(cap.textContent) === norm(alt)) continue;
-      e.setAttribute("alt", alt);
-      const img = e.querySelector("img");
-      if (img) img.setAttribute("alt", alt);
-      block.after(createDiv({ cls: "lmp-img-alt", text: alt }));
-    }
-  }
-  /**
-   * Paragrafi numerati come in JW Library (data-pid) e parole contate con la stessa regola,
-   * così le evidenziazioni del backup cadono sulle parole giuste. Il numero del paragrafo (<sup>) non conta.
-   */
-  wrapDocWords(root) {
-    root.querySelectorAll(".lmp-pid").forEach((mk) => {
-      const pid = /lmp-pid-(\d+)/.exec(mk.className);
-      const block = mk.closest("p, li, h1, h2, h3, h4, h5, h6, blockquote, td, th, figcaption") || mk.parentElement;
-      mk.remove();
-      if (!pid || !block || block.dataset.pid) return;
-      block.dataset.pid = pid[1];
-      const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT, {
-        acceptNode: (n2) => n2.parentElement.closest("sup, .lmp-w, .lmp-sp, img, svg") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
-      });
-      const nodes = [];
-      while (walker.nextNode()) nodes.push(walker.currentNode);
-      let n = 0;
-      for (const node of nodes) {
-        const frag = document.createDocumentFragment();
-        for (const chunk of node.nodeValue.split(/(\[\^[^\]\s]+\])/)) {
-          if (/^\[\^[^\]\s]+\]$/.test(chunk)) {
-            frag.appendChild(createSpan({ cls: "lmp-fn-ref", text: chunk }));
-            continue;
-          }
-          for (const part of splitJwTokens(chunk)) {
-            if (part.w) frag.appendChild(createSpan({ cls: "lmp-w", text: part.s, attr: { "data-t": String(n++) } }));
-            else if (n > 0) frag.appendChild(createSpan({ cls: "lmp-sp", text: part.s, attr: { "data-a": String(n - 1) } }));
-            else frag.appendChild(document.createTextNode(part.s));
-          }
-        }
-        node.replaceWith(frag);
-      }
-    });
-  }
-  /** Dove sei: il paragrafo aperto nel pannello, altrimenti il primo visibile. */
-  herePlace() {
-    const d = this.state.mode === "doc" && this.lib.byDocId.get(this.state.doc);
-    if (!d || !this.docWrap) return null;
-    let par = this.panePar;
-    if (par == null) {
-      const top = this.mainEl.getBoundingClientRect().top;
-      const b = [...this.docWrap.querySelectorAll("[data-pid]")].find((x) => x.getBoundingClientRect().bottom > top + 4);
-      par = b ? +b.dataset.pid : void 0;
-    }
-    return { place: { doc: d.id, par }, label: d.title };
-  }
-  /** Campi "La tua risposta" come in JW Library: la risposta del backup o quella scritta qui, modificabile. */
-  async renderAnswerFields(d, wrap, token) {
-    const labels = [...wrap.querySelectorAll("[data-pid]")].filter((b) => /^(la tua risposta|le tue risposte|your answers?)$/i.test(b.textContent.trim()));
-    if (!labels.length) return;
-    const [fields, base] = await Promise.all([this.plugin.docAnswerFields(d), this.plugin.baseAnswers()]);
-    if (token !== this.renderToken || !fields) return;
-    for (const block of labels) {
-      const label = block.textContent.trim();
-      let after = block;
-      const tas = [];
-      for (const tag of fields[block.dataset.pid] || []) {
-        const ta = this.plugin.answerBox(d.id, tag, label, base);
-        after.after(ta);
-        after = ta;
-        tas.push(ta);
-      }
-      if (after === block) continue;
-      block.addClass("lmp-answer-label");
-      for (const ta of tas) this.aiField(ta, () => this.docAiCtx({ label: block }));
-    }
-  }
-  /** Lampadina dentro un campo di risposta: prompt rapidi, poi gli spunti sotto il campo, con "Usa" per metterli lì. */
-  aiField(ta, getCtx, qpid) {
-    const wrap = createDiv("lmp-answer-wrap");
-    ta.before(wrap);
-    wrap.appendChild(ta);
-    const btn = wrap.createEl("button", { cls: "clickable-icon lmp-ai-btn", attr: { "aria-label": t("Spunti per il commento") } });
-    (0, import_obsidian13.setIcon)(btn, "lightbulb");
-    btn.addEventListener(
-      "click",
-      (evt) => aiMenu(
-        this.plugin,
-        evt,
-        (preset) => this.runAi(preset, getCtx, {
-          btn,
-          ta,
-          qpid,
-          place: (box) => {
-            const old = wrap.nextElementSibling;
-            if (old && old.hasClass("lmp-ai-box")) old.remove();
-            wrap.after(box);
-          }
-        })
-      )
-    );
-  }
-  /** Spunti su un paragrafo (o sul testo selezionato), nel pannello del paragrafo. */
-  aiOnParagraph(evt, pid, focus) {
-    aiMenu(this.plugin, evt, (preset) => {
-      if (this.paneMode !== "par" || this.panePar !== pid) this.openParPane(pid);
-      const f = this.docAiFocus(pid);
-      this.runAi(preset, () => this.docAiCtx({ ...f, focus }), {
-        ta: f.ta,
-        qpid: pid,
-        place: (box) => {
-          if (this.paneAi && this.paneAi.box !== box) this.paneAi.box.remove();
-          this.paneAi = { doc: this.state.doc, pid, box };
-          const content = this.paneEl && this.paneEl.querySelector(".lmp-pane-content");
-          if (content) content.prepend(box);
-        }
-      });
-    });
-  }
-  /**
-   * Domanda e paragrafi per un paragrafo qualsiasi: se è una domanda, i paragrafi che seguono; altrimenti il paragrafo
-   * stesso e la domanda stampata prima (se c'è), con il suo campo di risposta per "Usa".
-   */
-  docAiFocus(pid) {
-    const blocks = [...this.docWrap.querySelectorAll("[data-pid]")];
-    const i = blocks.findIndex((b) => +b.dataset.pid === pid);
-    let q2 = null;
-    for (let j = i; j >= 0 && j > i - 12; j--) {
-      if (isQuestionBlock(blocks[j])) {
-        q2 = blocks[j];
-        break;
-      }
-      if (j < i && /^H[1-6]$/.test(blocks[j].tagName)) break;
-    }
-    const label = q2 && blocks[blocks.indexOf(q2) + 1];
-    const wrap = label && isLabelBlock(label) && label.nextElementSibling;
-    const ta = wrap && wrap.hasClass && wrap.hasClass("lmp-answer-wrap") ? wrap.querySelector("textarea") : null;
-    return { q: q2, used: q2 === blocks[i] ? null : [blocks[i]], ta };
-  }
-  /**
-   * Contesto per gli spunti in un documento. Al modello vanno l'articolo intero, la domanda e i suoi paragrafi, le
-   * scritture citate con note di studio, note in calce, riferimenti a margine e "Citato in", e le tue note sui paragrafi.
-   */
-  async docAiCtx({ label, q: q2, used, focus }) {
-    const d = this.currentDoc();
-    const blocks = [...this.docWrap.querySelectorAll("[data-pid]")];
-    if (label) q2 = blocks[blocks.indexOf(label) - 1];
-    const review = !!(label && q2 && !isQuestionBlock(q2));
-    if (review) used = [];
-    if (!used) {
-      used = [];
-      for (let j = blocks.indexOf(q2) + 1; q2 && j < blocks.length && used.length < 6; j++) {
-        if (isQuestionBlock(blocks[j])) break;
-        if (!isLabelBlock(blocks[j]) && blockText(blocks[j])) used.push(blocks[j]);
-      }
-    }
-    const sources = new SourceList();
-    const parIds = /* @__PURE__ */ new Map();
-    for (const b of blocks) {
-      if (isLabelBlock(b) || !blockText(b)) continue;
-      const id = sources.add(this.parLabel(+b.dataset.pid), blockText(b), { par: +b.dataset.pid });
-      if (id) parIds.set(b, id);
-    }
-    for (const el of this.docWrap.querySelectorAll(".lmp-img-alt, p.lmp-img-caption")) {
-      const prev = blocks.filter((b) => b.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING).pop();
-      const pid = prev ? +prev.dataset.pid : null;
-      const where = pid ? this.parLabel(pid) : t("Paragrafo");
-      sources.add(where === t("Paragrafo") ? t("Immagine") : t("Immagine dopo {where}", { where }), blockText(el), pid ? { par: pid } : {});
-    }
-    const refs = /* @__PURE__ */ new Map();
-    for (const b of [q2, ...used].filter(Boolean))
-      for (const a of b.querySelectorAll('a[href*="bible="]')) {
-        const codes = codesFromJwUrl(a.getAttribute("href"));
-        const ref = codes && refFromCodes(codes[0], codes[1]);
-        const lbl = ref && ref.chapter && this.plugin.bible.refLabel(ref);
-        if (lbl && !refs.has(lbl)) refs.set(lbl, ref);
-      }
-    const shared = sources.items.length;
-    await addScriptureSources(this.plugin, [...refs.values()], sources, d ? d.file : "");
-    const pids = new Set([q2, ...used].filter(Boolean).map((b) => +b.dataset.pid));
-    return {
-      title: d ? d.title : "",
-      question: q2 ? blockText(q2) : "",
-      review,
-      shared,
-      paragraphIds: used.map((b) => parIds.get(b)).filter(Boolean),
-      focus: focus ? focus.replace(/\s+/g, " ").trim().slice(0, 1500) : "",
-      sources,
-      notes: (this.docNotes || []).filter((x) => pids.has(x.pid)).map((x) => [x.n.title, x.n.content].filter((t2) => t2 && t2 !== "Nota").join(": ")).filter(Boolean),
-      qpid: q2 ? +q2.dataset.pid : null
-    };
-  }
-  /** Contesto per un campo della Guida per l'adunanza: la parte del programma, le scritture e i paragrafi citati. */
-  async weekAiCtx(items, fi, k) {
-    const segText = (s) => typeof s === "string" ? s : Array.isArray(s) ? s[0] : s.t;
-    const part = [];
-    for (let j = fi - 1; j >= 0 && part.length < 12; j--) {
-      const it = items[j];
-      if (it.k === "f") continue;
-      if (it.k === "h1" || it.k === "h2") break;
-      part.unshift(it);
-      if (it.k === "h3") break;
-    }
-    const last = part.filter((it) => it.k === "p").pop();
-    const q2 = last ? last.x.map(segText).join("").replace(/^\(\d+\s+min\)\s*/, "") : "";
-    if (/gemme spirituali|spiritual gems/i.test(q2) && /lettura|reading/i.test(q2)) {
-      const reading = items.find((x) => x.k === "h2" && !x.s && x.x.some((t2) => Array.isArray(t2)));
-      const link = reading && reading.x.find((t2) => Array.isArray(t2));
-      const ctx = link && await this.readingAiCtx(link, q2);
-      if (ctx) return ctx;
-    }
-    const sources = new SourceList();
-    const text = (it) => it.k === "img" ? [it.cap, it.alt].filter(Boolean).join(" \u2014 ") : it.x.map(segText).join("");
-    const label = (it) => it.k === "h3" ? t("Parte del programma") : it.k === "img" ? t("Immagine del programma") : t("Guida per l\u2019adunanza");
-    const ids = part.map((it) => sources.add(label(it), text(it), {})).filter(Boolean);
-    const refs = [];
-    for (const it of part)
-      for (const s of it.x || []) {
-        if (Array.isArray(s)) {
-          const ref = refFromCodes(s[1], s[2] || void 0);
-          if (ref && ref.chapter) refs.push(ref);
-          continue;
-        }
-        if (s && s.ex) sources.add(s.t, s.ex.join("\n"), {});
-        const d = s && s.doc && this.lib.byDocId.get(s.doc);
-        if (!d) continue;
-        for (let p = s.a; p && p <= s.b && p < s.a + 6; p++) {
-          const t2 = await this.lib.paragraphText(d, p).catch(() => "");
-          if (t2) sources.add(`\xAB${d.title}\xBB \xB6${p}`, t2, { cite: d.file, par: p });
-        }
-      }
-    await addScriptureSources(this.plugin, refs, sources, "");
-    return { title: t("Guida per l\u2019adunanza, {settimana}", { settimana: weekLabel(k) }), question: q2, paragraphIds: ids, sources, notes: [] };
-  }
-  /**
-   * Gemme spirituali: i capitoli della lettura (in cache, uguali per ogni richiesta della settimana), poi per ogni
-   * versetto note di studio, note in calce, "Citato in" e riferimenti a margine, e le tue note che citano i versetti.
-   * `link` è il link della lettura nel programma: [testo, codice inizio, codice fine].
-   */
-  async readingAiCtx(link, q2) {
-    const bible = this.plugin.bible;
-    const a = parseCode(link[1]);
-    const b = parseCode(link[2] || link[1]);
-    if (a.book !== b.book) return null;
-    const sources = new SourceList(4e5);
-    const ids = [];
-    const refs = [];
-    for (let c = a.chapter; c <= b.chapter && c < a.chapter + 8; c++) {
-      const d = await bible.getChapter(a.book, c).catch(() => null);
-      if (!d) continue;
-      for (const v of [...d.verseLines.keys()].sort((x, y) => x - y)) {
-        if (c === a.chapter && a.verse && v < a.verse || c === b.chapter && b.verse && v > b.verse) continue;
-        const ref = { book: a.book, chapter: c, verse: v };
-        const id = sources.add(bible.refLabel(ref), bible.verseText(d, v), { verse: ref });
-        if (id) ids.push(id);
-        refs.push(ref);
-      }
-    }
-    if (!ids.length) return null;
-    const shared = sources.items.length;
-    const seen = /* @__PURE__ */ new Set();
-    for (const r of refs)
-      for (const e of this.plugin.noteIndex ? this.plugin.noteIndex.lookup(r.book, r.chapter, r.verse) : []) {
-        const key = `${e.path}:${e.line}`;
-        if (seen.has(key) || seen.size >= 30) continue;
-        seen.add(key);
-        sources.add(t("Mia nota \xAB{nome}\xBB (cita {ref})", { nome: e.path.split("/").pop().replace(/\.md$/, ""), ref: bible.refLabel(r) }), e.snippet, { note: e.path, line: e.line });
-      }
-    await addScriptureSources(this.plugin, refs, sources, "", { maxVerses: Infinity, citesFirst: true });
-    return {
-      title: t("Lettura biblica della settimana: {ref}", { ref: `${bible.refLabel({ book: a.book, chapter: a.chapter })}${b.chapter !== a.chapter ? `-${b.chapter}` : ""}` }),
-      question: `${q2} ${t("(Ogni commento parte da un versetto preciso della lettura, che va nominato all'inizio, e aggiunge un dettaglio che lo rende prezioso: una nota di studio, un riferimento a margine o una pubblicazione che lo cita. Tre versetti diversi.)")}`,
-      paragraphIds: ids,
-      sources,
-      shared,
-      notes: []
-    };
-  }
-  runAi(preset, getCtx, { btn, ta, qpid, place }) {
-    return showAiSuggestions(this.plugin, preset, getCtx, {
-      btn,
-      ta,
-      place,
-      onSource: (t2, ctx) => this.openCommentSource(t2, qpid ?? ctx.qpid),
-      onClose: (box) => {
-        if (this.paneAi && this.paneAi.box === box) this.paneAi = null;
-      }
-    });
-  }
-  /** Fonte di uno spunto: paragrafo dell'articolo, versetto (nel pannello "approfondisci") o pubblicazione citata. */
-  openCommentSource(t2, qpid) {
-    if (!t2) return;
-    if (t2.note) return this.app.workspace.openLinkText(t2.note, "", true);
-    if (t2.verse && this.state.mode !== "doc") return this.plugin.openReader(t2.verse);
-    if (t2.par != null && !t2.cite) return this.openParPane(t2.par);
-    if (t2.verse) {
-      if (qpid != null) this.openParPane(qpid);
-      return this.goDeep(t2.verse, true);
-    }
-    const doc = t2.cite && this.plugin.library.byFile && this.plugin.library.byFile.get(t2.cite);
-    if (doc) this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id, par: t2.par || void 0 });
-  }
-  applyDocMarks() {
-    const root = this.docBody;
-    if (!root || this.state.mode !== "doc") return;
-    root.querySelectorAll(".lmp-w[data-hl], .lmp-sp[data-hl]").forEach((e) => {
-      delete e.dataset.hl;
-      delete e.dataset.mid;
-    });
-    const marks = this.plugin.marksForDoc(this.state.doc);
-    if (!marks.length) return;
-    const blocks = /* @__PURE__ */ new Map();
-    root.querySelectorAll("[data-pid]").forEach((b) => blocks.set(+b.dataset.pid, b));
-    for (const m of marks) {
-      for (const r of m.ranges) {
-        const b = blocks.get(r.v);
-        if (!b) continue;
-        const end = r.e < 0 ? Infinity : r.e;
-        b.querySelectorAll(".lmp-w, .lmp-sp").forEach((e) => {
-          const w = e.hasClass("lmp-w");
-          const t2 = w ? +e.dataset.t : +e.dataset.a;
-          if (t2 >= r.s && (w ? t2 <= end : t2 < end)) {
-            e.dataset.hl = m.color;
-            e.dataset.mid = m.id;
-          }
-        });
-      }
-    }
-  }
-  /**
-   * Note di JW Library sul documento, come nell'app: un quadratino nel margine sulla riga dove inizia
-   * l'evidenziazione collegata (del suo colore), o all'inizio del paragrafo. Toccandolo si apre il
-   * pannello del paragrafo con la nota. A destra, un segno sui paragrafi usati come fonte da schede SCRABB.
-   */
-  async renderDocNotes() {
-    const wrap = this.docWrap;
-    if (!wrap || !wrap.isConnected || this.state.mode !== "doc") return;
-    const doc = this.state.doc;
-    const notes = await this.plugin.pubNotesFor(doc);
-    if (this.state.doc !== doc || !wrap.isConnected) return;
-    wrap.querySelectorAll(".lmp-doc-notes-btn").forEach((e) => e.remove());
-    this.docNotes = [];
-    const marks = new Map(this.plugin.marksForDoc(doc).map((m) => [m.id, m]));
-    for (const n of notes) {
-      const mark = n.mark ? marks.get(n.mark) : null;
-      const par = n.par || mark && mark.ranges[0] && mark.ranges[0].v || null;
-      const block = this.docBlock(par);
-      const anchor = mark && wrap.querySelector(`.lmp-w[data-mid="${mark.id}"]`) || block && block.querySelector(".lmp-w") || block;
-      this.docNotes.push({ n, mark, block, anchor, pid: block ? +block.dataset.pid : null });
-    }
-    if (notes.length) {
-      const crumbs = wrap.querySelector(".lmp-lib-crumbs");
-      if (crumbs) {
-        const btn = crumbs.createSpan({ cls: "lmp-doc-notes-btn", attr: { "aria-label": t("Tutte le note del documento") } });
-        (0, import_obsidian13.setIcon)(btn.createSpan(), "sticky-note");
-        btn.createSpan({ text: notes.length === 1 ? t("1 nota") : t("{n} note", { n: notes.length }) });
-        btn.addEventListener("click", () => this.openNotesPane());
-      }
-    }
-    this.layoutDocNoteSquares();
-    if (this.paneMode) this.renderLibPane();
-  }
-  /** Blocco del paragrafo; se manca nel file esportato, il più vicino prima di lui. */
-  docBlock(par) {
-    const wrap = this.docWrap;
-    if (!wrap || par == null) return null;
-    let block = wrap.querySelector(`[data-pid="${par}"]`);
-    if (!block) {
-      wrap.querySelectorAll("[data-pid]").forEach((b) => {
-        const p = +b.dataset.pid;
-        if (p < par && (!block || p > +block.dataset.pid)) block = b;
-      });
-    }
-    return block;
-  }
-  currentDoc() {
-    return this.state.mode === "doc" ? this.lib.byDocId.get(this.state.doc) : null;
-  }
-  /**
-   * Nome del paragrafo come lo si legge nella pagina: "par. 3", "domanda 4", il titolo per i titoletti.
-   * (Il numero interno di JW Library, ^p11, non coincide con quello stampato.)
-   */
-  parLabel(pid) {
-    const b = this.docWrap && this.docWrap.querySelector(`[data-pid="${pid}"]`);
-    if (!b) return t("Paragrafo");
-    const sup = b.querySelector("sup");
-    if (sup && /^\d+$/.test(sup.textContent.trim())) return t("par. {n}", { n: sup.textContent.trim() });
-    const txt = b.textContent.replace(/\s+/g, " ").trim();
-    const q2 = /^(\d+(?:[-–]\d+)?)\.\s/.exec(txt);
-    if (q2) return t("domanda {n}", { n: q2[1] });
-    if (/^H[1-6]$/.test(b.tagName)) return txt.length > 40 ? `${txt.slice(0, 40)}\u2026` : txt;
-    return t("Paragrafo");
-  }
-  /** Schede SCRABB che usano un paragrafo di questo documento come fonte. */
-  docFonti(par) {
-    const d = this.currentDoc();
-    const sc = this.plugin.scrabb;
-    if (!d || !d.file || !sc || !sc.ready) return [];
-    return sc.fontiOf(d.file, par);
-  }
-  /** Quadratini delle note (a sinistra) e segni delle schede SCRABB (a destra), riga per riga. */
-  layoutDocNoteSquares() {
-    const wrap = this.docWrap;
-    if (!wrap || !wrap.isConnected) return;
-    wrap.querySelectorAll(".lmp-doc-note-margin, .lmp-doc-scrabb-margin").forEach((e) => e.remove());
-    const base = wrap.getBoundingClientRect().top;
-    const list = (this.docNotes || []).filter((x) => x.anchor && x.anchor.isConnected);
-    if (list.length) {
-      const margin = wrap.createDiv("lmp-doc-note-margin");
-      const rows = /* @__PURE__ */ new Map();
-      for (const x of list) {
-        const r = x.anchor.getClientRects()[0] || x.anchor.getBoundingClientRect();
-        const key = Math.round((r.top - base) / 12);
-        if (!rows.has(key)) rows.set(key, { top: r.top - base, h: r.height, items: [] });
-        rows.get(key).items.push(x);
-      }
-      for (const row of rows.values()) {
-        const many = row.items.length > 1;
-        const size = many ? 15 : 12;
-        const sq = margin.createDiv({ cls: `lmp-margin-square${many ? " is-many" : ""}`, attr: { "aria-label": row.items.map((x) => x.n.title).join(" \xB7 ") } });
-        const colored = row.items.find((x) => x.mark);
-        if (colored) sq.dataset.hl = colored.mark.color;
-        if (many) sq.setText(String(row.items.length));
-        if (this.paneMode === "par" && row.items.some((x) => x.pid === this.panePar)) sq.addClass("is-open");
-        sq.style.top = `${row.top + (row.h - size) / 2}px`;
-        sq.addEventListener("click", () => row.items[0].pid != null && this.openParPane(row.items[0].pid));
-      }
-    }
-    const byPar = /* @__PURE__ */ new Map();
-    for (const f of this.docFonti()) {
-      if (f.par == null) continue;
-      if (!byPar.has(f.par)) byPar.set(f.par, []);
-      byPar.get(f.par).push(f.e);
-    }
-    if (byPar.size) {
-      const margin = wrap.createDiv("lmp-doc-scrabb-margin");
-      for (const [par, ents] of byPar) {
-        const block = wrap.querySelector(`[data-pid="${par}"]`);
-        const first = block && (block.querySelector(".lmp-w") || block);
-        if (!first) continue;
-        const r = first.getClientRects()[0] || first.getBoundingClientRect();
-        const ic = margin.createDiv({ cls: `lmp-doc-scrabb-mark scrabb-t-${ents[0].tipo}`, attr: { "aria-label": ents.map((e) => e.name).join(" \xB7 ") } });
-        (0, import_obsidian13.setIcon)(ic, SCRABB_TYPES[ents[0].tipo].icon);
-        if (ents.length > 1) ic.createSpan({ cls: "lmp-doc-scrabb-n", text: String(ents.length) });
-        ic.style.top = `${r.top - base + (r.height - 16) / 2}px`;
-        ic.addEventListener("click", () => this.openParPane(par));
-      }
-    }
-  }
-  /** Tocco su parole evidenziate che hanno una nota: si apre il pannello di quel paragrafo. */
-  toggleDocNoteForMark(mid) {
-    const x = (this.docNotes || []).find((y) => y.mark && y.mark.id === mid);
-    if (!x || x.pid == null) return false;
-    this.openParPane(x.pid);
-    return true;
-  }
-  /* ---------- pannello laterale della biblioteca ---------- */
-  openParPane(pid) {
-    this.paneMode = "par";
-    this.panePar = pid;
-    this.paneDeep = [];
-    this.renderLibPane();
-  }
-  openNotesPane() {
-    this.paneMode = "notes";
-    this.panePar = null;
-    this.renderLibPane();
-  }
-  closeLibPane() {
-    this.paneMode = null;
-    this.panePar = null;
-    this.paneDeep = [];
-    this.renderLibPane();
-  }
-  libSection(parent, title, count) {
-    const det = parent.createEl("details", { cls: "lmp-section" });
-    det.open = true;
-    const sum = det.createEl("summary", { text: title });
-    if (count) sum.createSpan({ cls: "lmp-badge", text: String(count) });
-    return det.createDiv("lmp-section-body");
-  }
-  async renderLibPane() {
-    const pane = this.paneEl;
-    if (!pane) return;
-    const token = this.libPaneToken = (this.libPaneToken || 0) + 1;
-    const d = this.currentDoc();
-    const show = !!(d && this.paneMode);
-    this.bodyEl.toggleClass("has-pane", show);
-    if (!show) this.bodyEl.removeClass("pane-expanded");
-    if (this.docWrap) this.docWrap.querySelectorAll(".is-par-selected").forEach((b) => b.removeClass("is-par-selected"));
-    pane.empty();
-    if (!show) {
-      this.layoutDocNoteSquares();
-      return;
-    }
-    if (this.paneComp) this.removeChild(this.paneComp);
-    this.paneComp = this.addChild(new import_obsidian13.Component());
-    const handle = pane.createDiv({ cls: "lmp-pane-handle", attr: { "aria-label": t("Ingrandisci o riduci") } });
-    handle.createDiv("lmp-pane-handle-bar");
-    handle.addEventListener("click", () => this.bodyEl.toggleClass("pane-expanded", !this.bodyEl.hasClass("pane-expanded")));
-    const header = pane.createDiv("lmp-pane-header");
-    const iconBtn = (icon, label, fn) => {
-      const b = header.createEl("button", { cls: "clickable-icon lmp-pane-btn", attr: { "aria-label": label } });
-      (0, import_obsidian13.setIcon)(b, icon);
-      b.addEventListener("click", fn);
-      return b;
-    };
-    const content = createDiv("lmp-pane-content");
-    if (this.paneMode === "notes") {
-      header.createDiv({ cls: "lmp-pane-title", text: `${t("Note")} \xB7 ${d.title}` });
-      iconBtn("x", t("Chiudi"), () => this.closeLibPane());
-      pane.appendChild(content);
-      const notes2 = (this.docNotes || []).slice().sort((a, b) => (a.pid ?? 1e9) - (b.pid ?? 1e9));
-      if (!notes2.length) content.createDiv({ cls: "lmp-empty", text: t("Nessuna nota su questo documento.") });
-      let last = void 0;
-      let list = null;
-      for (const x of notes2) {
-        if (x.pid !== last) {
-          last = x.pid;
-          const pl2 = x.pid != null ? this.parLabel(x.pid) : t("Documento");
-          const h = content.createDiv({ cls: "lmp-cite-pub lmp-lib-pane-par", text: pl2.charAt(0).toUpperCase() + pl2.slice(1) });
-          if (x.pid != null) h.addEventListener("click", () => this.openParPane(x.pid));
-          list = content.createDiv("lmp-notes");
-        }
-        await this.renderDocNoteCard(list, x);
-        if (token !== this.libPaneToken) return;
-      }
-      this.layoutDocNoteSquares();
-      return;
-    }
-    if (this.paneDeep && this.paneDeep.length) return this.renderDeepVerse(pane, header, iconBtn, content, token);
-    const pid = this.panePar;
-    const block = this.docWrap && this.docWrap.querySelector(`[data-pid="${pid}"]`);
-    if (block) block.addClass("is-par-selected");
-    const pl = this.parLabel(pid);
-    header.createDiv({ cls: "lmp-pane-title", text: `${pl.charAt(0).toUpperCase()}${pl.slice(1)} \xB7 ${d.title}` });
-    const pids = this.docWrap ? [...this.docWrap.querySelectorAll("[data-pid]")].map((b) => +b.dataset.pid) : [];
-    const i = pids.indexOf(pid);
-    iconBtn("chevron-up", t("Paragrafo precedente"), () => i > 0 && this.openParPane(pids[i - 1]));
-    iconBtn("chevron-down", t("Paragrafo successivo"), () => i >= 0 && i < pids.length - 1 && this.openParPane(pids[i + 1]));
-    iconBtn("x", t("Chiudi"), () => this.closeLibPane());
-    const actions = pane.createDiv("lmp-actions");
-    const tools = actions.createDiv("lmp-tools");
-    const tool = (icon, label, fn) => {
-      const b = tools.createEl("button", { cls: "clickable-icon lmp-tool lmp-tool-labeled", attr: { "aria-label": label } });
-      (0, import_obsidian13.setIcon)(b.createSpan(), icon);
-      b.createSpan({ cls: "lmp-tool-text", text: label });
-      b.addEventListener("click", fn);
-    };
-    const parText = () => block ? block.innerText.replace(/^\d+\s+/, "").replace(/\s+/g, " ").trim() : "";
-    tool("waypoints", t("Collega a SCRABB"), () => this.linkToScrabb(pid, parText()));
-    tool("copy", t("Copia"), async () => {
-      await navigator.clipboard.writeText(parText());
-      new import_obsidian13.Notice(t("Paragrafo copiato"));
-    });
-    tool("smartphone", "JW Library", () => window.open(`jwlibrary:///finder?docid=${d.id}&par=${pid}`));
-    tool("lightbulb", t("Spunti"), (evt) => this.aiOnParagraph(evt, pid));
-    pane.appendChild(content);
-    if ((this.plugin.settings.openrouterKey || "").trim()) {
-      this.paneChats = this.paneChats || /* @__PURE__ */ new Map();
-      const key = `${this.state.doc}:${pid}`;
-      if (!this.paneChats.has(key)) this.paneChats.set(key, { turns: [] });
-      if (this.paneChats.size > 30) this.paneChats.delete(this.paneChats.keys().next().value);
-      const ask = renderAskBox(this.plugin, () => this.docAiCtx({ ...this.docAiFocus(pid) }), this.paneChats.get(key), (t2) => this.openCommentSource(t2, pid));
-      content.prepend(ask);
-    }
-    if (this.paneAi && this.paneAi.doc === this.state.doc && this.paneAi.pid === pid) content.prepend(this.paneAi.box);
-    const notes = (this.docNotes || []).filter((x) => x.pid === pid);
-    if (notes.length) {
-      const sec = this.libSection(content, paneLabel("Note"), notes.length);
-      const list = sec.createDiv("lmp-notes");
-      for (const x of notes) {
-        await this.renderDocNoteCard(list, x);
-        if (token !== this.libPaneToken) return;
-      }
-    }
-    const fonti = this.docFonti(pid);
-    if (fonti.length) {
-      const sec = this.libSection(content, t("SCRABB"), fonti.length);
-      const chips = sec.createDiv("scrabb-chips");
-      for (const { e } of fonti) {
-        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { "aria-label": t(SCRABB_TYPES[e.tipo].label) } });
-        chip.createSpan("scrabb-dot");
-        chip.createSpan({ text: e.name });
-        chip.addEventListener("click", () => this.plugin.showInScrabb(e.path));
-      }
-    }
-    const refs = [];
-    if (block) {
-      for (const a of block.querySelectorAll("a")) {
-        const href = a.getAttribute("href") || "";
-        const codes = /bible=/.test(href) ? codesFromJwUrl(href) : null;
-        let ref = codes ? refFromCodes(codes[0], codes[1]) : null;
-        if (!ref && a.hasClass("internal-link")) ref = this.plugin.bible.refFromLinkpath((a.dataset.href || href).split("#")[0]);
-        if (!ref || !ref.chapter) continue;
-        const label = this.plugin.bible.refLabel(ref);
-        if (!refs.some((r) => r.label === label)) refs.push({ ref, label });
-      }
-    }
-    if (refs.length) {
-      const sec = this.libSection(content, t("Scritture"), refs.length);
-      for (const r of refs) {
-        const item = sec.createDiv("lmp-ref");
-        item.createDiv({ cls: "lmp-ref-label", text: r.label });
-        const txt = item.createDiv({ cls: "lmp-ref-text", text: "\u2026" });
-        this.plugin.bible.previewRef(r.ref, r.label).then((x) => txt.setText(x ? x.text : "")).catch(() => txt.setText(""));
-        item.addEventListener("click", () => this.goDeep(r.ref));
-      }
-    }
-    if (!notes.length && !fonti.length && !refs.length)
-      content.createDiv({ cls: "lmp-empty", text: t("Nessuna nota, scheda o scrittura su questo paragrafo. Seleziona del testo per evidenziarlo o collegarlo a una scheda SCRABB.") });
-    this.layoutDocNoteSquares();
-  }
-  /* ---------- approfondire un versetto senza lasciare la pubblicazione ---------- */
-  goDeep(ref, reset) {
-    if (reset) this.paneDeep = [];
-    this.paneDeep = [...this.paneDeep || [], ref];
-    this.renderLibPane();
-  }
-  /**
-   * Un versetto citato nel paragrafo: testo, approfondimenti, note in calce e riferimenti.
-   * Ogni riferimento (o versetto citato negli approfondimenti) porta un livello più in giù; ← risale.
-   */
-  async renderDeepVerse(pane, header, iconBtn, content, token) {
-    const bible = this.plugin.bible;
-    const stack = this.paneDeep;
-    const ref = stack[stack.length - 1];
-    const up = () => {
-      stack.pop();
-      this.renderLibPane();
-    };
-    iconBtn("arrow-left", stack.length > 1 ? t("Torna a {ref}", { ref: bible.refLabel(stack[stack.length - 2]) }) : t("Torna al paragrafo"), up);
-    header.createDiv({ cls: "lmp-pane-title", text: bible.refLabel(ref) });
-    iconBtn("book-open", t("Apri nella Bibbia"), () => this.plugin.openReader(ref));
-    iconBtn("external-link", t("Apri in una nuova scheda"), () => this.plugin.openReaderInNewTab(ref));
-    iconBtn("x", t("Chiudi"), () => this.closeLibPane());
-    pane.appendChild(content);
-    content.addClass("lmp-deep");
-    const crumbs = content.createDiv("lmp-deep-crumbs");
-    const pl = this.parLabel(this.panePar);
-    const steps = [pl.charAt(0).toUpperCase() + pl.slice(1), ...stack.map((r) => bible.refLabel(r))];
-    steps.forEach((label2, i) => {
-      if (i) crumbs.createSpan({ cls: "lmp-deep-sep", text: "\u203A" });
-      const last2 = i === steps.length - 1;
-      const b = crumbs.createEl(last2 ? "span" : "a", { cls: "lmp-deep-step", text: label2, attr: last2 ? {} : { href: "#" } });
-      if (!last2)
-        b.addEventListener("click", (evt) => {
-          evt.preventDefault();
-          stack.length = i;
-          this.renderLibPane();
-        });
-    });
-    const data = await bible.getChapter(ref.book, ref.chapter).catch(() => null);
-    if (token !== this.libPaneToken) return;
-    const first = ref.verse || 1;
-    const last = Math.max(first, ref.verseEnd || first);
-    const parts = [];
-    for (let v = first; data && v <= last; v++) {
-      const t2 = bible.verseText(data, v);
-      if (t2) parts.push(last > first ? `${v} ${t2}` : t2);
-    }
-    content.createDiv({ cls: "lmp-deep-text", text: parts.join(" ") || t("Testo non trovato.") });
-    const book = bible.byNum.get(ref.book);
-    const label = bible.refLabel(ref);
-    const sc = this.plugin.scrabb;
-    const hasAi = !!(this.plugin.settings.openrouterKey || "").trim() && !!data;
-    const acts = content.createDiv("lmp-deep-actions");
-    const act = (text, fn) => acts.createEl("button", { cls: "lmp-small-btn", text }).addEventListener("click", fn);
-    act(t("Apri nella Bibbia"), () => this.plugin.openReader(ref));
-    if (sc && sc.ready) act(t("Collega a SCRABB"), () => linkVerseToScrabb(this.plugin, label, () => this.renderLibPane()));
-    const verses = [];
-    for (let v = first; data && v <= last; v++) verses.push(v);
-    const getCtx = () => verseAiCtx(this.plugin, data, ref.verse ? verses : null, label);
-    const onSource = (t2) => t2 && t2.verse ? this.goDeep(t2.verse) : this.openCommentSource(t2, this.panePar);
-    let aiAnchor = acts;
-    if (hasAi) {
-      act(
-        t("Spunti"),
-        (evt) => aiMenu(
-          this.plugin,
-          evt,
-          (preset) => showAiSuggestions(this.plugin, preset, getCtx, {
-            place: (box) => {
-              if (this.paneAi && this.paneAi.box !== box) this.paneAi.box.remove();
-              this.paneAi = { doc: this.state.doc, pid: null, deep: label, box };
-              aiAnchor.after(box);
-            },
-            onSource,
-            onClose: (box) => {
-              if (this.paneAi && this.paneAi.box === box) this.paneAi = null;
-            }
-          })
-        )
-      );
-      this.paneChats = this.paneChats || /* @__PURE__ */ new Map();
-      const key = `${this.state.doc}:${label}`;
-      if (!this.paneChats.has(key)) this.paneChats.set(key, { turns: [] });
-      if (this.paneChats.size > 30) this.paneChats.delete(this.paneChats.keys().next().value);
-      aiAnchor = renderAskBox(this.plugin, getCtx, this.paneChats.get(key), onSource, t("Chiedi qualcosa su questo versetto\u2026"));
-      acts.after(aiAnchor);
-      if (this.paneAi && this.paneAi.doc === this.state.doc && this.paneAi.deep === label) aiAnchor.after(this.paneAi.box);
-    }
-    let shown = 0;
-    const noteFile = book && ref.verse ? this.plugin.verseNoteFile(book, ref.chapter, ref.verse) : null;
-    const parsed = noteFile ? parseNoteFile(await this.app.vault.cachedRead(noteFile)) : null;
-    if (token !== this.libPaneToken) return;
-    if (parsed && (parsed.blocks.length || noteFreeText(parsed.rest))) {
-      shown++;
-      const sec = this.libSection(content, paneLabel("Note"), parsed.blocks.length || 1);
-      const list = sec.createDiv("lmp-notes");
-      const card = (title, md, line) => {
-        const c = list.createDiv("lmp-note-card lmp-doc-note-card");
-        const head = c.createDiv("lmp-note-card-head");
-        head.createDiv({ cls: "lmp-note-card-title", text: title });
-        const edit = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": t("Apri nel file delle note") } });
-        (0, import_obsidian13.setIcon)(edit, "pencil");
-        edit.addEventListener("click", () => this.plugin.openNoteAt(noteFile, line));
-        if (md) renderMd(this.app, md, c.createDiv("lmp-md lmp-note-card-body"), noteFile.path, this.paneComp);
-      };
-      for (const b of parsed.blocks) card(b.title && b.title !== "Nota" ? b.title : t("Nota"), b.content, b.start);
-      const free = noteFreeText(parsed.rest);
-      if (free) card(t("Appunti"), free, 0);
-    }
-    const details = ref.verse && book ? await bible.getVerseDetails(book, ref.chapter, ref.verse).catch(() => null) : null;
-    if (token !== this.libPaneToken) return;
-    const src = details && details.file ? details.file.path : "";
-    for (const title of ["Approfondimenti", "Note in calce", "Riferimenti"]) {
-      const s = details && details.sections.find((x) => x.title === title);
-      if (!s) continue;
-      shown++;
-      const sec = this.libSection(content, paneLabel(title));
-      if (title !== "Riferimenti") {
-        await this.renderStudyMd(sec, s.body, src);
-        if (token !== this.libPaneToken) return;
-        continue;
-      }
-      for (const l of parseRefLinks(s.body)) {
-        const item = sec.createDiv("lmp-ref lmp-deep-ref");
-        item.createDiv({ cls: "lmp-ref-label", text: l.label });
-        const txt = item.createDiv({ cls: "lmp-ref-text", text: "\u2026" });
-        let target = l.ref || null;
-        (l.ref ? bible.previewRef(l.ref, l.label) : bible.refPreview(l.link, l.label, src)).then((r) => {
-          if (r) target = r.ref;
-          txt.setText(r ? r.text : "");
-        }).catch(() => txt.setText(""));
-        item.addEventListener("click", () => target && this.goDeep(target));
-      }
-    }
-    if (book && ref.verse) {
-      shown++;
-      const sec = this.libSection(content, paneLabel("Bibbia con riferimenti"));
-      renderRbi8Verse(this.plugin, sec, ref, {
-        alive: () => token === this.libPaneToken && sec.isConnected,
-        onRef: (link, to) => this.goDeep(to),
-        refresh: () => this.renderLibPane()
-      }).catch((e) => console.warn("[lampada] Bibbia con riferimenti", e));
-    }
-    if (book && ref.verse) {
-      const cites = this.plugin.noteIndex.lookup(book.num, ref.chapter, ref.verse).filter((e) => !noteFile || e.path !== noteFile.path);
-      if (cites.length) {
-        shown++;
-        const sec = this.libSection(content, t("Nelle mie note"), new Set(cites.map((e) => e.path)).size);
-        renderNoteCites(this.plugin, sec, cites, (file, line, evt) => this.plugin.openNoteAt(file, line, evt));
-      }
-    }
-    const cited = details && details.sections.find((x) => x.title === "Citato in");
-    if (cited) {
-      shown++;
-      const sec = this.libSection(content, t("Citato in"));
-      await renderCitedIn(this.plugin, sec, cited.body, src, this.paneComp);
-      if (token !== this.libPaneToken) return;
-    }
-    const ents = sc && sc.ready && book && ref.verse ? sc.lookup(book.num, ref.chapter, ref.verse) : [];
-    if (ents.length) {
-      shown++;
-      const sec = this.libSection(content, t("SCRABB"), ents.length);
-      const chips = sec.createDiv("scrabb-chips");
-      for (const e of ents) {
-        const chip = chips.createSpan({ cls: `scrabb-chip scrabb-t-${e.tipo}`, attr: { "aria-label": t(SCRABB_TYPES[e.tipo].label) } });
-        chip.createSpan("scrabb-dot");
-        chip.createSpan({ text: e.name });
-        chip.addEventListener("click", () => this.plugin.showInScrabb(e.path));
-      }
-    }
-    if (!shown) content.createDiv({ cls: "lmp-empty", text: t("Nessun approfondimento per questo versetto.") });
-    content.addEventListener("click", (evt) => {
-      const a = evt.target instanceof HTMLElement && evt.target.closest("a");
-      if (!a || a.hasClass("lmp-deep-step")) return;
-      const href = a.dataset.href || a.getAttribute("href") || "";
-      let r = null;
-      const codes = /^jwlibrary:/.test(href) && /bible=/.test(href) ? codesFromJwUrl(href) : null;
-      if (codes) r = refFromCodes(codes[0], codes[1]);
-      else if (a.hasClass("internal-link")) {
-        const f = bible.resolveLink(href, src);
-        r = f && bible.refFromFile(f) || bible.refFromLinkpath(href.split("#")[0]);
-        const doc = !r && f && this.lib.byFile && this.lib.byFile.get(f.basename);
-        if (doc) {
-          evt.preventDefault();
-          evt.stopPropagation();
-          const go = (par) => this.navigate({ mode: "doc", sym: doc.pub.symbol, doc: doc.id, par: par || void 0 });
-          const pars = citedPars(a, href);
-          if (pars.length && !(evt.metaKey || evt.ctrlKey)) new CitePreviewModal(this.plugin, doc, pars, go).open();
-          else go(pars[0]);
-          return;
-        }
-      }
-      if (!r || !r.chapter) return;
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.goDeep(r);
-    }, true);
-  }
-  /** Approfondimenti: i blocchi incorporati (![[file#^id]]) si mostrano con il loro testo. */
-  async renderStudyMd(el, md, src) {
-    const bible = this.plugin.bible;
-    const re = /!\[\[([^\]#|]+)#\^([^\]|]+)(?:\|[^\]]*)?\]\]/g;
-    const embeds = [...md.matchAll(re)];
-    if (!embeds.length) return renderMd(this.app, md, el.createDiv("lmp-md"), src, this.paneComp);
-    for (const m of embeds) {
-      const r = await bible.getBlock(m[1], m[2], src).catch(() => null);
-      if (r) await renderMd(this.app, r.md, el.createDiv("lmp-study-card"), r.file.path, this.paneComp);
-    }
-  }
-  async renderDocNoteCard(list, x) {
-    const { n, mark } = x;
-    const card = list.createDiv("lmp-note-card lmp-doc-note-card");
-    if (mark) {
-      card.dataset.hl = mark.color;
-      const quote = [...this.docWrap ? this.docWrap.querySelectorAll(`.lmp-w[data-mid="${mark.id}"], .lmp-sp[data-mid="${mark.id}"]`) : []].map((e) => e.textContent).join("").trim();
-      if (quote && quote !== n.title) card.createDiv({ cls: "lmp-note-quote", text: `\xAB${quote.length > 140 ? `${quote.slice(0, 140)}\u2026` : quote}\xBB` });
-    }
-    const head = card.createDiv("lmp-note-card-head");
-    head.createDiv({ cls: "lmp-note-card-title", text: n.title && n.title !== "Nota" ? n.title : t("Nota") });
-    const open = head.createEl("button", { cls: "clickable-icon lmp-note-edit", attr: { "aria-label": t("Apri nel file delle note") } });
-    (0, import_obsidian13.setIcon)(open, "pencil");
-    open.addEventListener("click", () => this.plugin.openNoteAt(n.file, n.line));
-    if (n.content) await renderMd(this.app, n.content.replace(/([^\n])\n(?!\n)/g, "$1  \n"), card.createDiv("lmp-md lmp-note-card-body"), n.file.path, this.paneComp || this.comp);
-    const meta = [n.tags.length ? n.tags.map((t2) => this.plugin.tagLabel(t2)).join(" \xB7 ") : "", n.date.replace(/\*/g, "")].filter(Boolean).join(" \xB7 ");
-    if (meta) card.createDiv({ cls: "lmp-note-card-meta", text: meta });
-  }
-  /** Collega un paragrafo (o il testo selezionato) a una scheda SCRABB esistente o nuova. */
-  async linkToScrabb(pid, quote) {
-    const d = this.currentDoc();
-    const sc = this.plugin.scrabb;
-    if (!d || !d.file || !sc) return;
-    await sc.ensure();
-    const pl = this.parLabel(pid);
-    const link = `[[${d.file}#^p${pid}|${d.title.replace(/[\[\]|]/g, "")}, ${pl}]]`;
-    const text = (quote || "").replace(/\s+/g, " ").trim().slice(0, 600);
-    const refresh = () => window.setTimeout(() => {
-      this.layoutDocNoteSquares();
-      if (this.paneMode) this.renderLibPane();
-    }, 1500);
-    new ScrabbPickModal(this.plugin, { placeholder: t("Collega {par} a una scheda (illustrazione, principio, persona\u2026)", { par: pl }), allowCreate: true }, async (e) => {
-      if (e.create) {
-        new ScrabbNewModal(this.plugin, { name: e.name, tipo: "illustrazione", fonti: [link], body: text ? `> ${text}
-> \u2014 ${link}` : "" }, refresh).open();
-        return;
-      }
-      await sc.addFonte(e, link, text);
-      new import_obsidian13.Notice(t("{par} collegato a {nome}", { par: `${pl.charAt(0).toUpperCase()}${pl.slice(1)}`, nome: e.name }));
-      refresh();
-    }).open();
-  }
-  /** Parole selezionate in un documento, raggruppate per paragrafo. */
-  docSelectionWords() {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !sel.rangeCount || !this.docBody || this.state.mode !== "doc") return null;
-    const range = sel.getRangeAt(0);
-    if (!this.docBody.contains(range.commonAncestorContainer)) return null;
-    const byP = /* @__PURE__ */ new Map();
-    this.docBody.querySelectorAll("[data-pid] .lmp-w").forEach((el) => {
-      if (!range.intersectsNode(el)) return;
-      const v = +el.closest("[data-pid]").dataset.pid;
-      const t2 = +el.dataset.t;
-      const r = byP.get(v);
-      if (!r) byP.set(v, { v, s: t2, e: t2 });
-      else {
-        r.s = Math.min(r.s, t2);
-        r.e = Math.max(r.e, t2);
-      }
-    });
-    if (!byP.size) return null;
-    return { ranges: [...byP.values()].sort((a, b) => a.v - b.v), rect: range.getBoundingClientRect(), text: sel.toString() };
-  }
-  buildSelectionBar() {
-    const bar = this.selBar = this.contentEl.createDiv("lmp-selbar");
-    bar.hide();
-    bar.addEventListener("mousedown", (e) => e.preventDefault());
-    for (const h of HIGHLIGHTS) {
-      const dot = bar.createEl("button", { cls: `lmp-color-dot hl-${h.id}`, attr: { "aria-label": t("Evidenzia: {colore}", { colore: t(h.label) }) } });
-      dot.addEventListener("click", () => this.applySelection(h.id));
-    }
-    const erase = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Rimuovi evidenziazione") } });
-    (0, import_obsidian13.setIcon)(erase, "eraser");
-    erase.addEventListener("click", () => this.applySelection(null));
-    const scr = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Collega a una scheda SCRABB") } });
-    (0, import_obsidian13.setIcon)(scr, "waypoints");
-    scr.addEventListener("click", () => {
-      const info = this.selInfo;
-      if (!info) return;
-      window.getSelection().removeAllRanges();
-      this.hideSelectionBar();
-      this.linkToScrabb(info.ranges[0].v, info.text);
-    });
-    const copy = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Copia") } });
-    (0, import_obsidian13.setIcon)(copy, "copy");
-    copy.addEventListener("click", async () => {
-      if (!this.selInfo) return;
-      await navigator.clipboard.writeText(this.selInfo.text);
-      new import_obsidian13.Notice(t("Testo copiato"));
-      this.hideSelectionBar();
-    });
-    const ai = bar.createEl("button", { cls: "lmp-color-dot lmp-color-erase clickable-icon", attr: { "aria-label": t("Spunti sul testo selezionato") } });
-    (0, import_obsidian13.setIcon)(ai, "lightbulb");
-    ai.addEventListener("click", (evt) => {
-      const info = this.selInfo;
-      if (!info) return;
-      window.getSelection().removeAllRanges();
-      this.hideSelectionBar();
-      this.aiOnParagraph(evt, info.ranges[0].v, info.text);
-    });
-    this.selDef = bar.createDiv("lmp-selbar-def");
-    this.selDef.hide();
-  }
-  onSelectionChange() {
-    const info = this.docSelectionWords();
-    if (!info) return this.hideSelectionBar();
-    const same = this.selInfo && this.selInfo.text === info.text;
-    this.selInfo = info;
-    this.selBar.show();
-    if (!same) {
-      showDefinition(this, this.selDef, info.text, (def) => {
-        window.getSelection().removeAllRanges();
-        this.hideSelectionBar();
-        this.plugin.openPerspicacia({ perspicacia: def.file.basename, path: def.file.path });
-      }, () => placeSelBar(this));
-    }
-    placeSelBar(this);
-  }
-  hideSelectionBar() {
-    if (this.selBar) this.selBar.hide();
-    this.selInfo = null;
-  }
-  applySelection(color) {
-    const info = this.selInfo;
-    if (!info || this.state.mode !== "doc") return;
-    this.plugin.cutDocMarks(this.state.doc, info.ranges);
-    if (color) {
-      this.plugin.addDocMark(this.state.doc, color, info.ranges);
-      this.plugin.ui.lastColor = color;
-    }
-    window.getSelection().removeAllRanges();
-    this.hideSelectionBar();
-    this.applyDocMarks();
-  }
-  /** Link nei documenti: altri documenti si aprono qui, i versetti nel lettore della Bibbia. */
-  onLinkClick(evt) {
-    const target = evt.target;
-    if (!(target instanceof HTMLElement)) return;
-    const a = target.closest("a");
-    if (!a) {
-      const sel = window.getSelection();
-      if (this.state.mode !== "doc" || sel && !sel.isCollapsed) return;
-      const w = target.closest(".lmp-w[data-mid], .lmp-sp[data-mid]");
-      if (w && this.toggleDocNoteForMark(w.dataset.mid)) return;
-      const block2 = target.closest("[data-pid]");
-      if (!block2 || !this.docWrap || !this.docWrap.contains(block2)) return;
-      const pid = +block2.dataset.pid;
-      if (this.paneMode === "par" && this.panePar === pid) this.closeLibPane();
-      else this.openParPane(pid);
-      return;
-    }
-    const href = a.getAttribute("href") || "";
-    const block = this.state.mode === "doc" && !(evt.metaKey || evt.ctrlKey) && a.closest("[data-pid]");
-    if (block) {
-      const codes = /bible=/.test(href) ? codesFromJwUrl(href) : null;
-      const vref = codes ? refFromCodes(codes[0], codes[1]) : a.hasClass("internal-link") ? this.plugin.bible.refFromLinkpath((a.dataset.href || href).split("#")[0]) : null;
-      if (vref && vref.chapter) {
-        evt.preventDefault();
-        evt.stopPropagation();
-        this.paneMode = "par";
-        this.panePar = +block.dataset.pid;
-        this.goDeep(vref, true);
-        return;
-      }
-    }
-    const docid = /jwlibrary:\/\/\/finder\?[^)]*docid=(\d+)/.exec(href);
-    if (docid && this.lib.byDocId.has(docid[1])) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      const d2 = this.lib.byDocId.get(docid[1]);
-      this.navigate({ mode: "doc", sym: d2.pub.symbol, doc: d2.id });
-      return;
-    }
-    if (!a.hasClass("internal-link")) return;
-    const link = (a.dataset.href || href).split("#")[0];
-    const ref = this.plugin.bible.refFromLinkpath(link);
-    if (ref && ref.chapter) return;
-    const d = this.lib.byFile.get(link.split("/").pop().replace(/\.md$/, ""));
-    if (d) {
-      evt.preventDefault();
-      evt.stopPropagation();
-      this.navigate({ mode: "doc", sym: d.pub.symbol, doc: d.id });
-    }
-  }
-};
-function renderWeekCard(plugin, parent, go) {
-  const k = mondayOf(/* @__PURE__ */ new Date());
-  const card = parent.createDiv("lmp-week-home");
-  const head = card.createEl("button", { cls: "lmp-week-entry" });
-  (0, import_obsidian13.setIcon)(head.createSpan("lmp-week-entry-icon"), "calendar-days");
-  const tx = head.createSpan();
-  tx.createDiv({ cls: "lmp-week-entry-title", text: t("Adunanze della settimana") });
-  tx.createDiv({ cls: "lmp-week-entry-sub", text: weekLabel(k) });
-  (0, import_obsidian13.setIcon)(head.createSpan("lmp-week-entry-go"), "chevron-right");
-  head.addEventListener("click", () => go({ mode: "week" }));
-  const rows = card.createDiv("lmp-week-rows");
-  const row = (icon, label, value, fn, done) => {
-    const r = rows.createEl("button", { cls: `lmp-week-row${done ? " is-done" : ""}` });
-    (0, import_obsidian13.setIcon)(r.createSpan("lmp-week-row-icon"), done ? "check-circle-2" : icon);
-    r.createSpan({ cls: "lmp-week-row-label", text: label });
-    r.createSpan({ cls: "lmp-week-row-value", text: value });
-    r.addEventListener("click", fn);
-  };
-  const ownTags = (docId) => new Set(Object.values(plugin.answers).filter((a) => a.doc === String(docId) && (a.v || "").trim()).map((a) => a.tag));
-  Promise.all([plugin.meetingWeek(k, true).catch(() => null), plugin.library.studyArticles().catch(() => null)]).then(([mw, arts]) => {
-    if (!card.isConnected) return;
-    if (mw) {
-      const reading = mw.items.find((x) => x.k === "h2" && !x.s && x.x.some((s) => Array.isArray(s)));
-      const link = reading && reading.x.find((s) => Array.isArray(s));
-      if (link) {
-        const x = parseCode(link[1]);
-        const y = parseCode(link[2] || link[1]);
-        const lbl = plugin.bible.refLabel({ book: x.book, chapter: x.chapter });
-        row("book-open", t("Lettura biblica"), x.book === y.book && y.chapter > x.chapter ? `${lbl}-${y.chapter}` : lbl || link[0], () => plugin.openReader({ book: x.book, chapter: x.chapter }));
-      }
-      const tags = mw.items.filter((x) => x.k === "f").flatMap((x) => x.f);
-      const own = ownTags(mw.id);
-      const n = tags.filter((tag) => own.has(tag)).length;
-      row("users", t("Infrasettimanale"), tags.length ? t("{n}/{tot} risposte", { n, tot: tags.length }) : t("programma"), () => go({ mode: "week" }), tags.length > 0 && n === tags.length);
-    } else row("users", t("Infrasettimanale"), t("apri per scaricare il programma"), () => go({ mode: "week" }));
-    const wt = arts && arts.get(k);
-    if (wt) {
-      const n = ownTags(wt.id).size;
-      row("tower-control", t("Torre di Guardia"), `${wt.title}${n ? ` \xB7 ${t("{n} risposte", { n })}` : ""}`, () => go({ mode: "doc", sym: wt.pub.symbol, doc: wt.id }));
-    }
-  });
-}
-var RemovePubModal = class extends import_obsidian13.Modal {
-  constructor(app, name, run) {
-    super(app);
-    Object.assign(this, { name, run });
-  }
-  onOpen() {
-    this.titleEl.setText(t("Togliere dalla biblioteca?"));
-    const el = this.contentEl;
-    el.createEl("p", { text: t("\xAB{nome}\xBB: note e immagini vengono cancellate dal vault. Le tue note personali e le evidenziazioni restano. Potrai scaricarla di nuovo.", { nome: this.name }) });
-    const status = el.createDiv({ cls: "lmp-bible-dl-status", attr: { "aria-live": "polite" } });
-    const row = el.createDiv("modal-button-container");
-    row.createEl("button", { text: t("Annulla") }).addEventListener("click", () => this.close());
-    const ok = row.createEl("button", { cls: "mod-warning", text: t("Togli") });
-    ok.addEventListener("click", async () => {
-      ok.disabled = true;
-      status.setText(t("Cancello\u2026"));
-      try {
-        await this.run();
-        this.close();
-      } catch (e) {
-        ok.disabled = false;
-        status.setText(e.message || String(e));
-      }
-    });
-  }
-  onClose() {
-    this.contentEl.empty();
-  }
-};
-
 // src/chat-biblioteca.js
 var import_obsidian14 = require("obsidian");
-
-// src/ricerca.js
-var STOP = new Set(
-  `abbia abbiamo abbiano adesso agli alcuni alcune all alla alle allo allora altra altre altri altro anche ancora avere aveva avevano avete avuto
-  che chi cio come con contro cosa cosi cui dal dall dalla dalle dagli dallo degli dei del dell della delle dello dentro deve devono dopo dove
-  ecc era erano essa esse essere essi esso fra gli hanno in invece lei loro lui mai molto nei nel nell nella nelle nello negli noi non nostra
-  nostre nostri nostro occorre ogni oppure per perche pero piu poi possono puo qual quale quali quando quanto quella quelle quelli quello questa
-  queste questi questo sara sarebbe sei sia siamo siano sono sta stato stessa stesso suo sua sue suoi sul sull sulla sulle sullo sugli tale
-  tali tra tua tuo tue tuoi tutta tutte tutti tutto una uno vengono viene voi vostra vostro gia ciascuno qualcosa qualche nessuno quindi mentre
-  pure tanto tanti tanta tante cioe pag par vedi nota`.split(/\s+/)
-);
-var SUFFIXES = [
-  "amente",
-  "imente",
-  "mente",
-  "azioni",
-  "azione",
-  "izioni",
-  "izione",
-  "zioni",
-  "zione",
-  "menti",
-  "mento",
-  "avano",
-  "evano",
-  "ivano",
-  "iamo",
-  "ando",
-  "endo",
-  "are",
-  "ere",
-  "ire",
-  "ato",
-  "ata",
-  "ati",
-  "ate",
-  "ito",
-  "ita",
-  "iti",
-  "ite",
-  "uto",
-  "uta",
-  "uti",
-  "ute",
-  "ava",
-  "eva",
-  "iva",
-  "oso",
-  "osa",
-  "osi",
-  "ose"
-];
-var STOP_EN = new Set(
-  `the and for are but not you all any can had her was one our out has him his how its may new now old see two who did get let say she too
-  use about above after again against also been before being below between both could does doing down during each from further have having
-  here hers herself himself into itself just more most myself nor off once only other ours ourselves over own same should some such than that
-  their theirs them themselves then there these they this those through under until very were what when where which while whom why will with
-  would yet your yours yourself yourselves upon shall etc page par note`.split(/\s+/)
-);
-var SUFFIXES_EN = ["ations", "ation", "iness", "ness", "ments", "ment", "ingly", "ings", "ing", "edly", "ies", "ied", "ers", "er", "ed", "es", "y", "s"];
-function stemEn(w) {
-  for (const s of SUFFIXES_EN) if (w.length - s.length >= 3 && w.endsWith(s) && !(s === "y" && /[aeiou]y$/.test(w))) {
-    w = w.slice(0, -s.length);
-    break;
-  }
-  if (w.length >= 4 && w.endsWith("e")) w = w.slice(0, -1);
-  if (/([bdgmnpt])\1$/.test(w)) w = w.slice(0, -1);
-  return w;
-}
-function stem(w, lang2 = "it") {
-  if (/^\d/.test(w)) return w;
-  if (lang2 === "en") return stemEn(w);
-  for (const s of SUFFIXES) if (w.length - s.length >= 4 && w.endsWith(s)) return w.slice(0, -s.length);
-  if (w.length >= 4 && /[aeiou]$/.test(w)) {
-    w = w.slice(0, -1);
-    if (/[aeiou]$/.test(w) && w.length >= 4) w = w.slice(0, -1);
-    if (/[cg]h$/.test(w)) w = w.slice(0, -1);
-  }
-  return w;
-}
-function mdText(md) {
-  return String(md || "").replace(/!\[\[[^\]]*\]\]/g, " ").replace(/\[\[[^\]|]*\|([^\]]*)\]\]/g, "$1").replace(/\[\[([^\]]*)\]\]/g, "$1").replace(/\[([^\]]*)\]\([^)]*\)/g, "$1").replace(/<[^>]+>/g, "").replace(/\s*\^p\d+[ \t]*$/gm, "").replace(/\\([\\`*_\[\]().!-])/g, "$1").replace(/\*\*|__/g, "");
-}
-function terms(text, lang2 = "it") {
-  const stop = lang2 === "en" ? STOP_EN : STOP;
-  const out = [];
-  const s = String(text).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-  for (const m of s.matchAll(/[a-z0-9]+/g)) {
-    const w = m[0];
-    if (w.length < 3 || stop.has(w)) continue;
-    out.push(stem(w, lang2));
-  }
-  return out;
-}
-function paragraphsOf(body) {
-  const out = [];
-  for (const chunk of String(body).split(/\n[ \t]*\n/)) {
-    const m = /\^p(\d+)[ \t]*$/.exec(chunk.trimEnd());
-    if (m) out.push({ pid: +m[1], md: chunk.trim() });
-  }
-  return out;
-}
-function notePars(body) {
-  const lines = String(body).split("\n");
-  let i = 0;
-  if (lines[0].trim() === "---") {
-    const end = lines.findIndex((l, j) => j > 0 && l.trim() === "---");
-    if (end > 0) i = end + 1;
-  }
-  const out = [];
-  let start = -1;
-  for (; i <= lines.length; i++) {
-    const blank = i === lines.length || !lines[i].trim();
-    if (!blank && start < 0) start = i;
-    else if (blank && start >= 0) {
-      out.push({ pid: start, md: lines.slice(start, i).join("\n") });
-      start = -1;
-    }
-  }
-  return out;
-}
-var shardKey = (t2) => t2.slice(0, 2);
-var MIN_TERMS = 3;
-var IndexBuilder = class {
-  /** `lang`: lingua dei testi (parole vuote e radici); resta nei metadati e la ricerca usa la stessa. */
-  constructor(lang2 = "it") {
-    this.lang = lang2;
-    this.docs = [];
-    this.pars = [];
-    this.post = /* @__PURE__ */ new Map();
-    this.totalLen = 0;
-  }
-  /** `plain`: nota tua, divisa in paragrafi con notePars (le pubblicazioni hanno ^pN). */
-  addDoc(key, body, { plain: plain2 = false } = {}) {
-    const d = this.docs.length;
-    let added = 0;
-    for (const p of plain2 ? notePars(body) : paragraphsOf(body)) {
-      const ts = terms(mdText(p.md), this.lang);
-      if (ts.length < MIN_TERMS) continue;
-      const n = this.pars.length / 3;
-      this.pars.push(d, p.pid, Math.min(ts.length, 65535));
-      this.totalLen += ts.length;
-      const tf = /* @__PURE__ */ new Map();
-      for (const t2 of ts) tf.set(t2, (tf.get(t2) || 0) + 1);
-      for (const [t2, c] of tf) {
-        let l = this.post.get(t2);
-        if (!l) this.post.set(t2, l = { a: new Uint32Array(4), n: 0 });
-        else if (l.n === l.a.length) {
-          const a = new Uint32Array(l.n * 2);
-          a.set(l.a);
-          l.a = a;
-        }
-        l.a[l.n++] = n * 16 + Math.min(c, 15);
-      }
-      added++;
-    }
-    if (added) this.docs.push(key);
-    return added;
-  }
-  /** → { meta, pars (ArrayBuffer), shards: Map(chiave → ArrayBuffer) } */
-  finish(extra = {}) {
-    const count = this.pars.length / 3;
-    const groups = /* @__PURE__ */ new Map();
-    for (const t2 of this.post.keys()) {
-      const k = shardKey(t2);
-      if (!groups.has(k)) groups.set(k, []);
-      groups.get(k).push(t2);
-    }
-    const shards = /* @__PURE__ */ new Map();
-    for (const [k, list] of groups) {
-      shards.set(k, encodeShard(list.sort().map((t2) => [t2, this.post.get(t2).a.subarray(0, this.post.get(t2).n)])));
-      for (const t2 of list) this.post.delete(t2);
-    }
-    const meta = { v: 1, lang: this.lang, count, avgLen: count ? this.totalLen / count : 0, docs: this.docs, shards: [...shards.keys()].sort(), ...extra };
-    return { meta, pars: new Uint32Array(this.pars).buffer, shards };
-  }
-};
-function encodeShard(entries) {
-  const head = new TextEncoder().encode(JSON.stringify(entries.map(([t2, l]) => [t2, l.length])));
-  const pad2 = (4 - head.length % 4) % 4;
-  const total = entries.reduce((s, [, l]) => s + l.length, 0);
-  const buf = new ArrayBuffer(4 + head.length + pad2 + total * 4);
-  new DataView(buf).setUint32(0, head.length, true);
-  new Uint8Array(buf, 4, head.length).set(head);
-  const posts = new Uint32Array(buf, 4 + head.length + pad2, total);
-  let o = 0;
-  for (const [, l] of entries) {
-    posts.set(l, o);
-    o += l.length;
-  }
-  return buf;
-}
-function decodeShard(buf) {
-  const len = new DataView(buf).getUint32(0, true);
-  const head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 4, len)));
-  const start = 4 + len + (4 - len % 4) % 4;
-  const out = /* @__PURE__ */ new Map();
-  let o = 0;
-  for (const [t2, n] of head) {
-    out.set(t2, new Uint32Array(buf, start + o * 4, n));
-    o += n;
-  }
-  return out;
-}
-var IndexReader = class {
-  constructor(meta, parsBuf, loadShard) {
-    this.meta = meta;
-    this.pars = new Uint32Array(parsBuf);
-    this.loadShard = loadShard;
-    this.cache = /* @__PURE__ */ new Map();
-  }
-  async shard(k) {
-    if (!this.cache.has(k)) {
-      if (this.cache.size > 40) this.cache.delete(this.cache.keys().next().value);
-      this.cache.set(k, this.meta.shards.includes(k) ? this.loadShard(k).then((b) => b ? decodeShard(b) : /* @__PURE__ */ new Map()) : Promise.resolve(/* @__PURE__ */ new Map()));
-    }
-    return this.cache.get(k);
-  }
-  /** Parole della ricerca → elenchi da sommare (una parola con * può valere più elenchi). */
-  async lists(query) {
-    const out = [];
-    for (const raw of String(query).split(/\s+/)) {
-      const prefix = raw.endsWith("*");
-      for (const t2 of terms(raw.replace(/\*$/, ""), this.meta.lang || "it")) {
-        const sh = await this.shard(shardKey(t2));
-        if (!prefix) {
-          if (sh.has(t2)) out.push(sh.get(t2));
-          continue;
-        }
-        const p = String(raw).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "");
-        const base = p.length >= 3 ? p : t2;
-        for (const [w, l] of sh) if (w.startsWith(base) || w === t2) out.push(l);
-      }
-    }
-    return out;
-  }
-  async search(query, { limit = 8, perDoc = 2, docFilter } = {}) {
-    const N = this.meta.count;
-    const lists = await this.lists(query);
-    if (!lists.length || !N) return [];
-    const k1 = 1.2;
-    const b = 0.75;
-    const avg = this.meta.avgLen || 1;
-    const scores = /* @__PURE__ */ new Map();
-    for (const l of lists) {
-      const idf = Math.log(1 + (N - l.length + 0.5) / (l.length + 0.5));
-      for (let i = 0; i < l.length; i++) {
-        const p = Math.floor(l[i] / 16);
-        const tf = l[i] % 16;
-        const len = this.pars[p * 3 + 2];
-        const s = idf * tf * (k1 + 1) / (tf + k1 * (1 - b + b * len / avg));
-        scores.set(p, (scores.get(p) || 0) + s);
-      }
-    }
-    const ranked = [...scores].sort((x, y) => y[1] - x[1]);
-    const out = [];
-    const perDocCount = /* @__PURE__ */ new Map();
-    for (const [p, score] of ranked) {
-      const doc = this.meta.docs[this.pars[p * 3]];
-      if (docFilter && !docFilter(doc)) continue;
-      const n = perDocCount.get(doc) || 0;
-      if (n >= perDoc) continue;
-      perDocCount.set(doc, n + 1);
-      out.push({ doc, pid: this.pars[p * 3 + 1], score });
-      if (out.length >= limit) break;
-    }
-    return out;
-  }
-};
-
-// src/chat-biblioteca.js
 var CHAT_VIEW_TYPE = "lampada-chat";
 var LibrarySearch = class {
   constructor(plugin) {
@@ -12920,8 +13582,15 @@ var BibleSettingTab = class extends import_obsidian19.PluginSettingTab {
         this.display();
       }));
     new import_obsidian19.Setting(containerEl).setName(t("Riferimenti nelle note")).setHeading();
-    new import_obsidian19.Setting(containerEl).setName(t("Clic su un riferimento biblico")).setDesc(t("Con \u2318/Ctrl-clic ottieni l\u2019altra azione.")).addDropdown(
-      (d) => d.addOptions({ reader: t("Apri in Lampada"), jwlibrary: t("Apri in JW Library") }).setValue(s.clickAction === "jwlibrary" ? "jwlibrary" : "reader").onChange(async (v) => {
+    new import_obsidian19.Setting(containerEl).setName(t("Clic su un versetto in una nota")).setDesc(t("Cosa succede quando clicchi un riferimento biblico in una tua nota (es. \u201CEfesini 4:16\u201D). Con \u2318/Ctrl-clic si apre JW Library (o Lampada, se qui scegli JW Library).")).addDropdown(
+      (d) => d.addOptions({
+        popup: t("Mostra il versetto in un popup"),
+        reader: t("Apri in Lampada"),
+        tab: t("Apri in una nuova scheda"),
+        left: t("Apri nella barra laterale sinistra"),
+        right: t("Apri nella barra laterale destra"),
+        jwlibrary: t("Apri in JW Library")
+      }).setValue(s.clickAction || "reader").onChange(async (v) => {
         s.clickAction = v;
         await this.plugin.settingsChanged();
       })
@@ -13239,7 +13908,7 @@ async function newsAfterUpdate(plugin, md, title, settings, save, isNew) {
 }
 
 // CHANGELOG.md
-var CHANGELOG_default = "# Novit\xE0\n\n## 0.21.0 \u2014 2026-11-23\n\n- Bibbia: schema del capitolo e del libro. Nel lettore, il pulsante \xABSchema del capitolo\xBB (sul telefono nel menu \u22EF) apre i punti del capitolo nel pannello; con \xABLibro\xBB si vede tutto lo schema, col capitolo aperto segnato. Toccando un punto si va al versetto. Nella pagina del libro, sotto i capitoli, \xABSchema del libro\xBB. Viene dal sommario o dalla panoramica della Bibbia scaricata.\n- Immagini: nello studio, nei documenti, nel programma dell'adunanza e nelle schede un tocco apre l'immagine a tutto schermo. Si ingrandisce col pizzico, col doppio tocco o con la rotella, e si sposta trascinando. Si chiude con \u2715, Esc o un tocco fuori dall'immagine.\n\n## 0.20.3 \u2014 2026-11-23\n\n- Pi\xF9 spazio per il testo: scorrendo non c'\xE8 pi\xF9 la riga in fondo con percentuale e minuti. Resta solo nella lettura a pagine (\xABPagina 3 di 7\xBB).\n- Oggi: il pulsante della lingua delle pubblicazioni accanto alla data.\n- Telefono e tablet: niente barre di scorrimento nelle viste di Lampada.\n- Oggi: il testo di \xABCerca o chiedi\xBB non esce pi\xF9 dal riquadro sugli schermi stretti.\n\n## 0.20.2 \u2014 2026-11-23\n\n- iPhone Duo aperto e tablet: selezionando il testo, la barra dei colori sta in colonna sul bordo del testo, a met\xE0 altezza, a portata di pollice e lontana dal menu di iOS. Sul telefono resta in basso.\n\n## 0.20.1 \u2014 2026-11-23\n\n- Telefono: il pannello del versetto che sale dal basso era diventato una striscia stretta a sinistra; torna largo quanto lo schermo.\n- Modalit\xE0 app, iPhone Duo aperto (o tablet) in orizzontale: strumenti e sezioni in una sola colonna laterale, il testo guadagna larghezza. Sul Duo chiuso restano due colonne.\n\n## 0.20.0 \u2014 2026-11-23\n\n- Modalit\xE0 app, telefono e tablet in orizzontale (anche iPhone Duo): i comandi vanno in colonna sul lato dove arriva il pollice, il testo prende tutta l'altezza. Indietro in alto, le azioni a met\xE0, le sezioni in basso nella colonna accanto all'ora e al Wi\u2011Fi. In verticale le sezioni stanno sempre in basso.\n- Modalit\xE0 normale: torna la riga delle linguette di Obsidian, cos\xEC si vede la differenza con la modalit\xE0 app.\n- Pannello di studio affiancato (Bibbia e Biblioteca): si allarga o si stringe trascinando il bordo; doppio tocco per la misura di prima.\n- Selezione del testo: la barra dei colori sta in basso anche sul tablet e sull'iPhone Duo aperto, dove il menu di iOS (Copia, Cerca info\u2026) non la copre.\n- Selezionando il testo nella Bibbia il testo non salta pi\xF9: niente pi\xF9 swipe per cambiare capitolo (si usano \u2039 \u203A) e le barre restano ferme mentre si trascinano le maniglie.\n\n## 0.19.0 \u2014 2026-11-23\n\n- Dopo un aggiornamento si apre una finestra con le novit\xE0. Tutte le novit\xE0 anche da Impostazioni \u2192 Novit\xE0 o dal comando \xABNovit\xE0 di Lampada\xBB.\n- iPad e iPhone pieghevole aperto: con Lampada unica scheda, la riga delle linguette di Obsidian sparisce e i pulsanti delle barre laterali passano nella barra di Lampada. Tolta anche la fascia vuota tra le linguette e la barra di Lampada: pi\xF9 spazio per il testo.\n\n## 0.18.0 \u2014 2026-11-23\n\n- Lampada in italiano e in inglese: segue la lingua di Obsidian, si cambia in Impostazioni \u2192 Lingua.\n- Pubblicazioni in pi\xF9 lingue: ogni lingua ha la sua biblioteca. Il pulsante \xABIT\xBB (pagina dei libri, Biblioteca, intestazione di una pubblicazione, accanto al titolo di un articolo) passa a un'altra lingua restando sulla stessa pagina, o scarica la pubblicazione in quella lingua.\n- Le note di JW Library sui versetti e sui paragrafi si vedono in tutte le lingue, come in JW Library. Le evidenziazioni restano nella loro lingua.\n- Backup di JW Library: le evidenziazioni di pi\xF9 lingue entrano ed escono ognuna nella sua; le risposte valgono in tutte le lingue.\n- Chi aveva gi\xE0 scaricato la Bibbia in un'altra lingua la ritrova dov'era.\n- Telefono: quando le barre si chiudono o si riaprono scorrendo, il testo resta fermo sotto il dito (prima per un attimo saltava).\n- iPhone: la barra dei colori non resta pi\xF9 sotto il menu Copia/Condividi.\n- Tablet e telefono: toccando i libri della Bibbia non si apre pi\xF9 la barra laterale di Obsidian.\n\n## 0.17.1 \u2014 2026-11-21\n\n- Tablet e telefono: toccando il selettore Bibbia/Biblioteca in alto (o le linguette in basso) non si apre pi\xF9 la barra laterale di Obsidian\n\n## 0.17.0 \u2014 2026-11-21\n\n- \xABCitato in\xBB nella Biblioteca: toccando una pubblicazione o un video si apre un'anteprima con i paragrafi; da l\xEC si entra nel punto giusto\n\n## 0.16.1 \u2014 2026-11-21\n\n- Biblioteca: in \xABNelle mie note\xBB si vedono le righe delle note che citano il versetto, come nella Bibbia\n\n## 0.16.0 \u2014 2026-11-21\n\n- Nella scheda vuota di Obsidian c'\xE8 \xABApri Lampada\xBB, accanto a Nuova nota e Nuova Base\n\n## 0.15.3 \u2014 2026-11-21\n\n- Lettore sul telefono: barra in alto pi\xF9 libera (segnalibri, recenti, racconti paralleli e aspetto del testo nel menu \u22EF), si legge dove sei\n\n## 0.15.2 \u2014 2026-11-21\n\n- Pannello del versetto: le pillole delle sezioni stanno su una riga e scorrono di lato\n\n## 0.15.1 \u2014 2026-11-21\n\n- Pannello del versetto: nomi pi\xF9 chiari e uguali ovunque (Note JW Library, Approfondimenti, Rbi8, Nelle mie note)\n\n## 0.15.0 \u2014 2026-11-21\n\n- Impostazioni \u2192 Pannello del versetto: scegli l'ordine delle sezioni (le tue note, studio, note in calce, riferimenti, Bibbia con riferimenti, nelle mie note, media, citato in, SCRABB). Le schede in alto seguono lo stesso ordine.\n\n## 0.14.1 \u2014 2026-11-21\n\n- Backup JW Library: i titoli lunghi delle note non vengono pi\xF9 accorciati quando il taglio a 160 caratteri cade su uno spazio.\n\n## 0.14.0 \u2014 2026-11-21\n\n- Segnalibri e recenti separati: nella barra c'\xE8 un'icona Recenti (orologio) accanto ai Segnalibri; nelle home un Tutti per ogni riga.\n\n## 0.13.1 \u2014 2026-11-21\n\n- Biblioteca, pannello del paragrafo: su tablet e telefono le azioni (Collega a SCRABB, Copia, JW Library, Spunti) vanno a capo e sono tutte raggiungibili.\n\n## 0.13.0 \u2014 2026-11-21\n\n- Bibbia: se nel vault ci sono pi\xF9 Bibbie complete, si sceglie quale usare dalla pagina dei libri o dal menu \u22EF del lettore. Si resta sullo stesso capitolo.\n\n## 0.12.0 \u2014 2026-11-21\n\n- Biblioteca: nell'intestazione di una pubblicazione le estensioni possono dire da dove arriva e offrire un pulsante.\n\n## 0.11.0 \u2014 2026-11-21\n\n- Biblioteca: pulsante cestino per togliere una pubblicazione o un solo numero (note, immagini, indici). La Bibbia in uso non si toglie.\n\n## 0.10.0 \u2014 2026-11-21\n\n- Importazione EPUB: titoli senza tag HTML, simbolo scritto come sul sito (T-31), i volantini e le altre pubblicazioni nuove vanno nella loro categoria quando \xE8 nota. Le estensioni possono scaricare una pubblicazione in EPUB (anche sul telefono).\n\n## 0.9.0 \u2014 2026-11-21\n\n- Nel programma della settimana le estensioni possono aggiungere un'icona accanto ai link (per esempio la trascrizione di un video).\n\n## 0.8.0 \u2014 2026-11-21\n\n- Le estensioni possono aggiungere pagine dentro la Biblioteca (una riga nella home, con il tasto indietro della biblioteca).\n\n## 0.7.2 \u2014 2026-11-21\n\n- La finestra \xABScarica da jw.org\xBB mostra i titoli puliti; \xABAnnulla\xBB sulla Bibbia con riferimenti non d\xE0 pi\xF9 errore; le estensioni possono usare la stessa finestra.\n\n## 0.7.1 \u2014 2026-11-21\n\n- Prima di ogni download da jw.org: finestra con l'indirizzo esatto del file, le condizioni d'uso del sito e la barra di avanzamento.\n\n## 0.7.0 \u2014 2026-11-21\n\n- Importa le pubblicazioni dagli EPUB (da file, per simbolo, nuovi numeri), con programma delle adunanze, campi risposta e testi delle immagini. Al primo avvio si scarica la Bibbia scegliendo la lingua. L'indice delle parole di Chiedi si crea anche dal telefono.\n\n";
+var CHANGELOG_default = "# Novit\xE0\n\n## 0.21.1 \u2014 2026-11-23\n\n- Immagini: la didascalia e la descrizione dell'immagine (il testo alternativo) non si confondono pi\xF9. La didascalia \xE8 in testo normale, subito sotto l'immagine. La descrizione viene dopo, in corsivo, con il bordo a lato e l'etichetta \xABDescrizione dell'immagine\xBB. Cos\xEC anche nell'immagine a tutto schermo.\n\n## 0.21.0 \u2014 2026-11-23\n\n- Bibbia: schema del capitolo e del libro. Nel lettore, il pulsante \xABSchema del capitolo\xBB (sul telefono nel menu \u22EF) apre i punti del capitolo nel pannello; con \xABLibro\xBB si vede tutto lo schema, col capitolo aperto segnato. Toccando un punto si va al versetto. Nella pagina del libro, sotto i capitoli, \xABSchema del libro\xBB. Viene dal sommario o dalla panoramica della Bibbia scaricata.\n- Immagini: nello studio, nei documenti, nel programma dell'adunanza e nelle schede un tocco apre l'immagine a tutto schermo. Si ingrandisce col pizzico, col doppio tocco o con la rotella, e si sposta trascinando. Si chiude con \u2715, Esc o un tocco fuori dall'immagine.\n\n## 0.20.3 \u2014 2026-11-23\n\n- Pi\xF9 spazio per il testo: scorrendo non c'\xE8 pi\xF9 la riga in fondo con percentuale e minuti. Resta solo nella lettura a pagine (\xABPagina 3 di 7\xBB).\n- Oggi: il pulsante della lingua delle pubblicazioni accanto alla data.\n- Telefono e tablet: niente barre di scorrimento nelle viste di Lampada.\n- Oggi: il testo di \xABCerca o chiedi\xBB non esce pi\xF9 dal riquadro sugli schermi stretti.\n\n## 0.20.2 \u2014 2026-11-23\n\n- iPhone Duo aperto e tablet: selezionando il testo, la barra dei colori sta in colonna sul bordo del testo, a met\xE0 altezza, a portata di pollice e lontana dal menu di iOS. Sul telefono resta in basso.\n\n## 0.20.1 \u2014 2026-11-23\n\n- Telefono: il pannello del versetto che sale dal basso era diventato una striscia stretta a sinistra; torna largo quanto lo schermo.\n- Modalit\xE0 app, iPhone Duo aperto (o tablet) in orizzontale: strumenti e sezioni in una sola colonna laterale, il testo guadagna larghezza. Sul Duo chiuso restano due colonne.\n\n## 0.20.0 \u2014 2026-11-23\n\n- Modalit\xE0 app, telefono e tablet in orizzontale (anche iPhone Duo): i comandi vanno in colonna sul lato dove arriva il pollice, il testo prende tutta l'altezza. Indietro in alto, le azioni a met\xE0, le sezioni in basso nella colonna accanto all'ora e al Wi\u2011Fi. In verticale le sezioni stanno sempre in basso.\n- Modalit\xE0 normale: torna la riga delle linguette di Obsidian, cos\xEC si vede la differenza con la modalit\xE0 app.\n- Pannello di studio affiancato (Bibbia e Biblioteca): si allarga o si stringe trascinando il bordo; doppio tocco per la misura di prima.\n- Selezione del testo: la barra dei colori sta in basso anche sul tablet e sull'iPhone Duo aperto, dove il menu di iOS (Copia, Cerca info\u2026) non la copre.\n- Selezionando il testo nella Bibbia il testo non salta pi\xF9: niente pi\xF9 swipe per cambiare capitolo (si usano \u2039 \u203A) e le barre restano ferme mentre si trascinano le maniglie.\n\n## 0.19.0 \u2014 2026-11-23\n\n- Dopo un aggiornamento si apre una finestra con le novit\xE0. Tutte le novit\xE0 anche da Impostazioni \u2192 Novit\xE0 o dal comando \xABNovit\xE0 di Lampada\xBB.\n- iPad e iPhone pieghevole aperto: con Lampada unica scheda, la riga delle linguette di Obsidian sparisce e i pulsanti delle barre laterali passano nella barra di Lampada. Tolta anche la fascia vuota tra le linguette e la barra di Lampada: pi\xF9 spazio per il testo.\n\n## 0.18.0 \u2014 2026-11-23\n\n- Lampada in italiano e in inglese: segue la lingua di Obsidian, si cambia in Impostazioni \u2192 Lingua.\n- Pubblicazioni in pi\xF9 lingue: ogni lingua ha la sua biblioteca. Il pulsante \xABIT\xBB (pagina dei libri, Biblioteca, intestazione di una pubblicazione, accanto al titolo di un articolo) passa a un'altra lingua restando sulla stessa pagina, o scarica la pubblicazione in quella lingua.\n- Le note di JW Library sui versetti e sui paragrafi si vedono in tutte le lingue, come in JW Library. Le evidenziazioni restano nella loro lingua.\n- Backup di JW Library: le evidenziazioni di pi\xF9 lingue entrano ed escono ognuna nella sua; le risposte valgono in tutte le lingue.\n- Chi aveva gi\xE0 scaricato la Bibbia in un'altra lingua la ritrova dov'era.\n- Telefono: quando le barre si chiudono o si riaprono scorrendo, il testo resta fermo sotto il dito (prima per un attimo saltava).\n- iPhone: la barra dei colori non resta pi\xF9 sotto il menu Copia/Condividi.\n- Tablet e telefono: toccando i libri della Bibbia non si apre pi\xF9 la barra laterale di Obsidian.\n\n## 0.17.1 \u2014 2026-11-21\n\n- Tablet e telefono: toccando il selettore Bibbia/Biblioteca in alto (o le linguette in basso) non si apre pi\xF9 la barra laterale di Obsidian\n\n## 0.17.0 \u2014 2026-11-21\n\n- \xABCitato in\xBB nella Biblioteca: toccando una pubblicazione o un video si apre un'anteprima con i paragrafi; da l\xEC si entra nel punto giusto\n\n## 0.16.1 \u2014 2026-11-21\n\n- Biblioteca: in \xABNelle mie note\xBB si vedono le righe delle note che citano il versetto, come nella Bibbia\n\n## 0.16.0 \u2014 2026-11-21\n\n- Nella scheda vuota di Obsidian c'\xE8 \xABApri Lampada\xBB, accanto a Nuova nota e Nuova Base\n\n## 0.15.3 \u2014 2026-11-21\n\n- Lettore sul telefono: barra in alto pi\xF9 libera (segnalibri, recenti, racconti paralleli e aspetto del testo nel menu \u22EF), si legge dove sei\n\n## 0.15.2 \u2014 2026-11-21\n\n- Pannello del versetto: le pillole delle sezioni stanno su una riga e scorrono di lato\n\n## 0.15.1 \u2014 2026-11-21\n\n- Pannello del versetto: nomi pi\xF9 chiari e uguali ovunque (Note JW Library, Approfondimenti, Rbi8, Nelle mie note)\n\n## 0.15.0 \u2014 2026-11-21\n\n- Impostazioni \u2192 Pannello del versetto: scegli l'ordine delle sezioni (le tue note, studio, note in calce, riferimenti, Bibbia con riferimenti, nelle mie note, media, citato in, SCRABB). Le schede in alto seguono lo stesso ordine.\n\n## 0.14.1 \u2014 2026-11-21\n\n- Backup JW Library: i titoli lunghi delle note non vengono pi\xF9 accorciati quando il taglio a 160 caratteri cade su uno spazio.\n\n## 0.14.0 \u2014 2026-11-21\n\n- Segnalibri e recenti separati: nella barra c'\xE8 un'icona Recenti (orologio) accanto ai Segnalibri; nelle home un Tutti per ogni riga.\n\n## 0.13.1 \u2014 2026-11-21\n\n- Biblioteca, pannello del paragrafo: su tablet e telefono le azioni (Collega a SCRABB, Copia, JW Library, Spunti) vanno a capo e sono tutte raggiungibili.\n\n## 0.13.0 \u2014 2026-11-21\n\n- Bibbia: se nel vault ci sono pi\xF9 Bibbie complete, si sceglie quale usare dalla pagina dei libri o dal menu \u22EF del lettore. Si resta sullo stesso capitolo.\n\n## 0.12.0 \u2014 2026-11-21\n\n- Biblioteca: nell'intestazione di una pubblicazione le estensioni possono dire da dove arriva e offrire un pulsante.\n\n## 0.11.0 \u2014 2026-11-21\n\n- Biblioteca: pulsante cestino per togliere una pubblicazione o un solo numero (note, immagini, indici). La Bibbia in uso non si toglie.\n\n## 0.10.0 \u2014 2026-11-21\n\n- Importazione EPUB: titoli senza tag HTML, simbolo scritto come sul sito (T-31), i volantini e le altre pubblicazioni nuove vanno nella loro categoria quando \xE8 nota. Le estensioni possono scaricare una pubblicazione in EPUB (anche sul telefono).\n\n## 0.9.0 \u2014 2026-11-21\n\n- Nel programma della settimana le estensioni possono aggiungere un'icona accanto ai link (per esempio la trascrizione di un video).\n\n## 0.8.0 \u2014 2026-11-21\n\n- Le estensioni possono aggiungere pagine dentro la Biblioteca (una riga nella home, con il tasto indietro della biblioteca).\n\n## 0.7.2 \u2014 2026-11-21\n\n- La finestra \xABScarica da jw.org\xBB mostra i titoli puliti; \xABAnnulla\xBB sulla Bibbia con riferimenti non d\xE0 pi\xF9 errore; le estensioni possono usare la stessa finestra.\n\n## 0.7.1 \u2014 2026-11-21\n\n- Prima di ogni download da jw.org: finestra con l'indirizzo esatto del file, le condizioni d'uso del sito e la barra di avanzamento.\n\n## 0.7.0 \u2014 2026-11-21\n\n- Importa le pubblicazioni dagli EPUB (da file, per simbolo, nuovi numeri), con programma delle adunanze, campi risposta e testi delle immagini. Al primo avvio si scarica la Bibbia scegliendo la lingua. L'indice delle parole di Chiedi si crea anche dal telefono.\n\n";
 
 // src/plugin.js
 var DEVICE_KEY = "lampada-lettura";
@@ -13527,6 +14196,7 @@ var LampadaPlugin = class extends import_obsidian22.Plugin {
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
         if (leaf && leaf.view instanceof import_obsidian22.MarkdownView) this.lastMarkdownView = leaf.view;
+        if (leaf && leaf.view instanceof LampadaView) this.lastShellLeaf = leaf;
       })
     );
     this.registerEvent(
@@ -13583,6 +14253,7 @@ var LampadaPlugin = class extends import_obsidian22.Plugin {
   /** Il guscio aperto (quello nell'area principale, se ce n'è più d'uno). */
   shellLeaf() {
     const leaves = this.app.workspace.getLeavesOfType(APP_VIEW_TYPE);
+    if (this.lastShellLeaf && leaves.includes(this.lastShellLeaf)) return this.lastShellLeaf;
     return leaves.find((l) => this.leafLocation(l) === "tab") || leaves[0] || null;
   }
   /** Sezioni aperte di un tipo, sia come schede sia dentro il guscio. */
@@ -13611,9 +14282,10 @@ var LampadaPlugin = class extends import_obsidian22.Plugin {
     if (!this.settings.appShell) return null;
     const ws = this.app.workspace;
     let leaf = this.shellLeaf();
-    if (!leaf) {
-      const recent = ws.getMostRecentLeaf(ws.rootSplit);
-      leaf = recent && recent.view && recent.view.getViewType() === "empty" ? recent : ws.getLeaf("tab");
+    const recent = ws.getMostRecentLeaf(ws.rootSplit);
+    const empty = recent && recent.view && recent.view.getViewType() === "empty";
+    if (!leaf || empty) {
+      leaf = empty ? recent : ws.getLeaf("tab");
       await leaf.setViewState({ type: APP_VIEW_TYPE, active: true, state: { area } });
     }
     await ws.revealLeaf(leaf);
@@ -14873,7 +15545,7 @@ ${md}
       if (!img) return;
       evt.preventDefault();
       evt.stopPropagation();
-      openImageViewer(this.app, img.currentSrc || img.src, img.alt);
+      openImageViewer(this.app, img.currentSrc || img.src, imageTexts(img));
     }, { capture: true });
     this.registerDomEvent(document, "mouseover", (evt) => this.onDocHover(evt));
     this.registerDomEvent(document, "mouseout", (evt) => this.onDocHoverOut(evt));
@@ -14926,20 +15598,25 @@ ${md}
     return { kind: hit.kind, ref: hit.ref, el: span };
   }
   onDocPointer(evt) {
+    const pinned = this.hoverInfo && this.hoverInfo.pinned;
+    if (evt.type === "mousedown" && pinned && !this.hoverEl.contains(evt.target) && !this.hoverInfo.el.contains(evt.target)) this.hideHover(true);
     if (evt.button !== 0) return;
     const info = this.detectBibleLink(evt.target, true);
     if (!info) return;
     const mod = evt.metaKey || evt.ctrlKey;
-    const wantReader = this.settings.clickAction === "reader" !== mod;
-    if (!wantReader && info.kind === "jw") return;
-    if (!wantReader && info.kind === "wiki" && this.settings.clickAction === "reader") return;
+    const set = this.settings.clickAction || "reader";
+    const action = mod ? set === "jwlibrary" ? "reader" : "jwlibrary" : set;
+    if (action === "jwlibrary" && (info.kind === "jw" || info.kind === "wiki" && mod)) return;
     evt.preventDefault();
     evt.stopPropagation();
     evt.stopImmediatePropagation();
     if (evt.type !== "click") return;
+    window.clearTimeout(this.hoverShowTimer);
     this.hideHover(true);
-    if (wantReader) this.openReader(info.ref);
-    else this.openInJwLibrary(info.ref);
+    if (action === "popup") this.showHover({ ...info, pinned: true });
+    else if (action === "jwlibrary") this.openInJwLibrary(info.ref);
+    else if (action === "tab") this.openReaderInNewTab(info.ref);
+    else this.openReader(info.ref, action === "left" || action === "right" ? action : void 0);
   }
   onDocHover(evt) {
     if (!this.settings.hoverPreview) return;
@@ -14961,6 +15638,7 @@ ${md}
   }
   hideHover(now) {
     window.clearTimeout(this.hoverHideTimer);
+    if (!now && this.hoverInfo && this.hoverInfo.pinned) return;
     const hide = () => {
       this.hoverEl.hide();
       this.hoverInfo = null;
@@ -15021,4 +15699,4 @@ ${md}
 
 // src/main.js
 var main_default = LampadaPlugin;
-var _test = { parseOutline, newsBetween, cmpVersion, langOfMeps, mepsOf, lingua: lingua_exports, dataDir, langRoot, epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
+var _test = { sentenceEnds, splitSentences, alignSentences, ScrabbEditModal, scrabbApprox, scrabbDate, parseOutline, newsBetween, cmpVersion, langOfMeps, mepsOf, lingua: lingua_exports, dataDir, langRoot, epubExtras, LibraryData, parseMeetingHtml, weekStartFromLabel, scanHidden, fileAt, folderFiles, subfolders, mdFiles, readFile, fileMeta, linkDest, fileSrc, LampadaView, IndexBuilder, IndexReader, notePars, paragraphsOf, stem, terms, LibrarySearch, askLibrary, BibleView, LibraryView, SourceList, askAboutSources, splitCited, leadText, parsePresets, suggestComments, BibleSettingTab, jwTokenText, jwlMarker, parseNoteFile, formatNoteBlock, noteFreeText, JwlImporter, JwlExporter, zipFiles, crc32, parseJwlBlocks, sameNoteTitle, jwTokenCount, splitJwTokens, unzipEntries, buildJwlPlan, jwlTag, formatIssue, jwlNoteBlock, refFromCodes, jwLibraryUrl, cleanSnippet, parseChapterMarkdown, parseVerseList, compressVerses, extractBlock, BibleData, convertBibleEpub, convertPubEpub, parseSymbol, refRange };
